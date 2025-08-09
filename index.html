@@ -74,9 +74,10 @@
 
     <div class="info">
       <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
-      <p><span>Số tài khoản:</span> 9917523946</p>
+      <p><span>Số tài khoản:</span> 9917.523.946</p>
       <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
-      <p><span>Nội dung:</span> rita</p>
+      <p><span>................</span> </p>
+	  <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
     </div>
   </div>
 
@@ -100,8 +101,8 @@
       const n = parseInt(number, 10);
       if (isNaN(n)) return "";
 
-      const ChuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-      const Tien = ["", "nghìn", "triệu", "tỷ"];
+      const ChuSo = ["Không", "Một", "Hai", "Ba", "Bốn", "Năm", "Sáu", "Bảy", "Tám", "Chín"];
+      const Tien = ["", "nghìn,", "triệu,", "tỷ,"];
 
       function DocSo3ChuSo(baso) {
         let tram = Math.floor(baso / 100);
@@ -110,7 +111,7 @@
         let str = "";
 
         if (tram > 0) {
-          str += ChuSo[tram] + " trăm";
+          str += ChuSo[tram] + " trăm,";
           if (chuc === 0 && donvi > 0) str += " linh";
         }
         if (chuc > 1) {
@@ -119,7 +120,7 @@
           else if (donvi === 5) str += " lăm";
           else if (donvi > 0) str += " " + ChuSo[donvi];
         } else if (chuc === 1) {
-          str += " mười";
+          str += " Mười";
           if (donvi === 1) str += " một";
           else if (donvi === 5) str += " lăm";
           else if (donvi > 0) str += " " + ChuSo[donvi];
