@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Thanh Toán</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 30px;
+      background-color: #f0f0f0;
+    }
+    .container {
+      background: white;
+      max-width: 420px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0a53be;
+      margin-bottom: 5px;
+    }
+    h3 {
+      color: #2e7d32;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .address {
+      margin-bottom: 20px;
+      color: #555;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 90%;
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    img {
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #fff;
+    }
+    .amount-text {
+      margin-top: 10px;
+      font-style: italic;
+      color: #444;
+    }
+    .info {
+      text-align: left;
+      font-size: 15px;
+      margin-top: 15px;
+    }
+    .info span {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>QUÉT MÃ ĐỂ THANH TOÁN</h2>
+    <h3>KARAOKE RITA</h3>
+    <div class="address">8 Lý Thường Kiệt, Đức Trọng</div>
+
+    <input type="text" id="amount" placeholder="Nhập số tiền (VD: 150,000)" oninput="formatAndUpdateQR(this)">
+
+    <div class="amount-text" id="amountText"></div>
+
+    <img id="qrImage" src="" width="250" alt="QR thanh toán">
+
+    <div class="info">
+      <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
+      <p><span>Số tài khoản:</span> 9917523946</p>
+      <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
+      <p><span>Nội dung:</span> rita</p>
+    </div>
+  </div>
+
+  <script>
+    function formatAndUpdateQR(input) {
+      let raw = input.value.replace(/[^\d]/g, "");
+      if (!raw) {
+        document.getElementById("qrImage").src = "";
+        document.getElementById("amountText").textContent = "";
+        return;
+      }
+
+      input.value = Number(raw).toLocaleString("vi-VN");
+
+      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=rita&accountName=HUYNH+PHUONG+TRANG`;
+      document.getElementById("qrImage").src = url;
+      document.getElementById("amountText").textContent = toVietnameseText(raw) + " đồng";
+    }
+
+    function toVietnameseText(number) {
+      const n = parseInt(number, 10);
+      if (isNaN(n)) return "";
+
+      const ChuSo = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+      const Tien = ["", "nghìn", "triệu", "tỷ"];
+
+      function DocSo3ChuSo(baso) {
+        let tram = Math.floor(baso / 100);
+        let chuc = Math.floor((baso % 100) / 10);
+        let donvi = baso % 10;
+        let str = "";
+
+        if (tram > 0) {
+          str += ChuSo[tram] + " trăm";
+          if (chuc === 0 && donvi > 0) str += " linh";
+        }
+        if (chuc > 1) {
+          str += " " + ChuSo[chuc] + " mươi";
+          if (donvi === 1) str += " mốt";
+          else if (donvi === 5) str += " lăm";
+          else if (donvi > 0) str += " " + ChuSo[donvi];
+        } else if (chuc === 1) {
+          str += " mười";
+          if (donvi === 1) str += " một";
+          else if (donvi === 5) str += " lăm";
+          else if (donvi > 0) str += " " + ChuSo[donvi];
+        } else if (donvi > 0) {
+          str += " " + ChuSo[donvi];
+        }
+        return str.trim();
+      }
+
+      let result = "", i = 0;
+      let num = n;
+      while (num > 0) {
+        let phan = num % 1000;
+        if (phan > 0) {
+          let doc = DocSo3ChuSo(phan);
+          result = doc + " " + Tien[i] + " " + result;
+        }
+        num = Math.floor(num / 1000);
+        i++;
+      }
+
+      return result.trim().replace(/\s+/g, " ");
+    }
+  </script>
+</body>
+</html>
