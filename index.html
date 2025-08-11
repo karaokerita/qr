@@ -190,6 +190,14 @@
 
       return result.trim().replace(/\s+/g, " ");
     }
+    ///xoa so tien
+    window.onload = function() {
+  const input = document.getElementById("amount");
+  input.value = "";
+  document.getElementById("qrImage").src = "";
+  document.getElementById("amountText").textContent = "";
+};
+
   </script>
 </body>
 </html>
