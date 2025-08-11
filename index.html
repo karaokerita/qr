@@ -1,24 +1,46 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>QR Thanh Toán</title>
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
     body {
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+
       font-family: Arial, sans-serif;
       text-align: center;
       padding-top: 30px;
       background-color: #f0f0f0;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     .container {
-      background: white;
-      max-width: 100%;
-      margin: auto;
+      background: rgba(255, 255, 255, 0.9);
+      max-width: 500px;
+      width: 90%;
+      margin: 20px auto;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      color: #000;
     }
+
     h2 {
       color: #0a53be;
       margin-bottom: 5px;
@@ -38,12 +60,17 @@
       width: 90%;
       text-align: right;
       margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
     img {
       margin-top: 15px;
       border: 1px solid #ccc;
       padding: 10px;
       background: #fff;
+      border-radius: 8px;
+      max-width: 100%;
+      height: auto;
     }
     .amount-text {
       margin-top: 10px;
@@ -57,6 +84,24 @@
     }
     .info span {
       font-weight: bold;
+    }
+
+    /* Iframe phần nhúng Google Sheets */
+    .sheet-container {
+      margin-top: 40px;
+      width: 90%;
+      max-width: 900px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .sheet-container iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      display: block;
+      border-radius: 12px;
     }
   </style>
 </head>
@@ -77,10 +122,11 @@
       <p><span>Số tài khoản:</span> 9917.523.946</p>
       <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
       <p><span>................</span> </p>
-	  <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
+      <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
     </div>
   </div>
 
+  
   <script>
     function formatAndUpdateQR(input) {
       let raw = input.value.replace(/[^\d]/g, "");
