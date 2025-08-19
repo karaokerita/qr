@@ -124,7 +124,7 @@
 
       input.value = Number(raw).toLocaleString("vi-VN");
 
-      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=rita&accountName=HUYNH+PHUONG+TRANG`;
+      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
       document.getElementById("qrImage").src = url;
       document.getElementById("amountText").textContent = toVietnameseText(raw) + " đồng";
     }
