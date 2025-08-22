@@ -1,120 +1,170 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR Thanh Toán</title>
+  <meta charset="UTF-8">
+  <title>QR Thanh Toán - Karaoke RITA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
+      text-align: center;
       background: url('background.jpg') no-repeat center center fixed;
       background-size: cover;
-      text-align: center;
-      color: #333;
-    }
-    .container {
-      background: rgba(255,255,255,0.92);
-      max-width: 500px;
-      margin: 20px auto;
+      margin: 0;
       padding: 20px;
+      color: #fff;
+    }
+    h2, h3 { margin: 5px 0; }
+    .address { margin-bottom: 15px; font-size: 14px; }
+    #qrImage {
+      margin: 20px auto;
+      width: 280px;
+      height: 280px;
+      background: #fff;
+      padding: 10px;
       border-radius: 12px;
     }
-    h2 { color: #0a53be; margin: 5px 0; }
-    h3 { color: #2e7d32; margin: 5px 0; }
-    .address { margin-bottom: 20px; color: #555; }
-    input {
-      width: 80%; padding: 10px; margin: 10px auto;
-      border: 1px solid #ccc; border-radius: 6px;
-      text-align: right; font-size: 16px;
+    #amount {
+      font-size: 18px;
+      padding: 6px 10px;
+      text-align: center;
+      width: 220px;
+      border-radius: 6px;
+      border: none;
+      margin-top: 10px;
     }
-    #qr-reader { width: 100%; margin-top: 15px; }
-    img {
-      margin-top: 15px; padding: 10px; border: 1px solid #ccc;
-      background: #fff; border-radius: 8px; max-width: 90%;
+    #reader {
+      width: 300px;
+      margin: 15px auto;
+      display: none;
     }
-    .info { text-align: left; margin-top: 15px; font-size: 15px; }
-    .info span { font-weight: bold; }
+    .info p { margin: 3px 0; }
+    button {
+      padding: 8px 14px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #28a745;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>QUÉT MÃ ĐỂ THANH TOÁN</h2>
-    <h3>KARAOKE RITA</h3>
-    <div class="address">8 Lý Thường Kiệt, Đức Trọng</div>
+  <h2>QUÉT MÃ ĐỂ THANH TOÁN</h2>
+  <h3>KARAOKE RITA</h3>
+  <div class="address">8 Lý Thường Kiệt, Đức Trọng</div>
 
-    <input type="text" id="amount" placeholder="Nhập số tiền (VD: 150.000)" oninput="formatAndUpdateQR(this)">
-    <div id="amountText"></div>
+  <input type="text" id="amount" placeholder="Nhập số tiền (VD: 150.000)" oninput="formatAndUpdateQR(this)">
+  <div id="amountText"></div>
 
-    <img id="qrImage" src="" alt="QR thanh toán">
+  <img id="qrImage" src="" alt="QR Thanh toán">
+  
+  <button onclick="startScan()">📷 Quét mã</button>
+  <div id="reader"></div>
 
-    <div id="qr-reader"></div>
-
-    <div class="info">
-      <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
-      <p><span>Số tài khoản:</span> 9917.523.946</p>
-      <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
-      <p><span>................</span></p>
-      <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
-    </div>
+  <div class="info">
+    <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
+    <p><span>Số tài khoản:</span> 9917.523.946</p>
+    <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
+    <p><span>................</span></p>
+    <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
   </div>
 
-<script>
-function formatAndUpdateQR(input) {
-  let raw = input.value.replace(/[^\d]/g, "");
-  if (!raw) {
-    document.getElementById("qrImage").src = "";
-    document.getElementById("amountText").textContent = "";
-    return;
-  }
-  input.value = Number(raw).toLocaleString("vi-VN");
-  const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=Thank+you&accountName=HUYNH+PHUONG+TRANG`;
-  document.getElementById("qrImage").src = url;
-  document.getElementById("amountText").textContent = toVietnameseText(raw) + " đồng";
-}
-function toVietnameseText(number) {
-  const n = parseInt(number, 10);
-  if (isNaN(n)) return "";
-  const ChuSo = ["Không","Một","Hai","Ba","Bốn","Năm","Sáu","Bảy","Tám","Chín"];
-  const Tien = ["","nghìn","triệu","tỷ"];
-  function DocSo3ChuSo(baso) {
-    let tram=Math.floor(baso/100), chuc=Math.floor((baso%100)/10), donvi=baso%10;
-    let str="";
-    if(tram>0){str+=ChuSo[tram]+" trăm";if(chuc===0&&donvi>0)str+=" linh";}
-    if(chuc>1){str+=" "+ChuSo[chuc]+" mươi";if(donvi===1)str+=" mốt";else if(donvi===5)str+=" lăm";else if(donvi>0)str+=" "+ChuSo[donvi];}
-    else if(chuc===1){str+=" mười";if(donvi===1)str+=" một";else if(donvi===5)str+=" lăm";else if(donvi>0)str+=" "+ChuSo[donvi];}
-    else if(donvi>0){str+=" "+ChuSo[donvi];}
-    return str.trim();
-  }
-  let result="",i=0,num=n;
-  while(num>0){let phan=num%1000;if(phan>0){result=DocSo3ChuSo(phan)+" "+Tien[i]+" "+result;}num=Math.floor(num/1000);i++;}
-  return result.trim().replace(/\s+/g," ");
-}
-
-// Mở camera sau (góc rộng) ngay khi load
-window.addEventListener("load", () => {
-  const html5QrCode = new Html5Qrcode("qr-reader");
-  Html5Qrcode.getCameras().then(devices => {
-    if (devices && devices.length) {
-      // chọn camera sau nếu có
-      let cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
-      html5QrCode.start(
-        cameraId,
-        { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-          // ví dụ: lấy số tiền từ nội dung QR nếu chứa ?amount=...
-          let match = qrCodeMessage.match(/amount=(\d+)/);
-          if (match) {
-            document.getElementById("amount").value = Number(match[1]).toLocaleString("vi-VN");
-            formatAndUpdateQR(document.getElementById("amount"));
-          }
-        },
-        errorMessage => {}
-      );
+  <script>
+    function formatNumber(n) {
+      return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
-  }).catch(err => console.log(err));
-});
-</script>
+
+    function formatAndUpdateQR(input) {
+      let raw = input.value.replace(/\D/g, "");
+      input.value = formatNumber(input.value);
+      updateQR(raw);
+    }
+
+    function updateQR(raw) {
+      if (!raw) {
+        document.getElementById("qrImage").src = "";
+        document.getElementById("amountText").textContent = "";
+        return;
+      }
+      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
+      document.getElementById("qrImage").src = url;
+      document.getElementById("amountText").textContent = toVietnameseText(raw) + " đồng";
+    }
+
+    // số thành chữ
+    function toVietnameseText(number) {
+      const chuSo = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+      function docSo3ChuSo(baso) {
+        let tram = parseInt(baso/100);
+        let chuc = parseInt((baso%100)/10);
+        let donvi = baso%10;
+        let ketQua = "";
+        if(tram!==0){ ketQua += chuSo[tram]+" trăm "; if(chuc===0 && donvi!==0) ketQua+="linh "; }
+        if(chuc!==0 && chuc!==1){ ketQua += chuSo[chuc]+" mươi "; if(chuc===0 && donvi!==0) ketQua+="linh "; }
+        if(chuc===1) ketQua+="mười ";
+        switch(donvi){
+          case 1: ketQua+=(chuc!==0&&chuc!==1)?"mốt ":"một "; break;
+          case 5: ketQua+=(chuc!==0)?"lăm ":"năm "; break;
+          case 0: break;
+          default: ketQua+=chuSo[donvi]+" ";
+        }
+        return ketQua;
+      }
+      let viTri = ["","nghìn","triệu","tỷ"];
+      let str="";
+      let i=0;
+      while(number>0){
+        let baso = number%1000;
+        if(baso!==0) str = docSo3ChuSo(baso)+viTri[i]+" "+str;
+        number = parseInt(number/1000);
+        i++;
+      }
+      return str.trim();
+    }
+
+    let scanner = null;
+
+    async function startScan() {
+      const reader = document.getElementById("reader");
+      reader.style.display = "block";
+      if (!scanner) scanner = new Html5Qrcode("reader");
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        let cameraId = devices[0].id;
+        for (let d of devices) {
+          if (/wide|ultra/i.test(d.label)) { cameraId = d.id; break; }
+        }
+        scanner.start(
+          cameraId,
+          { fps: 10, qrbox: 250 },
+          qrCodeMessage => {
+            console.log("Scanned:", qrCodeMessage);
+            let amount = qrCodeMessage.replace(/\D/g, "");
+            if (amount) {
+              document.getElementById("amount").value = formatNumber(amount);
+              updateQR(amount);
+            }
+            stopScan();
+          },
+          () => {}
+        );
+      } catch (err) {
+        console.error("Lỗi camera:", err);
+        alert("Không mở được camera!");
+      }
+    }
+
+    function stopScan() {
+      if (scanner) {
+        scanner.stop().then(() => {
+          document.getElementById("reader").style.display = "none";
+        }).catch(err => console.error("Dừng camera lỗi:", err));
+      }
+    }
+  </script>
 </body>
 </html>
