@@ -2,115 +2,76 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>QR Thanh Toán</title>
+  <title>QR Thanh Toán VietQR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: url('background.jpg') no-repeat center center fixed;
-      background-size: cover;
       margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .container {
-      background: rgba(255, 255, 255, 0.9);
       padding: 20px;
-      border-radius: 16px;
-      display: inline-block;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      background: #f2f2f2;
     }
-    input {
-      padding: 10px;
-      font-size: 18px;
-      width: 80%;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    #qrImage {
-      display: block;
-      margin: 20px auto;
-    }
-    #amountText {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    #reader {
-      width: 300px;
-      margin: 20px auto;
-      display: none;
+    h2 { margin-bottom: 10px; }
+    #amount {
+      font-size: 20px;
+      padding: 8px;
+      width: 220px;
+      text-align: center;
     }
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
       font-size: 16px;
+      margin: 10px 5px;
+      padding: 10px 15px;
       border: none;
       border-radius: 8px;
-      background-color: #007bff;
+      background: #4CAF50;
       color: white;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
+    button:hover { background: #45a049; }
+    #qrImage {
+      margin: 20px auto;
+      display: block;
+      max-width: 260px;
+    }
+    #reader {
+      width: 300px;
+      margin: 15px auto;
+      display: none;
+    }
+    #amountText {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #333;
     }
   </style>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h2>QR Thanh Toán</h2>
-    <input type="number" id="amount" placeholder="Nhập số tiền (VD: 150000)" oninput="formatAndUpdateQR(this)" autocomplete="off">
-    <div id="amountText"></div>
-    <img id="qrImage" src="" alt="QR Thanh toán" width="250">
-    <br>
-    <button onclick="startScan()">📷 Quét QR lấy số tiền</button>
-    <div id="reader"></div>
-  </div>
+  <h2>QR Thanh Toán VietQR</h2>
+  <input type="number" id="amount" placeholder="Nhập số tiền" oninput="updateQR()">
+  <br>
+  <button onclick="startScan()">📷 Quét mã</button>
+  <div id="reader"></div>
+  <img id="qrImage" src="" alt="QR sẽ hiển thị ở đây">
+  <div id="amountText"></div>
 
   <script>
-    let scanner = null;
-    let currentCameraId = null;
-
-    window.onload = () => {
-      document.getElementById("amount").value = "";
-      document.getElementById("qrImage").src = "";
-      document.getElementById("amountText").innerText = "";
-    };
-
-    // Sinh mã QR thanh toán (demo)
-    function formatAndUpdateQR(input) {
-      let value = input.value.replace(/\D/g, "");
-      input.value = value;
-
-      if (!value) {
+    function updateQR() {
+      let raw = document.getElementById("amount").value.replace(/\D/g,'');
+      if (!raw) {
         document.getElementById("qrImage").src = "";
-        document.getElementById("amountText").innerText = "";
+        document.getElementById("amountText").textContent = "";
         return;
       }
-
-      let qrData = "https://img.vietqr.io/image/970422-00000000000000-compact2.png?amount=" + value;
-      document.getElementById("qrImage").src = qrData;
-
-      document.getElementById("amountText").innerText = toVietnameseText(value) + " đồng";
+      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=Thank%20you&accountName=HUYNH+PHUONG+TRANG`;
+      document.getElementById("qrImage").src = url;
+      document.getElementById("amountText").textContent = toVietnameseText(raw) + " đồng";
     }
 
-    // Đọc số tiền từ QR VietQR (chuẩn EMV)
-    function parseVietQR(qrString) {
-      let i = 0;
-      let result = {};
-      while (i < qrString.length) {
-        let tag = qrString.substr(i, 2);
-        let length = parseInt(qrString.substr(i + 2, 2), 10);
-        let value = qrString.substr(i + 4, length);
-        result[tag] = value;
-        i += 4 + length;
-      }
-      return result;
-    }
+    // --- Quét QR ---
+    let scanner = null;
 
     async function startScan() {
       const reader = document.getElementById("reader");
@@ -120,36 +81,41 @@
         scanner = new Html5Qrcode("reader");
       }
 
-      if (!currentCameraId) {
-        try {
-          const cameras = await Html5Qrcode.getCameras();
-          console.log("Danh sách camera:", cameras);
-
-          if (cameras && cameras.length) {
-            let wideCam = cameras.find(cam =>
-              cam.label.toLowerCase().includes("wide")
-            );
-            currentCameraId = wideCam ? wideCam.id : cameras[0].id;
-          }
-        } catch (err) {
-          console.error("Không lấy được camera:", err);
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (!devices || !devices.length) {
+          alert("Không tìm thấy camera!");
+          return;
         }
-      }
 
-      scanner.start(
-        currentCameraId || { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        qrCodeMessage => { handleScanResult(qrCodeMessage); },
-        errorMessage => {}
-      ).catch(err => {
-        console.error("Không mở được camera: ", err);
-      });
+        // ưu tiên camera wide/ultra wide
+        let cameraId = devices[0].id;
+        for (let d of devices) {
+          if (/wide|ultra/i.test(d.label)) {
+            cameraId = d.id;
+            break;
+          }
+        }
+
+        scanner.start(
+          cameraId,
+          { fps: 10, qrbox: 250 },
+          qrCodeMessage => { handleScanResult(qrCodeMessage); },
+          errorMessage => {}
+        ).catch(err => {
+          console.error("Không mở được camera:", err);
+        });
+
+      } catch (err) {
+        console.error("Lỗi khi lấy camera:", err);
+        alert("Không mở được camera!");
+      }
     }
 
     function handleScanResult(qrCodeMessage) {
       console.log("Scanned:", qrCodeMessage);
-
       let amount = null;
+
       try {
         let data = parseVietQR(qrCodeMessage);
         if (data["54"]) amount = data["54"];
@@ -163,7 +129,7 @@
 
       if (amount) {
         document.getElementById("amount").value = amount;
-        formatAndUpdateQR(document.getElementById("amount"));
+        updateQR();
       } else {
         alert("QR không chứa số tiền hợp lệ!");
       }
@@ -179,46 +145,42 @@
       }
     }
 
-    // Chuyển số thành chữ tiếng Việt
-    function toVietnameseText(number) {
-      const ChuSo = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-      const Tien = ["", "nghìn", "triệu", "tỷ"];
-      let num = parseInt(number, 10);
-      if (isNaN(num)) return "";
-
-      function read3(number) {
-        let hundred = Math.floor(number/100);
-        let ten = Math.floor((number%100)/10);
-        let unit = number%10;
-        let str = "";
-        if (hundred > 0) {
-          str += ChuSo[hundred] + " trăm";
-          if (ten === 0 && unit > 0) str += " lẻ";
-        }
-        if (ten > 1) {
-          str += " " + ChuSo[ten] + " mươi";
-          if (unit === 1) str += " mốt";
-          else if (unit === 5) str += " lăm";
-          else if (unit > 0) str += " " + ChuSo[unit];
-        } else if (ten === 1) {
-          str += " mười";
-          if (unit === 1) str += " một";
-          else if (unit === 5) str += " lăm";
-          else if (unit > 0) str += " " + ChuSo[unit];
-        } else if (unit > 0) {
-          str += " " + ChuSo[unit];
-        }
-        return str.trim();
+    // --- parse QR chuẩn VietQR/EMV ---
+    function parseVietQR(data) {
+      let i = 0, res = {};
+      while (i < data.length) {
+        let id = data.substr(i,2); i+=2;
+        let len = parseInt(data.substr(i,2)); i+=2;
+        let val = data.substr(i,len); i+=len;
+        res[id] = val;
       }
+      return res;
+    }
 
-      let i = 0, result = "";
-      while (num > 0) {
-        let block = num % 1000;
-        if (block > 0) result = read3(block) + " " + Tien[i] + " " + result;
-        num = Math.floor(num/1000);
+    // --- Chuyển số thành chữ tiếng Việt ---
+    function toVietnameseText(number) {
+      const dv = ["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+      function read3(num){
+        let str = "";
+        let tram = Math.floor(num/100);
+        let chuc = Math.floor((num%100)/10);
+        let donvi = num%10;
+        if(tram>0){ str+=dv[tram]+" trăm "; if(chuc==0&&donvi>0) str+="lẻ "; }
+        if(chuc>1){ str+=dv[chuc]+" mươi "; if(donvi==1) str+="mốt "; else if(donvi==5) str+="lăm "; else if(donvi>0) str+=dv[donvi]+" "; }
+        else if(chuc==1){ str+="mười "; if(donvi==5) str+="lăm "; else if(donvi>0) str+=dv[donvi]+" "; }
+        else if(chuc==0&&donvi>0) str+=dv[donvi]+" ";
+        return str;
+      }
+      if(number==0) return "không";
+      let i=0, arr=[];
+      const units=["","nghìn","triệu","tỷ"];
+      while(number>0){
+        let num=number%1000;
+        if(num>0) arr.unshift(read3(num)+units[i]);
+        number=Math.floor(number/1000);
         i++;
       }
-      return result.trim();
+      return arr.join(" ").trim();
     }
   </script>
 </body>
