@@ -2,94 +2,73 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quét mã để thanh toán - Karaoke Rita</title>
+  <title>QR Thanh Toán - Karaoke Rita</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #000;
       margin: 0;
-      padding: 0;
-      text-align: center;
-      color: #ffd700;
-    }
-    h2 { margin-top: 20px; color: #ffd700; }
-    h3 { color: #fff; }
-    .address { margin-bottom: 15px; color: #ccc; }
-    .container {
-      max-width: 400px;
-      margin: auto;
-      padding: 20px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 18px;
-      text-align: right;
-      border: 1px solid #ffd700;
-      border-radius: 5px;
-      background: #111;
-      color: #ffd700;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 10px;
-      cursor: pointer;
-      background: #ffd700;
+      font-family: Arial, sans-serif;
+      background: #fff;
       color: #000;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
+      text-align: center;
     }
-    .qr-section img {
-      margin-top: 15px;
-      max-width: 250px;
-    }
-    .info {
-      margin-top: 15px;
-      text-align: left;
-      color: #fff;
-    }
-    .info p { margin: 5px 0; }
+    h2 { margin-top: 20px; font-size: 24px; }
+    h3 { margin: 5px 0; font-size: 20px; }
+    .address { font-size: 14px; margin-bottom: 20px; }
 
-    /* Popup modal */
+    .container { max-width: 400px; margin: auto; padding: 20px; }
+
+    .amount-input {
+      font-size: 20px;
+      padding: 10px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #0056b3; }
+
+    .qr-box img { width: 250px; height: 250px; margin: 15px 0; }
+
+    .info { text-align: left; font-size: 14px; margin-top: 15px; }
+    .info p { margin: 4px 0; }
+    .info span { font-weight: bold; }
+
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1000;
+      z-index: 999;
       left: 0; top: 0;
       width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
+      background: rgba(0,0,0,0.7);
     }
     .modal-content {
-      background: #111;
-      padding: 15px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
       position: relative;
-      border: 2px solid #ffd700;
+      margin: 5% auto;
+      width: 90%; max-width: 400px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
     }
     .close-btn {
       position: absolute;
-      right: 10px;
-      top: 10px;
-      cursor: pointer;
+      top: 5px; right: 10px;
       font-size: 18px;
-      font-weight: bold;
-      color: #ffd700;
+      cursor: pointer;
+      color: red;
     }
-    #reader {
-      width: 100%;
-      margin-top: 10px;
-    }
-    #amountText { margin-top: 5px; color: #fff; font-style: italic; }
   </style>
 </head>
 <body>
@@ -98,14 +77,15 @@
     <h3>KARAOKE RITA</h3>
     <div class="address">8 Lý Thường Kiệt, Đức Trọng</div>
 
-    <input type="text" id="amount" placeholder="Nhập số tiền (VD: 150.000)" oninput="formatAndUpdateQR(this)">
-    <div id="amountText"></div>
+    <input id="amount" class="amount-input" type="text" placeholder="Nhập số tiền" />
 
-    <button onclick="openScanner()">Quét mã</button>
+    <button class="btn" onclick="updateQR()">Tạo QR</button>
+    <button class="btn" onclick="openScanner()">Quét mã</button>
 
-    <div class="qr-section">
-      <img id="qrImage" src="" alt="QR Thanh toán">
+    <div class="qr-box">
+      <img id="qrImage" src="" alt="QR Thanh toán" />
     </div>
+    <div id="amountText"></div>
 
     <div class="info">
       <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
@@ -115,124 +95,84 @@
     </div>
   </div>
 
-  <!-- Popup quét mã -->
-  <div class="modal" id="scannerModal">
+  <!-- Modal Camera -->
+  <div id="scanModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeScanner()">&times;</span>
-      <h3 style="color:#ffd700">Quét mã QR</h3>
-      <div id="reader"></div>
+      <div id="reader" style="width:100%"></div>
     </div>
   </div>
 
-  <script>
-    const qrImage = document.getElementById("qrImage");
-    const amountInput = document.getElementById("amount");
-    const amountText = document.getElementById("amountText");
-    let html5QrCode;
+<script>
+  // Format nhập số tiền
+  const amountInput = document.getElementById("amount");
+  amountInput.addEventListener("input", function() {
+    let val = this.value.replace(/\D/g, "");
+    if (val) {
+      this.value = parseInt(val).toLocaleString("vi-VN");
+    } else {
+      this.value = "";
+    }
+  });
 
-    function formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-    function unformatNumber(str) {
-      return str.replace(/\./g, "");
-    }
-    function toVietnameseText(num) {
-      if (!num) return "";
-      const ChuSo = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-      const Tien = ["","nghìn","triệu","tỷ"];
-      let so = parseInt(num);
-      if (isNaN(so)) return "";
-      let i = 0, result = "";
-      while (so > 0) {
-        let n = so % 1000;
-        if (n != 0) {
-          let str = "";
-          let tram = Math.floor(n/100);
-          let chuc = Math.floor((n%100)/10);
-          let donvi = n%10;
-          if (tram>0) str += ChuSo[tram]+" trăm ";
-          if (chuc>1) {
-            str += ChuSo[chuc]+" mươi ";
-            if (donvi>0) str += ChuSo[donvi]+" ";
-          } else if (chuc==1) {
-            str += "mười ";
-            if (donvi>0) str += ChuSo[donvi]+" ";
-          } else if (chuc==0 && donvi>0) {
-            str += ChuSo[donvi]+" ";
-          }
-          result = str + Tien[i] + " " + result;
-        }
-        so = Math.floor(so/1000); i++;
-      }
-      return result.trim();
-    }
-    function updateQR() {
-      let raw = unformatNumber(amountInput.value);
-      if (!raw) {
-        qrImage.src = "";
-        amountText.textContent = "";
-        return;
-      }
-      const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${raw}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
-      qrImage.src = url;
-      amountText.textContent = toVietnameseText(raw) + " đồng";
-    }
-    function formatAndUpdateQR(input) {
-      let value = unformatNumber(input.value);
-      if (!value) {
-        input.value = "";
-        updateQR();
-        return;
-      }
-      input.value = formatNumber(value);
-      updateQR();
-    }
+  // Cập nhật QR
+  function updateQR(raw) {
+    let val = raw || amountInput.value.replace(/\D/g, "");
+    if (!val) return;
+    const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
+    document.getElementById("qrImage").src = url;
+    document.getElementById("amountText").textContent = numberToText(val) + " đồng";
+  }
 
-    // Lấy số tiền từ QR code
-    function parseAmountFromQR(qrCodeMessage) {
-      // Trường hợp 1: có amount=xxx trong URL
-      let match = qrCodeMessage.match(/amount=(\d+)/i);
-      if (match) return match[1];
+  // Chuyển số sang chữ (rút gọn)
+  function numberToText(num) {
+    return parseInt(num).toLocaleString("vi-VN");
+  }
 
-      // Trường hợp 2: chuẩn EMV (Tag 54 là số tiền)
-      match = qrCodeMessage.match(/54(\d{2})(\d+)/);
-      if (match) {
-        let len = parseInt(match[1]);
-        return match[2].substring(0, len);
+  // --- QR Scanner ---
+  let html5QrCode;
+  function openScanner() {
+    document.getElementById("scanModal").style.display = "block";
+    html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        // chọn camera sau nếu có
+        let cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
+        html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: 250, videoConstraints: { facingMode: "environment", focusMode: "continuous" }},
+          onScanSuccess
+        );
       }
-      return null;
-    }
+    });
+  }
 
-    function openScanner() {
-      document.getElementById("scannerModal").style.display = "flex";
-      html5QrCode = new Html5Qrcode("reader");
-      Html5Qrcode.getCameras().then(cameras => {
-        if (cameras && cameras.length) {
-          let camId = cameras.find(c => c.label.toLowerCase().includes("back"))?.id || cameras[0].id;
-          html5QrCode.start(
-            camId,
-            { fps: 10, qrbox: 250 },
-            qrCodeMessage => {
-              let amount = parseAmountFromQR(qrCodeMessage);
-              if (amount) {
-                amountInput.value = formatNumber(amount);
-                updateQR();
-              }
-              closeScanner();
-            }
-          );
-        }
+  function closeScanner() {
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        html5QrCode.clear();
       });
     }
-    function closeScanner() {
-      if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-          html5QrCode.clear();
-          html5QrCode = null;
-        });
-      }
-      document.getElementById("scannerModal").style.display = "none";
+    document.getElementById("scanModal").style.display = "none";
+  }
+
+  function onScanSuccess(qrMessage) {
+    console.log("QR content:", qrMessage);
+    const amount = extractAmountFromQR(qrMessage);
+    if (amount) {
+      const formatted = amount.toLocaleString("vi-VN");
+      amountInput.value = formatted;
+      updateQR(amount);
     }
-  </script>
+    closeScanner();
+  }
+
+  function extractAmountFromQR(qrText) {
+    let match = qrText.match(/amount=(\d+)/i);
+    if (match) return parseInt(match[1]);
+    return null;
+  }
+</script>
 </body>
 </html>
