@@ -163,13 +163,33 @@
     if (amount) {
       amountInput.value = amount.toLocaleString("vi-VN");
       updateQR(amount);
+      closeScanner();
+    } else {
+      alert("Quét không thành công");
     }
-    closeScanner();
   }
 
   function extractAmountFromQR(qrText) {
+    // TH1: QR theo dạng URL VietQR có amount=
     let match = qrText.match(/amount=(\d+)/i);
     if (match) return parseInt(match[1]);
+
+    // TH2: QR EMV chuẩn ngân hàng, Amount nằm trong ID "54"
+    // EMV có cấu trúc: ID(2) + LEN(2) + VALUE
+    try {
+      for (let i = 0; i < qrText.length - 4; ) {
+        let id = qrText.substr(i, 2);
+        let len = parseInt(qrText.substr(i+2, 2));
+        let value = qrText.substr(i+4, len);
+        if (id === "54") { // Amount
+          return parseFloat(value);
+        }
+        i += 4 + len;
+      }
+    } catch(e) {
+      console.log("Parse EMV fail:", e);
+    }
+
     return null;
   }
 </script>
