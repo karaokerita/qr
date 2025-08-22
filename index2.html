@@ -79,7 +79,6 @@
 
     <input id="amount" class="amount-input" type="text" placeholder="Nhập số tiền" />
 
-    <button class="btn" onclick="updateQR()">Tạo QR</button>
     <button class="btn" onclick="openScanner()">Quét mã</button>
 
     <div class="qr-box">
@@ -104,40 +103,43 @@
   </div>
 
 <script>
-  // Format nhập số tiền
   const amountInput = document.getElementById("amount");
+
+  // Format nhập số tiền và tự động tạo QR
   amountInput.addEventListener("input", function() {
     let val = this.value.replace(/\D/g, "");
     if (val) {
       this.value = parseInt(val).toLocaleString("vi-VN");
+      updateQR(val);
     } else {
       this.value = "";
+      clearQR();
     }
   });
 
-  // Cập nhật QR
-  function updateQR(raw) {
-    let val = raw || amountInput.value.replace(/\D/g, "");
-    if (!val) return;
+  function updateQR(val) {
     const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
     document.getElementById("qrImage").src = url;
-    document.getElementById("amountText").textContent = numberToText(val) + " đồng";
+    document.getElementById("amountText").textContent = parseInt(val).toLocaleString("vi-VN") + " đồng";
   }
 
-  // Chuyển số sang chữ (rút gọn)
-  function numberToText(num) {
-    return parseInt(num).toLocaleString("vi-VN");
+  function clearQR() {
+    document.getElementById("qrImage").src = "";
+    document.getElementById("amountText").textContent = "";
   }
 
   // --- QR Scanner ---
   let html5QrCode;
   function openScanner() {
+    // reset số tiền cũ
+    amountInput.value = "";
+    clearQR();
+
     document.getElementById("scanModal").style.display = "block";
     html5QrCode = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        // chọn camera sau nếu có
         let cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
         html5QrCode.start(
           cameraId,
@@ -150,9 +152,7 @@
 
   function closeScanner() {
     if (html5QrCode) {
-      html5QrCode.stop().then(() => {
-        html5QrCode.clear();
-      });
+      html5QrCode.stop().then(() => html5QrCode.clear());
     }
     document.getElementById("scanModal").style.display = "none";
   }
@@ -161,8 +161,7 @@
     console.log("QR content:", qrMessage);
     const amount = extractAmountFromQR(qrMessage);
     if (amount) {
-      const formatted = amount.toLocaleString("vi-VN");
-      amountInput.value = formatted;
+      amountInput.value = amount.toLocaleString("vi-VN");
       updateQR(amount);
     }
     closeScanner();
