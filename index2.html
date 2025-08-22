@@ -13,16 +13,8 @@
       color: #000;
       text-align: center;
     }
-    h2 { 
-      margin-top: 20px; 
-      font-size: 24px; 
-      color: #007bff; /* xanh dương */
-    }
-    h3 { 
-      margin: 5px 0; 
-      font-size: 20px; 
-      color: #28a745; /* xanh lá */
-    }
+    h2 { margin-top: 20px; font-size: 24px; color: blue; }
+    h3 { margin: 5px 0; font-size: 20px; color: green; }
     .address { font-size: 14px; margin-bottom: 20px; }
 
     .container { max-width: 400px; margin: auto; padding: 20px; }
@@ -53,15 +45,10 @@
     .info p { margin: 4px 0; }
     .info span { font-weight: bold; }
 
-    .thankyou {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-      color: #28a745; /* xanh lá */
-    }
+    .thank { text-align: center; margin-top: 10px; font-weight: bold; color: green; }
 
-    .amount-text { font-size: 18px; margin-top: 10px; }
-    .amount-text-words { font-size: 14px; font-style: italic; color: #555; }
+    #amountText { font-size: 18px; margin-top: 5px; font-weight: bold; }
+    #amountWords { font-size: 14px; margin-top: 5px; font-style: italic; }
 
     /* Modal */
     .modal {
@@ -102,17 +89,15 @@
     <div class="qr-box">
       <img id="qrImage" src="" alt="QR Thanh toán" />
     </div>
-    <div id="amountText" class="amount-text"></div>
-    <div id="amountTextWords" class="amount-text-words"></div>
+    <div id="amountText"></div>
+    <div id="amountWords"></div>
 
     <div class="info">
       <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
       <p><span>Số tài khoản:</span> 9917.523.946</p>
       <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
     </div>
-    <div class="thankyou">
-      XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA
-    </div>
+    <div class="thank">XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</div>
   </div>
 
   <!-- Modal Camera -->
@@ -125,6 +110,29 @@
 
 <script>
   const amountInput = document.getElementById("amount");
+
+  // Chuyển số thành chữ tiếng Việt đơn giản
+  function numberToWords(num) {
+    const units = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+    function read3(n) {
+      let str = "";
+      let tr = Math.floor(n/100), ch = Math.floor((n%100)/10), dv = n%10;
+      if(tr>0){ str += units[tr]+" trăm "; if(ch==0 && dv>0) str+="lẻ "; }
+      if(ch>1){ str+=units[ch]+" mươi "; if(dv==1) str+="mốt"; else if(dv==5) str+="lăm"; else if(dv>0) str+=units[dv]; }
+      else if(ch==1){ str+="mười "; if(dv==5) str+="lăm"; else if(dv>0) str+=units[dv]; }
+      else if(ch==0 && dv>0){ str+=units[dv]; }
+      return str.trim();
+    }
+    if(num==0) return "không đồng";
+    let s = "", i=0;
+    const scale=[""," nghìn"," triệu"," tỷ"];
+    while(num>0){
+      let n=num%1000;
+      if(n>0) s=read3(n)+scale[i]+" "+s;
+      num=Math.floor(num/1000); i++;
+    }
+    return s.trim()+" đồng";
+  }
 
   // Format nhập số tiền và tự động tạo QR
   amountInput.addEventListener("input", function() {
@@ -142,13 +150,13 @@
     const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
     document.getElementById("qrImage").src = url;
     document.getElementById("amountText").textContent = parseInt(val).toLocaleString("vi-VN") + " đồng";
-    document.getElementById("amountTextWords").textContent = numberToWords(parseInt(val)) + " đồng";
+    document.getElementById("amountWords").textContent = numberToWords(parseInt(val));
   }
 
   function clearQR() {
     document.getElementById("qrImage").src = "";
     document.getElementById("amountText").textContent = "";
-    document.getElementById("amountTextWords").textContent = "";
+    document.getElementById("amountWords").textContent = "";
   }
 
   // --- QR Scanner ---
@@ -156,18 +164,12 @@
   function openScanner() {
     amountInput.value = "";
     clearQR();
-
     document.getElementById("scanModal").style.display = "block";
     html5QrCode = new Html5Qrcode("reader");
-
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
         let cameraId = devices.find(d => d.label.toLowerCase().includes("back"))?.id || devices[0].id;
-        html5QrCode.start(
-          cameraId,
-          { fps: 10, qrbox: 250, videoConstraints: { facingMode: "environment", focusMode: "continuous" }},
-          onScanSuccess
-        );
+        html5QrCode.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
       }
     });
   }
@@ -186,54 +188,23 @@
       amountInput.value = amount.toLocaleString("vi-VN");
       updateQR(amount);
     } else {
-      alert("Quét không thành công: không tìm thấy số tiền");
+      alert("Quét không thành công");
     }
     closeScanner();
   }
 
+  // Tách số tiền từ QR (cả amount=... và EMVCo field 54)
   function extractAmountFromQR(qrText) {
     let match = qrText.match(/amount=(\d+)/i);
     if (match) return parseInt(match[1]);
-    return null;
-  }
 
-  // Hàm đổi số thành chữ tiếng Việt (đơn giản)
-  function numberToWords(num) {
-    const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-    const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
-    const scales = ["", "nghìn", "triệu", "tỷ"];
-
-    if (num === 0) return "không";
-
-    let words = [];
-    let scale = 0;
-
-    while (num > 0) {
-      let chunk = num % 1000;
-      if (chunk) {
-        let chunkWords = [];
-        let hundreds = Math.floor(chunk / 100);
-        let remainder = chunk % 100;
-        if (hundreds) chunkWords.push(units[hundreds] + " trăm");
-        if (remainder) {
-          if (remainder < 10) chunkWords.push(units[remainder]);
-          else if (remainder < 20) {
-            if (remainder === 10) chunkWords.push("mười");
-            else chunkWords.push("mười " + units[remainder - 10]);
-          } else {
-            let tenVal = Math.floor(remainder / 10);
-            let unitVal = remainder % 10;
-            chunkWords.push(tens[tenVal]);
-            if (unitVal) chunkWords.push(units[unitVal]);
-          }
-        }
-        words.unshift(chunkWords.join(" ") + " " + scales[scale]);
-      }
-      num = Math.floor(num / 1000);
-      scale++;
+    let emvMatch = qrText.match(/54(\d{2})(\d+)/);
+    if (emvMatch) {
+      let len = parseInt(emvMatch[1]);
+      let val = emvMatch[2].substr(0, len);
+      return parseInt(val);
     }
-
-    return words.join(" ").trim();
+    return null;
   }
 </script>
 </body>
