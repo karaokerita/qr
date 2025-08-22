@@ -13,8 +13,16 @@
       color: #000;
       text-align: center;
     }
-    h2 { margin-top: 20px; font-size: 24px; }
-    h3 { margin: 5px 0; font-size: 20px; }
+    h2 { 
+      margin-top: 20px; 
+      font-size: 24px; 
+      color: #007bff; /* xanh dương */
+    }
+    h3 { 
+      margin: 5px 0; 
+      font-size: 20px; 
+      color: #28a745; /* xanh lá */
+    }
     .address { font-size: 14px; margin-bottom: 20px; }
 
     .container { max-width: 400px; margin: auto; padding: 20px; }
@@ -44,6 +52,16 @@
     .info { text-align: left; font-size: 14px; margin-top: 15px; }
     .info p { margin: 4px 0; }
     .info span { font-weight: bold; }
+
+    .thankyou {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #28a745; /* xanh lá */
+    }
+
+    .amount-text { font-size: 18px; margin-top: 10px; }
+    .amount-text-words { font-size: 14px; font-style: italic; color: #555; }
 
     /* Modal */
     .modal {
@@ -84,13 +102,16 @@
     <div class="qr-box">
       <img id="qrImage" src="" alt="QR Thanh toán" />
     </div>
-    <div id="amountText"></div>
+    <div id="amountText" class="amount-text"></div>
+    <div id="amountTextWords" class="amount-text-words"></div>
 
     <div class="info">
       <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
       <p><span>Số tài khoản:</span> 9917.523.946</p>
       <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
-      <p><span>XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</span></p>
+    </div>
+    <div class="thankyou">
+      XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA
     </div>
   </div>
 
@@ -121,17 +142,18 @@
     const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank you&accountName=HUYNH+PHUONG+TRANG`;
     document.getElementById("qrImage").src = url;
     document.getElementById("amountText").textContent = parseInt(val).toLocaleString("vi-VN") + " đồng";
+    document.getElementById("amountTextWords").textContent = numberToWords(parseInt(val)) + " đồng";
   }
 
   function clearQR() {
     document.getElementById("qrImage").src = "";
     document.getElementById("amountText").textContent = "";
+    document.getElementById("amountTextWords").textContent = "";
   }
 
   // --- QR Scanner ---
   let html5QrCode;
   function openScanner() {
-    // reset số tiền cũ
     amountInput.value = "";
     clearQR();
 
@@ -163,34 +185,55 @@
     if (amount) {
       amountInput.value = amount.toLocaleString("vi-VN");
       updateQR(amount);
-      closeScanner();
     } else {
-      alert("Quét không thành công");
+      alert("Quét không thành công: không tìm thấy số tiền");
     }
+    closeScanner();
   }
 
   function extractAmountFromQR(qrText) {
-    // TH1: QR theo dạng URL VietQR có amount=
     let match = qrText.match(/amount=(\d+)/i);
     if (match) return parseInt(match[1]);
+    return null;
+  }
 
-    // TH2: QR EMV chuẩn ngân hàng, Amount nằm trong ID "54"
-    // EMV có cấu trúc: ID(2) + LEN(2) + VALUE
-    try {
-      for (let i = 0; i < qrText.length - 4; ) {
-        let id = qrText.substr(i, 2);
-        let len = parseInt(qrText.substr(i+2, 2));
-        let value = qrText.substr(i+4, len);
-        if (id === "54") { // Amount
-          return parseFloat(value);
+  // Hàm đổi số thành chữ tiếng Việt (đơn giản)
+  function numberToWords(num) {
+    const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+    const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+    const scales = ["", "nghìn", "triệu", "tỷ"];
+
+    if (num === 0) return "không";
+
+    let words = [];
+    let scale = 0;
+
+    while (num > 0) {
+      let chunk = num % 1000;
+      if (chunk) {
+        let chunkWords = [];
+        let hundreds = Math.floor(chunk / 100);
+        let remainder = chunk % 100;
+        if (hundreds) chunkWords.push(units[hundreds] + " trăm");
+        if (remainder) {
+          if (remainder < 10) chunkWords.push(units[remainder]);
+          else if (remainder < 20) {
+            if (remainder === 10) chunkWords.push("mười");
+            else chunkWords.push("mười " + units[remainder - 10]);
+          } else {
+            let tenVal = Math.floor(remainder / 10);
+            let unitVal = remainder % 10;
+            chunkWords.push(tens[tenVal]);
+            if (unitVal) chunkWords.push(units[unitVal]);
+          }
         }
-        i += 4 + len;
+        words.unshift(chunkWords.join(" ") + " " + scales[scale]);
       }
-    } catch(e) {
-      console.log("Parse EMV fail:", e);
+      num = Math.floor(num / 1000);
+      scale++;
     }
 
-    return null;
+    return words.join(" ").trim();
   }
 </script>
 </body>
