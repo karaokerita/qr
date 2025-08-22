@@ -8,13 +8,15 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #fff;
+      background: #000;
       margin: 0;
       padding: 0;
       text-align: center;
-      color: #000;
+      color: #ffd700;
     }
-    h2 { margin-top: 20px; }
+    h2 { margin-top: 20px; color: #ffd700; }
+    h3 { color: #fff; }
+    .address { margin-bottom: 15px; color: #ccc; }
     .container {
       max-width: 400px;
       margin: auto;
@@ -26,14 +28,21 @@
       margin: 10px 0;
       font-size: 18px;
       text-align: right;
-      border: 1px solid #ccc;
+      border: 1px solid #ffd700;
       border-radius: 5px;
+      background: #111;
+      color: #ffd700;
     }
     button {
       padding: 10px 20px;
       font-size: 16px;
       margin: 10px;
       cursor: pointer;
+      background: #ffd700;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
     }
     .qr-section img {
       margin-top: 15px;
@@ -42,6 +51,7 @@
     .info {
       margin-top: 15px;
       text-align: left;
+      color: #fff;
     }
     .info p { margin: 5px 0; }
 
@@ -52,18 +62,19 @@
       z-index: 1000;
       left: 0; top: 0;
       width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
     }
     .modal-content {
-      background: #fff;
+      background: #111;
       padding: 15px;
       border-radius: 10px;
       width: 90%;
       max-width: 400px;
       text-align: center;
       position: relative;
+      border: 2px solid #ffd700;
     }
     .close-btn {
       position: absolute;
@@ -72,11 +83,13 @@
       cursor: pointer;
       font-size: 18px;
       font-weight: bold;
+      color: #ffd700;
     }
     #reader {
       width: 100%;
       margin-top: 10px;
     }
+    #amountText { margin-top: 5px; color: #fff; font-style: italic; }
   </style>
 </head>
 <body>
@@ -106,7 +119,7 @@
   <div class="modal" id="scannerModal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeScanner()">&times;</span>
-      <h3>Quét mã QR</h3>
+      <h3 style="color:#ffd700">Quét mã QR</h3>
       <div id="reader"></div>
     </div>
   </div>
@@ -120,11 +133,9 @@
     function formatNumber(num) {
       return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
-
     function unformatNumber(str) {
       return str.replace(/\./g, "");
     }
-
     function toVietnameseText(num) {
       if (!num) return "";
       const ChuSo = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
@@ -155,7 +166,6 @@
       }
       return result.trim();
     }
-
     function updateQR() {
       let raw = unformatNumber(amountInput.value);
       if (!raw) {
@@ -167,7 +177,6 @@
       qrImage.src = url;
       amountText.textContent = toVietnameseText(raw) + " đồng";
     }
-
     function formatAndUpdateQR(input) {
       let value = unformatNumber(input.value);
       if (!value) {
@@ -179,6 +188,21 @@
       updateQR();
     }
 
+    // Lấy số tiền từ QR code
+    function parseAmountFromQR(qrCodeMessage) {
+      // Trường hợp 1: có amount=xxx trong URL
+      let match = qrCodeMessage.match(/amount=(\d+)/i);
+      if (match) return match[1];
+
+      // Trường hợp 2: chuẩn EMV (Tag 54 là số tiền)
+      match = qrCodeMessage.match(/54(\d{2})(\d+)/);
+      if (match) {
+        let len = parseInt(match[1]);
+        return match[2].substring(0, len);
+      }
+      return null;
+    }
+
     function openScanner() {
       document.getElementById("scannerModal").style.display = "flex";
       html5QrCode = new Html5Qrcode("reader");
@@ -187,19 +211,10 @@
           let camId = cameras.find(c => c.label.toLowerCase().includes("back"))?.id || cameras[0].id;
           html5QrCode.start(
             camId,
-            {
-              fps: 10,
-              qrbox: 250,
-              videoConstraints: {
-                facingMode: "environment",
-                focusMode: "continuous"
-              }
-            },
+            { fps: 10, qrbox: 250 },
             qrCodeMessage => {
-              // Tìm số tiền trong QR (pattern amount=xxxx)
-              let match = qrCodeMessage.match(/amount=(\d+)/i);
-              if (match) {
-                let amount = match[1];
+              let amount = parseAmountFromQR(qrCodeMessage);
+              if (amount) {
                 amountInput.value = formatNumber(amount);
                 updateQR();
               }
@@ -209,7 +224,6 @@
         }
       });
     }
-
     function closeScanner() {
       if (html5QrCode) {
         html5QrCode.stop().then(() => {
@@ -219,21 +233,6 @@
       }
       document.getElementById("scannerModal").style.display = "none";
     }
-
-    // Tap-to-focus thử nghiệm
-    document.addEventListener("click", async (e) => {
-      const videoElem = document.querySelector("#reader video");
-      if (videoElem && videoElem.srcObject) {
-        const track = videoElem.srcObject.getVideoTracks()[0];
-        try {
-          await track.applyConstraints({
-            advanced: [{ focusMode: "continuous" }]
-          });
-        } catch(err) {
-          console.log("Thiết bị không hỗ trợ focus:", err);
-        }
-      }
-    });
   </script>
 </body>
 </html>
