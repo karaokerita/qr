@@ -44,7 +44,7 @@
     <div class="qr-box">
       <img id="qrImage" src="" alt="QR Thanh toán" />
     </div>
-    /<div id="amountText"></div>
+    <div id="amountText"></div>
     <div id="amountWords"></div>
 
     <div class="info">
@@ -203,7 +203,7 @@
     const scales = ["", " nghìn", " triệu,", " tỷ"];
     function read3(n, full) {
       let tr = Math.floor(n/100), ch = Math.floor((n%100)/10), dv = n%10, s = "";
-      if (full || tr>0) { s += units[tr] + " trăm,"; if (ch===0 && dv>0) s += " lẻ"; }
+      if (full || tr>0) { s += units[tr] + " trăm"; if (ch===0 && dv>0) s += " lẻ"; }
       if (ch>1) { s += (s?" ":"") + units[ch] + " mươi"; if (dv===1) s += " mốt"; else if (dv===5) s += " lăm"; else if (dv>0) s += " " + units[dv]; }
       else if (ch===1) { s += (s?" ":"") + "mười"; if (dv===5) s += " lăm"; else if (dv>0) s += " " + units[dv]; }
       else if (dv>0 && ch===0) { s += (s?" ":"") + units[dv]; }
