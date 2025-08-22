@@ -46,6 +46,26 @@
       margin-top: 10px;
       color: #333;
     }
+    .info {
+      text-align: left;
+      margin: 20px auto;
+      display: inline-block;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .info span {
+      font-weight: bold;
+    }
+    .thankyou {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #008000;
+    }
   </style>
 </head>
 <body>
@@ -56,6 +76,15 @@
   <div id="reader"></div>
   <img id="qrImage" src="" alt="QR sẽ hiển thị ở đây">
   <div id="amountText"></div>
+
+  <!-- Thông tin người nhận -->
+  <div class="info">
+    <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
+    <p><span>Số tài khoản:</span> 9917.523.946</p>
+    <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
+    <p><span>................</span></p>
+    <p class="thankyou">XIN CÁM ƠN QUÝ KHÁCH ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA</p>
+  </div>
 
   <script>
     function updateQR() {
