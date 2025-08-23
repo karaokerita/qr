@@ -84,13 +84,11 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec";
 
-    // Định dạng số có dấu . phân cách nghìn
     function formatNumber(num) {
       if (!num) return "";
       return Number(num).toLocaleString("vi-VN");
     }
 
-    // Bỏ định dạng để gửi về Sheet
     function parseNumber(str) {
       return str.replace(/\D/g, "");
     }
@@ -117,7 +115,7 @@
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
           <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${room.name}" >${room.time || ""}</td>
+          <td id="time-${room.name}">${room.time || ""}</td>
         `;
         table.appendChild(tr);
       });
@@ -128,7 +126,6 @@
       input.value = formatNumber(parseNumber(input.value));
 
       const btn = document.getElementById("update-" + room);
-      // Bật nút cập nhật khi thay đổi số tiền (cả rỗng)
       btn.classList.add("enabled");
       btn.disabled = false;
     }
@@ -137,10 +134,10 @@
       const raw = document.getElementById("amount-" + room).value;
       const amount = parseNumber(raw);
 
-      // Khi số tiền thay đổi hoặc rỗng → trạng thái = Chưa thanh toán, thời gian = rỗng
+      // Khi nhấn Cập nhật: lưu số tiền, trạng thái = Chưa thanh toán, xóa thời gian thanh toán
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}&status=Chưa thanh toán&time=`);
 
-      loadRooms(); // load lại dữ liệu từ Sheet
+      loadRooms();
     }
 
     async function markPaid(room) {
