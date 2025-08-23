@@ -37,20 +37,15 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec";
 
-    function formatNumber(num) {
-      if (!num) return "";
-      return Number(num).toLocaleString("vi-VN");
-    }
-    function parseNumber(str) {
-      return str.replace(/\D/g, "");
-    }
+    function formatNumber(num) { if (!num) return ""; return Number(num).toLocaleString("vi-VN"); }
+    function parseNumber(str) { return str.replace(/\D/g, ""); }
 
     function formatTime(dt) {
       if (!dt) return "";
       const d = new Date(dt);
       if (isNaN(d)) return "";
-      const pad = n => n.toString().padStart(2, '0');
-      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const pad = n => n.toString().padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
     async function loadRooms() {
@@ -60,9 +55,10 @@
       table.innerHTML = "";
 
       data.forEach(room => {
-        const tr = document.createElement("tr");
         const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
+        const showTime = (room.status === "Đã thanh toán") ? formatTime(room.time) : "";
 
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
@@ -75,7 +71,7 @@
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
           <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${room.name}">${room.status === "Đã thanh toán" ? formatTime(room.time) : ""}</td>
+          <td id="time-${room.name}">${showTime}</td>
         `;
         table.appendChild(tr);
       });
