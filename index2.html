@@ -2,156 +2,95 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thanh Toán Karaoke</title>
+  <title>Thanh toán phòng - Nhân viên</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f0f0f0;
+      background: #f2f2f2;
       padding: 20px;
     }
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      margin: 15px auto;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .room {
+      background: #fff;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .room span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
     }
     button {
-      margin: 8px;
-      padding: 10px 20px;
-      font-size: 16px;
+      background: #28a745;
+      color: #fff;
       border: none;
-      border-radius: 10px;
-      background: #4CAF50;
-      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
       cursor: pointer;
     }
     button:hover {
-      background: #45a049;
-    }
-    select, input {
-      font-size: 16px;
-      padding: 8px;
-      margin: 10px 0;
-      width: 80%;
-    }
-    #reader {
-      width: 100%;
-      margin: auto;
+      background: #218838;
     }
   </style>
 </head>
 <body>
+  <h2>Danh sách phòng cần thanh toán</h2>
+  <div id="roomList">Đang tải dữ liệu...</div>
 
-  <h2>Quản Lý Thanh Toán Karaoke</h2>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
 
-  <div class="card">
-    <h3>Chọn phòng</h3>
-    <select id="roomSelect" onchange="loadRoomAmount()"></select>
-    <p id="amountDisplay">Số tiền: 0</p>
-    <button onclick="markPaid()">Đã thanh toán</button>
-    <button onclick="generateQR()">Tạo QR</button>
-    <canvas id="qrcode"></canvas>
-  </div>
+    // Lấy danh sách phòng
+    async function loadRooms() {
+      try {
+        const res = await fetch(API_URL + "?action=get");
+        const data = await res.json();
+        const listDiv = document.getElementById("roomList");
+        listDiv.innerHTML = "";
 
-  <div class="card">
-    <h3>Nhập thủ công</h3>
-    <input type="text" id="manualAmount" placeholder="Nhập số tiền">
-    <button onclick="updateManual()">Cập nhật</button>
-  </div>
+        if (data.length === 0) {
+          listDiv.innerHTML = "<p>Không có phòng nào cần thanh toán.</p>";
+          return;
+        }
 
-  <div class="card">
-    <h3>Quét QR</h3>
-    <button onclick="startScan()">Quét mã</button>
-    <div id="reader" style="display:none;"></div>
-    <p id="scanResult"></p>
-  </div>
-
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
-let currentAmount = 0;
-
-// Load danh sách phòng từ Google Sheet
-async function loadRooms() {
-  let res = await fetch(API_URL);
-  let data = await res.json();
-
-  let select = document.getElementById("roomSelect");
-  select.innerHTML = "";
-
-  for (let i = 1; i < data.length; i++) {
-    let room = data[i][0];
-    let amount = data[i][1];
-    let status = data[i][2];
-    let option = document.createElement("option");
-    option.value = room;
-    option.text = room + " - " + status;
-    option.dataset.amount = amount;
-    select.appendChild(option);
-  }
-
-  loadRoomAmount();
-}
-
-// Hiển thị số tiền của phòng đã chọn
-function loadRoomAmount() {
-  let select = document.getElementById("roomSelect");
-  let amount = select.options[select.selectedIndex].dataset.amount;
-  currentAmount = amount;
-  document.getElementById("amountDisplay").innerText = "Số tiền: " + amount;
-}
-
-// Cập nhật thủ công số tiền vào phòng đã chọn
-async function updateManual() {
-  let room = document.getElementById("roomSelect").value;
-  let amount = document.getElementById("manualAmount").value;
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "update", room: room, amount: amount })
-  });
-  loadRooms();
-}
-
-// Đánh dấu đã thanh toán
-async function markPaid() {
-  let room = document.getElementById("roomSelect").value;
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "paid", room: room })
-  });
-  loadRooms();
-}
-
-// Tạo QR cho số tiền
-function generateQR() {
-  let canvas = document.getElementById("qrcode");
-  QRCode.toCanvas(canvas, "Thanh toán: " + currentAmount, function (error) {
-    if (error) console.error(error);
-  });
-}
-
-// Quét QR
-function startScan() {
-  document.getElementById("reader").style.display = "block";
-  let scanner = new Html5Qrcode("reader");
-  scanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      document.getElementById("scanResult").innerText = "Kết quả: " + decodedText;
-      scanner.stop();
+        data.forEach(room => {
+          const div = document.createElement("div");
+          div.className = "room";
+          div.innerHTML = `
+            <span>${room.name} - ${room.amount}₫</span>
+            <button onclick="markPaid('${room.name}')">Đã thanh toán</button>
+          `;
+          listDiv.appendChild(div);
+        });
+      } catch (e) {
+        document.getElementById("roomList").innerHTML = "Lỗi tải dữ liệu.";
+      }
     }
-  );
-}
 
-loadRooms();
-</script>
+    // Đánh dấu phòng đã thanh toán
+    async function markPaid(name) {
+      if (!confirm("Xác nhận phòng " + name + " đã thanh toán?")) return;
+      try {
+        await fetch(API_URL + "?action=delete&name=" + encodeURIComponent(name));
+        loadRooms(); // refresh danh sách
+      } catch (e) {
+        alert("Lỗi khi cập nhật thanh toán!");
+      }
+    }
 
+    // Tải dữ liệu ban đầu
+    loadRooms();
+    // Tự động refresh 5 giây/lần
+    setInterval(loadRooms, 5000);
+  </script>
 </body>
 </html>
