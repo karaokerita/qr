@@ -2,29 +2,64 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thu Ngân - Karaoke</title>
+  <title>Thu ngân Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; padding: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    input { width: 80px; padding: 4px; }
-    button { padding: 6px 10px; }
-    .paid { background: #c8f7c5; }
-    .unpaid { background: #f9d6d5; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    input[type="number"] {
+      width: 100px;
+      padding: 5px;
+    }
+    button {
+      padding: 6px 10px;
+      margin: 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .update {
+      background: #28a745;
+      color: white;
+    }
+    .paid {
+      background: #dc3545;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <h1>Quản lý Thu Ngân</h1>
+  <h1>Thu ngân Karaoke</h1>
   <table>
     <thead>
       <tr>
         <th>Phòng</th>
         <th>Số tiền</th>
         <th>Trạng thái</th>
-        <th>Thời gian thanh toán</th>
+        <th>Thời gian TT</th>
         <th>Hành động</th>
       </tr>
     </thead>
@@ -32,41 +67,46 @@
   </table>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby6P2_RMRn3Vly9KSoc-nJ4pi6UbTyXDvxUV6GFgGKQEAyN-44VBNbnCFeh5l1-txQQ/exec";
+    const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec";
 
     async function loadRooms() {
-      const res = await fetch(`${API_URL}?action=getRooms`);
+      const res = await fetch(API + "?action=getRooms");
       const data = await res.json();
-      const tbody = document.getElementById("roomTable");
-      tbody.innerHTML = "";
+      const table = document.getElementById("roomTable");
+      table.innerHTML = "";
 
       data.forEach(room => {
         const tr = document.createElement("tr");
-        tr.className = room.status === "Đã thanh toán" ? "paid" : "unpaid";
-
         tr.innerHTML = `
           <td>${room.name}</td>
-          <td><input type="number" value="${room.amount || ""}" onchange="updateAmount('${room.name}', this.value)"></td>
+          <td><input type="number" id="amount-${room.name}" value="${room.amount || ""}"></td>
           <td>${room.status || ""}</td>
           <td>${room.time || ""}</td>
-          <td><button onclick="markPaid('${room.name}')">Đã thanh toán</button></td>
+          <td>
+            <button class="update" onclick="updateAmount('${room.name}')">Cập nhật</button>
+            <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
+          </td>
         `;
-        tbody.appendChild(tr);
+        table.appendChild(tr);
       });
     }
 
-    async function updateAmount(room, amount) {
-      await fetch(`${API_URL}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
+    async function updateAmount(room) {
+      const amount = document.getElementById("amount-" + room).value;
+      if (!amount) return alert("Vui lòng nhập số tiền!");
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
       loadRooms();
     }
 
     async function markPaid(room) {
-      await fetch(`${API_URL}?action=markPaid&room=${encodeURIComponent(room)}`);
+      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(room)}`);
       loadRooms();
     }
 
+    // Load ban đầu
     loadRooms();
-    setInterval(loadRooms, 10000); // refresh 10s
+    // Tự động refresh mỗi 5 giây
+    setInterval(loadRooms, 5000);
   </script>
 </body>
 </html>
