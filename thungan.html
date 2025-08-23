@@ -2,128 +2,71 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thu Ngân Karaoke</title>
+  <title>Thu Ngân - Karaoke</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      padding: 20px;
-    }
-    h2 { text-align: center; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 8px;
-      text-align: center;
-    }
-    input[type="number"] {
-      width: 100px;
-      padding: 4px;
-    }
-    button {
-      padding: 5px 10px;
-      margin: 2px;
-      cursor: pointer;
-    }
-    .paid {
-      background-color: #d4edda;
-      color: #155724;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; padding: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    input { width: 80px; padding: 4px; }
+    button { padding: 6px 10px; }
+    .paid { background: #c8f7c5; }
+    .unpaid { background: #f9d6d5; }
   </style>
 </head>
 <body>
-  <h2>Quản lý thanh toán - Thu Ngân</h2>
-
+  <h1>Quản lý Thu Ngân</h1>
   <table>
     <thead>
       <tr>
         <th>Phòng</th>
         <th>Số tiền</th>
         <th>Trạng thái</th>
-        <th>Thao tác</th>
+        <th>Thời gian thanh toán</th>
+        <th>Hành động</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
   </table>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxX0zz9Pb2etylSmxeqXbxvczl16kfyX8AVC2hKSECfnDXngysaoTxJRGjHpEWhjLHH/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby6P2_RMRn3Vly9KSoc-nJ4pi6UbTyXDvxUV6GFgGKQEAyN-44VBNbnCFeh5l1-txQQ/exec";
 
-    // Lấy danh sách phòng từ Sheet
     async function loadRooms() {
-      const res = await fetch(API_URL + "?action=getRooms");
+      const res = await fetch(`${API_URL}?action=getRooms`);
       const data = await res.json();
-
       const tbody = document.getElementById("roomTable");
       tbody.innerHTML = "";
 
-      data.forEach((room, index) => {
+      data.forEach(room => {
         const tr = document.createElement("tr");
+        tr.className = room.status === "Đã thanh toán" ? "paid" : "unpaid";
 
-        // tên phòng
-        const tdName = document.createElement("td");
-        tdName.textContent = room.name;
-        tr.appendChild(tdName);
-
-        // số tiền
-        const tdAmount = document.createElement("td");
-        const input = document.createElement("input");
-        input.type = "number";
-        input.value = room.amount || "";
-        input.onchange = () => updateAmount(room.name, input.value);
-        tdAmount.appendChild(input);
-        tr.appendChild(tdAmount);
-
-        // trạng thái
-        const tdStatus = document.createElement("td");
-        tdStatus.textContent = room.status || "Chưa thanh toán";
-        if (room.status === "Đã thanh toán") {
-          tdStatus.classList.add("paid");
-        }
-        tr.appendChild(tdStatus);
-
-        // thao tác
-        const tdAction = document.createElement("td");
-
-        const btnSave = document.createElement("button");
-        btnSave.textContent = "Lưu";
-        btnSave.onclick = () => updateAmount(room.name, input.value);
-
-        const btnPaid = document.createElement("button");
-        btnPaid.textContent = "Đã thanh toán";
-        btnPaid.onclick = () => markPaid(room.name);
-
-        tdAction.appendChild(btnSave);
-        tdAction.appendChild(btnPaid);
-        tr.appendChild(tdAction);
-
+        tr.innerHTML = `
+          <td>${room.name}</td>
+          <td><input type="number" value="${room.amount || ""}" onchange="updateAmount('${room.name}', this.value)"></td>
+          <td>${room.status || ""}</td>
+          <td>${room.time || ""}</td>
+          <td><button onclick="markPaid('${room.name}')">Đã thanh toán</button></td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-    // Ghi số tiền vào Sheet
     async function updateAmount(room, amount) {
       await fetch(`${API_URL}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
       loadRooms();
     }
 
-    // Đánh dấu đã thanh toán
     async function markPaid(room) {
       await fetch(`${API_URL}?action=markPaid&room=${encodeURIComponent(room)}`);
       loadRooms();
     }
 
-    // Tải dữ liệu ban đầu
     loadRooms();
-    // Refresh mỗi 30s
-    setInterval(loadRooms, 30000);
+    setInterval(loadRooms, 10000); // refresh 10s
   </script>
 </body>
 </html>
