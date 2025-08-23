@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>QR Thanh Toán - Karaoke Rita</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 body { 
@@ -19,9 +19,9 @@ body {
   max-width:420px; 
   margin: auto; 
   padding:20px; 
-  transform: scale(0.8);         /* thu nhỏ 80% */
-  transform-origin: top center;   /* căn giữa theo trục ngang */
-  background: rgba(255,255,255,0.8); /* nền hơi trong suốt */
+  transform: scale(0.8);
+  transform-origin: top center;
+  background: rgba(255,255,255,0.8);
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.3);
 }
@@ -30,7 +30,7 @@ h2 { margin-top:12px; margin-bottom:8px; font-size:24px; color:#007bff; }
 h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
 .address { font-size:14px; margin-bottom:18px; }
 
-.amount-input { font-size:20px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
+.amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
 .error { color:#d00; font-size:14px; display:none; margin:8px 0; }
 
 .btn { display:inline-block; padding:10px 20px; margin:8px 0; border:none; border-radius:8px; background:#007bff; color:#fff; font-size:16px; cursor:pointer; }
@@ -95,7 +95,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
   <div class="modal-content">
     <span class="close-btn" onclick="closeScanner()">&times;</span>
     <div id="reader"></div>
-    <div class="hint">Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.</div>
+    <div id="scanHint" class="hint">Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.</div>
   </div>
 </div>
 
@@ -152,6 +152,8 @@ amountInput.addEventListener("input", function(){
 let html5QrCode; let handled=false;
 function openScanner(){
   amountInput.value=""; clearQR(); errorMsg.style.display="none"; handled=false;
+  const scanHint = document.getElementById("scanHint");
+  scanHint.textContent = "Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.";
   document.getElementById("scanModal").style.display="block";
   html5QrCode=new Html5Qrcode("reader");
   Html5Qrcode.getCameras().then(devices=>{
@@ -165,13 +167,22 @@ function closeScanner(){ if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCod
 
 function onScanSuccess(qrMessage){
   if(handled) return;
-  const amt=extractAmountFromQR(qrMessage);
+  const amt = extractAmountFromQR(qrMessage);
+  const scanHint = document.getElementById("scanHint");
+
+  if(!qrMessage || qrMessage.trim().length === 0){
+    scanHint.textContent = "Giữ yên điện thoại";
+    return;
+  }
+
   if(amt && !isNaN(amt) && amt>0){
-    handled=true;
-    amountInput.value=Number(amt).toLocaleString("vi-VN");
+    handled = true;
+    amountInput.value = Number(amt).toLocaleString("vi-VN");
     updateQR(amt);
     closeScanner();
-  } else { errorMsg.style.display="block"; }
+  } else {
+    scanHint.textContent = "Không phải mã thanh toán";
+  }
 }
 
 function extractAmountFromQR(qrText){
@@ -204,7 +215,7 @@ function enableTapToFocus(){
     video.addEventListener("click",async()=>{
       try{
         const track=video.srcObject.getVideoTracks()[0]; const caps=track.getCapabilities?.()||{};
-        if(caps.focusMode&&caps.focusMode.length){ await track.applyConstraints({advanced:[{focusMode:"continuous"}]}); }
+        if(caps.focusMode&&caps.focusMode.length){ await track.applyConstraints({advanced:[{focusMode:"continuous"}]); }
       }catch{}
     });
   },400);
