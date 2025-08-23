@@ -84,13 +84,14 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec";
 
-    function formatNumber(num) {
-      if (!num) return "";
-      return Number(num).toLocaleString("vi-VN");
-    }
+    function formatNumber(num) { if (!num) return ""; return Number(num).toLocaleString("vi-VN"); }
+    function parseNumber(str) { return str.replace(/\D/g, ""); }
 
-    function parseNumber(str) {
-      return str.replace(/\D/g, "");
+    function formatTime(dt) {
+      if(!dt) return "";
+      const d = new Date(dt);
+      const pad = n => n.toString().padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
     async function loadRooms() {
@@ -101,21 +102,21 @@
 
       data.forEach(room => {
         const tr = document.createElement("tr");
-
         const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
 
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
             <input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
-              oninput="onAmountChange('${room.name}')" />
+              oninput="onAmountChange('${room.name}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${room.name}')}"/>
           </td>
           <td>
             <button id="update-${room.name}" class="update" disabled onclick="updateAmount('${room.name}')">Cập nhật</button>
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
           <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${room.name}">${room.time || ""}</td>
+          <td id="time-${room.name}">${formatTime(room.time)}</td>
         `;
         table.appendChild(tr);
       });
@@ -145,9 +146,7 @@
       loadRooms();
     }
 
-    // Load ban đầu
     loadRooms();
-    // Refresh mỗi 60 giây
     setInterval(loadRooms, 60000);
   </script>
 </body>
