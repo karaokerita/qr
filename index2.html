@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>QR Thanh Toán - Karaoke Rita</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 body { 
@@ -19,9 +19,9 @@ body {
   max-width:420px; 
   margin: auto; 
   padding:20px; 
-  transform: scale(0.8);
-  transform-origin: top center;
-  background: rgba(255,255,255,0.8);
+  transform: scale(0.8);         
+  transform-origin: top center;   
+  background: rgba(255,255,255,0.8); 
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.3);
 }
@@ -32,6 +32,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
 
 .amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
 .error { color:#d00; font-size:14px; display:none; margin:8px 0; }
+#scanStatus { font-size:14px; color:#555; margin-bottom:6px; }
 
 .btn { display:inline-block; padding:10px 20px; margin:8px 0; border:none; border-radius:8px; background:#007bff; color:#fff; font-size:16px; cursor:pointer; }
 .btn:hover { background:#0056b3; }
@@ -70,6 +71,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
 
   <input id="amount" class="amount-input" type="text" placeholder="Nhập số tiền" />
   <div id="errorMsg" class="error">Quét không thành công</div>
+  <div id="scanStatus"></div>
 
   <button class="btn" onclick="openScanner()">Quét mã</button>
 
@@ -95,7 +97,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
   <div class="modal-content">
     <span class="close-btn" onclick="closeScanner()">&times;</span>
     <div id="reader"></div>
-    <div id="scanHint" class="hint">Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.</div>
+    <div class="hint">Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.</div>
   </div>
 </div>
 
@@ -104,9 +106,10 @@ const amountInput = document.getElementById("amount");
 const qrImg = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const errorMsg = document.getElementById("errorMsg");
+const scanStatus = document.getElementById("scanStatus");
 
 let html5QrCode; 
-let handled=false;
+let handled = false;
 
 // Chuyển số thành chữ tiếng Việt
 function readTriple(num){
@@ -143,9 +146,20 @@ function updateQR(val){
 
 function clearQR(){ qrImg.src=""; amountText.textContent=""; }
 
+// Reset màn hình trước khi quét
+function resetScreen(){
+  amountInput.value = "";
+  clearQR();
+  errorMsg.style.display = "none";
+  errorMsg.textContent = "Quét không thành công";
+  scanStatus.textContent = "";
+  handled = false;
+}
+
 // Input số tiền thủ công
 amountInput.addEventListener("input", function(){
   errorMsg.style.display="none";
+  scanStatus.textContent="";
   let val=this.value.replace(/\D/g,"");
   if(val){ this.value=Number(val).toLocaleString("vi-VN"); updateQR(val); }
   else { this.value=""; clearQR(); }
@@ -153,61 +167,45 @@ amountInput.addEventListener("input", function(){
 
 // Scanner QR
 function openScanner(){
-  amountInput.value=""; clearQR(); errorMsg.style.display="none"; handled=false;
-  const scanHint = document.getElementById("scanHint");
-  scanHint.textContent = "Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.";
+  resetScreen();  // refresh màn hình trước
   document.getElementById("scanModal").style.display="block";
-
-  if(html5QrCode) html5QrCode.clear().catch(()=>{});
-
   html5QrCode = new Html5Qrcode("reader");
 
   Html5Qrcode.getCameras().then(devices=>{
-    if(!devices || devices.length === 0){
-      scanHint.textContent = "Không tìm thấy camera";
-      return;
-    }
-    const pick = devices.find(d=>/back|rear/i.test(d.label))?.id || devices[0].id;
-    html5QrCode.start(
-      pick,
-      { fps: 12, qrbox: 260, videoConstraints: { facingMode: "environment" } },
+    if(!devices || !devices.length) return;
+    const pick = devices.find(d=>/wide|ultra|0\.5|back|rear/i.test(d.label))?.id || devices[0].id;
+    scanStatus.textContent = "Đang quét...";
+    html5QrCode.start(pick, {fps:12, qrbox:260, videoConstraints:{facingMode:"environment"}},
       onScanSuccess,
-      (error) => {}
-    ).catch(err=>{
-      scanHint.textContent = "Không thể mở camera";
-    });
-  }).catch(err=>{
-    scanHint.textContent = "Không thể truy cập camera";
-  });
+      ()=>{}
+    ).catch(console.error);
+  }).catch(console.error);
 }
 
 function closeScanner(){ 
-  if(html5QrCode){ 
-    html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); 
-  } 
+  if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); }
   document.getElementById("scanModal").style.display="none"; 
+  scanStatus.textContent = "";
 }
 
 function onScanSuccess(qrMessage){
   if(handled) return;
   const amt = extractAmountFromQR(qrMessage);
-  const scanHint = document.getElementById("scanHint");
-
-  if(!qrMessage || qrMessage.trim().length === 0){
-    scanHint.textContent = "Giữ yên điện thoại";
-    return;
-  }
 
   if(amt && !isNaN(amt) && amt>0){
     handled = true;
     amountInput.value = Number(amt).toLocaleString("vi-VN");
     updateQR(amt);
+    scanStatus.textContent = "Quét thành công!";
     closeScanner();
+  } else if(/amount/i.test(qrMessage)) {
+    scanStatus.textContent = "Giữ yên điện thoại";
   } else {
-    scanHint.textContent = "Không phải mã thanh toán";
+    scanStatus.textContent = "Không phải mã thanh toán";
   }
 }
 
+// Parse QR
 function extractAmountFromQR(qrText){
   if(!qrText) return null;
   const m=qrText.match(/(?:^|[?&])amount=(\d+)/i);
@@ -220,9 +218,11 @@ function extractAmountFromQR(qrText){
     if(end>s.length) break;
     const value=s.substring(start,end);
     if(tag==="54"){
-      const normalized=value.replace(",",".").trim(); const f=parseFloat(normalized);
+      const normalized=value.replace(",",".").trim(); 
+      const f=parseFloat(normalized);
       if(!isNaN(f)) return Math.round(f);
-      const digits=value.replace(/[^\d]/g,""); if(digits) return parseInt(digits,10);
+      const digits=value.replace(/[^\d]/g,""); 
+      if(digits) return parseInt(digits,10);
       return null;
     }
     i=end;
