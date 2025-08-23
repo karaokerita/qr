@@ -1,242 +1,81 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>QR Thanh Toán - Karaoke Rita</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://unpkg.com/html5-qrcode"></script>
-<style>
-body { 
-  margin:0; 
-  font-family: Arial, sans-serif; 
-  background: url('background.jpg') no-repeat center center fixed; 
-  background-size: cover;
-  color:#000; 
-  text-align:center; 
-}
-
-.container { 
-  max-width:420px; 
-  margin: auto; 
-  padding:20px; 
-  transform: scale(0.8);         
-  transform-origin: top center;   
-  background: rgba(255,255,255,0.8); 
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-}
-
-h2 { margin-top:12px; margin-bottom:8px; font-size:24px; color:#007bff; }
-h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
-.address { font-size:14px; margin-bottom:18px; }
-
-.amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
-.error { color:#d00; font-size:14px; display:none; margin:8px 0; }
-#scanStatus { font-size:14px; color:#555; margin-bottom:6px; }
-
-.btn { display:inline-block; padding:10px 20px; margin:8px 0; border:none; border-radius:8px; background:#007bff; color:#fff; font-size:16px; cursor:pointer; }
-.btn:hover { background:#0056b3; }
-
-.qr-box img { width:250px; height:250px; margin:15px 0; }
-
-#amountText { font-size:18px; margin-top:5px; font-weight:bold;color:green; }
-
-.info { text-align:left; font-size:14px; margin-top:15px; }
-.info p { margin:4px 0; } 
-.info span{ font-weight:bold; }
-
-.thanks {
-  margin-top:18px;
-  font-weight:bold;
-  text-align:center;
-  color:#28a745;
-  line-height:1.6;
-  letter-spacing:0.2px;
-}
-
-/* Modal camera */
-.modal { display:none; position:fixed; z-index:999; inset:0; background:rgba(0,0,0,0.7); }
-.modal-content { position:relative; margin:5% auto; width:92%; max-width:420px; background:#fff; border-radius:10px; padding:10px; }
-.close-btn { position:absolute; top:6px; right:10px; font-size:18px; cursor:pointer; color:#d00; }
-#reader { width:100%; }
-.hint { font-size:12px; color:#555; margin-top:6px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Thu Ngân - Karaoke</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial; background: #f0f0f0; text-align: center; }
+    .card {
+      background: white; padding: 20px; margin: 20px auto;
+      width: 90%; max-width: 600px; border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    input { width: 80px; text-align: right; }
+    button { padding: 5px 10px; margin: 5px; }
+  </style>
 </head>
 <body>
-
-<div class="container">
-  <h2>QUÉT MÃ ĐỂ THANH TOÁN</h2>
-  <h3>KARAOKE RITA</h3>
-  <div class="address">8 Lý Thường Kiệt, Đức Trọng</div>
-
-  <input id="amount" class="amount-input" type="text" placeholder="Nhập số tiền" />
-  <div id="errorMsg" class="error">Quét không thành công</div>
-  <div id="scanStatus"></div>
-
-  <button class="btn" onclick="openScanner()">Quét mã</button>
-
-  <div class="qr-box">
-    <img id="qrImage" src="" alt="QR Thanh toán" />
+  <h2>Thu Ngân - Nhập số tiền</h2>
+  <div class="card">
+    <table id="roomTable">
+      <tr><th>Phòng</th><th>Số tiền</th><th>Trạng thái</th><th>Hành động</th></tr>
+    </table>
   </div>
-  <div id="amountText"></div>
-
-  <div class="info">
-    <p><span>Ngân hàng:</span> Vietcombank (VCB)</p>
-    <p><span>Số tài khoản:</span> 9917.523.946</p>
-    <p><span>Tên người nhận:</span> HUYNH PHUONG TRANG</p>
-  </div>
-
-  <div class="thanks">
-    XIN CÁM ƠN QUÝ KHÁCH<br>
-    ĐÃ SỬ DỤNG DỊCH VỤ TẠI RITA
-  </div>
-</div>
-
-<!-- Modal Camera -->
-<div id="scanModal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeScanner()">&times;</span>
-    <div id="reader"></div>
-    <div class="hint">Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.</div>
-  </div>
-</div>
-
-<!-- Âm thanh -->
-<audio id="soundSuccess" src="success.mp3" preload="auto"></audio>
-<audio id="soundError" src="error.mp3" preload="auto"></audio>
 
 <script>
-const amountInput = document.getElementById("amount");
-const qrImg = document.getElementById("qrImage");
-const amountText = document.getElementById("amountText");
-const errorMsg = document.getElementById("errorMsg");
-const scanStatus = document.getElementById("scanStatus");
+const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
 
-let html5QrCode; 
-let handled = false;
+// Load danh sách phòng
+async function loadRooms() {
+  let res = await fetch(API_URL);
+  let data = await res.json();
 
-// Chuyển số thành chữ tiếng Việt
-function readTriple(num){
-  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-  let [hundreds,tens,ones]=String(num).padStart(3,'0').split("").map(Number);
-  let s="";
-  if(hundreds>0){ s+=units[hundreds]+" trăm"; if(tens===0&&ones>0)s+=" linh"; }
-  if(tens>1){ s+=" "+units[tens]+" mươi"; if(ones===1)s+=" mốt"; else if(ones===5)s+=" lăm"; else if(ones>0)s+=" "+units[ones]; }
-  else if(tens===1){ s+=" mười"; if(ones===1)s+=" một"; else if(ones===5)s+=" lăm"; else if(ones>0)s+=" "+units[ones]; }
-  else if(tens===0&&ones>0&&hundreds===0){ s+=units[ones]; }
-  else if(ones>0){ s+=" "+units[ones]; }
-  return s.trim();
-}
+  let table = document.getElementById("roomTable");
+  table.innerHTML = "<tr><th>Phòng</th><th>Số tiền</th><th>Trạng thái</th><th>Hành động</th></tr>";
 
-function numberToWords(n){
-  if(!n||n===0) return "không đồng";
-  const scales=["","nghìn","triệu","tỷ"];
-  let parts=[], scaleIdx=0;
-  while(n>0){
-    let chunk=n%1000;
-    if(chunk>0){ let words=readTriple(chunk); if(scales[scaleIdx]) words+=" "+scales[scaleIdx]; parts.unshift(words); }
-    n=Math.floor(n/1000);
-    scaleIdx++;
-  }
-  return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
-}
+  for (let i = 1; i < data.length; i++) {
+    let room = data[i][0];
+    let amount = data[i][1];
+    let status = data[i][2];
 
-// Tạo QR và hiển thị chữ
-function updateQR(val){
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+you&accountName=HUYNH+PHUONG+TRANG`;
-  qrImg.src=url;
-  amountText.textContent=numberToWords(Number(val));
-}
-
-function clearQR(){ qrImg.src=""; amountText.textContent=""; }
-
-function resetScreen(){
-  amountInput.value = "";
-  clearQR();
-  errorMsg.style.display = "none";
-  errorMsg.textContent = "Quét không thành công";
-  scanStatus.textContent = "";
-  handled = false;
-}
-
-// Input số tiền thủ công
-amountInput.addEventListener("input", function(){
-  errorMsg.style.display="none";
-  scanStatus.textContent="";
-  let val=this.value.replace(/\D/g,"");
-  if(val){ this.value=Number(val).toLocaleString("vi-VN"); updateQR(val); }
-  else { this.value=""; clearQR(); }
-});
-
-// Scanner QR
-function openScanner(){
-  resetScreen();  // refresh màn hình trước
-  document.getElementById("scanModal").style.display="block";
-  html5QrCode = new Html5Qrcode("reader");
-
-  Html5Qrcode.getCameras().then(devices=>{
-    if(!devices || !devices.length) return;
-    const pick = devices.find(d=>/wide|ultra|0\.5|back|rear/i.test(d.label))?.id || devices[0].id;
-    scanStatus.textContent = "Đang quét...";
-    html5QrCode.start(pick, {fps:12, qrbox:260, videoConstraints:{facingMode:"environment"}},
-      onScanSuccess,
-      ()=>{}
-    ).catch(console.error);
-  }).catch(console.error);
-}
-
-function closeScanner(){ 
-  if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); }
-  document.getElementById("scanModal").style.display="none"; 
-  scanStatus.textContent = "";
-}
-
-function onScanSuccess(qrMessage){
-  if(handled) return;
-  const amt = extractAmountFromQR(qrMessage);
-  const successSound = document.getElementById("soundSuccess");
-  const errorSound = document.getElementById("soundError");
-
-  if(amt && !isNaN(amt) && amt>0){
-    handled = true;
-    amountInput.value = Number(amt).toLocaleString("vi-VN");
-    updateQR(amt);
-    scanStatus.textContent = "Quét thành công!";
-    successSound.play(); // phát âm thanh thành công
-    closeScanner();
-  } else if(/amount/i.test(qrMessage)) {
-    scanStatus.textContent = "Giữ yên điện thoại";
-    errorSound.play(); // phát âm thanh lỗi
-  } else {
-    scanStatus.textContent = "Không phải mã thanh toán";
-    errorSound.play(); // phát âm thanh lỗi
+    let row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${room}</td>
+      <td><input type="number" id="amt_${room}" value="${amount}"></td>
+      <td>${status}</td>
+      <td>
+        <button onclick="updateRoom('${room}')">Cập nhật</button>
+        <button onclick="markPaid('${room}')">Đã thanh toán</button>
+      </td>
+    `;
+    table.appendChild(row);
   }
 }
 
-// Parse QR
-function extractAmountFromQR(qrText){
-  if(!qrText) return null;
-  const m=qrText.match(/(?:^|[?&])amount=(\d+)/i);
-  if(m) return parseInt(m[1],10);
-  const s=qrText.trim(); let i=0;
-  while(i+4<=s.length){
-    const tag=s.substr(i,2); const lenStr=s.substr(i+2,2);
-    if(!/^\d{2}$/.test(lenStr)) break;
-    const len=parseInt(lenStr,10); const start=i+4; const end=start+len;
-    if(end>s.length) break;
-    const value=s.substring(start,end);
-    if(tag==="54"){
-      const normalized=value.replace(",",".").trim(); 
-      const f=parseFloat(normalized);
-      if(!isNaN(f)) return Math.round(f);
-      const digits=value.replace(/[^\d]/g,""); 
-      if(digits) return parseInt(digits,10);
-      return null;
-    }
-    i=end;
-  }
-  return null;
+// Cập nhật số tiền
+async function updateRoom(room) {
+  let amount = document.getElementById("amt_" + room).value;
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "update", room: room, amount: amount })
+  });
+  loadRooms();
 }
+
+// Đánh dấu đã thanh toán
+async function markPaid(room) {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "paid", room: room })
+  });
+  loadRooms();
+}
+
+loadRooms();
+setInterval(loadRooms, 5000); // refresh tự động 5s/lần
 </script>
 </body>
 </html>
