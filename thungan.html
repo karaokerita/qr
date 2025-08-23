@@ -2,126 +2,53 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thu ngân Karaoke</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhân Viên - Karaoke</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f6fa;
-      padding: 20px;
-    }
-    h1 { color: #333; }
-    .form-box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 16px;
-    }
-    button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background: #fff;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th { background: #f1f1f1; }
-    .delete-btn {
-      background: #dc3545;
-    }
-    .delete-btn:hover {
-      background: #a71d2a;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #fffaf0; }
+    h2 { color: #444; }
+    .room { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+    .paid { background: #d4edda; }
+    button { margin-top: 5px; padding: 8px 12px; }
   </style>
 </head>
 <body>
-  <h1>Thu ngân Karaoke</h1>
-  
-  <div class="form-box">
-    <label>Tên phòng:</label><br>
-    <input type="text" id="roomName" placeholder="Nhập tên phòng"><br>
-    <label>Số tiền:</label><br>
-    <input type="number" id="roomAmount" placeholder="Nhập số tiền"><br>
-    <button onclick="addRoom()">Thêm phòng</button>
-  </div>
-
-  <h2>Danh sách phòng</h2>
-  <table id="roomTable">
-    <thead>
-      <tr>
-        <th>Phòng</th>
-        <th>Số tiền</th>
-        <th>Hành động</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h2>Danh sách phòng cần thanh toán</h2>
+  <div id="list"></div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwEtQBldbNaiGtTg2Bop2yYJIYIfkfjOlpm7HAF88nmAxtb7DUdu3eN9jgcFCjSpbXw/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby6P2_RMRn3Vly9KSoc-nJ4pi6UbTyXDvxUV6GFgGKQEAyN-44VBNbnCFeh5l1-txQQ/exec";
 
     async function loadRooms() {
-      const res = await fetch(API_URL + "?action=get");
-      const data = await res.json();
-      const tbody = document.querySelector("#roomTable tbody");
-      tbody.innerHTML = "";
+      let res = await fetch(`${API_URL}?action=get`);
+      let data = await res.json();
+      let list = document.getElementById("list");
+      list.innerHTML = "";
 
-      if (data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='3'>Chưa có phòng nào</td></tr>";
-        return;
-      }
-
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td><button class="delete-btn" onclick="deleteRoom('${row[0]}')">Đã thanh toán</button></td>
+      data.forEach(r => {
+        let div = document.createElement("div");
+        div.className = "room " + (r.status === "paid" ? "paid" : "");
+        div.innerHTML = `
+          <b>Phòng:</b> ${r.room} <br>
+          <b>Số tiền:</b> ${r.amount} <br>
+          <b>Trạng thái:</b> ${r.status}
         `;
-        tbody.appendChild(tr);
+        if (r.status !== "paid") {
+          let btn = document.createElement("button");
+          btn.innerText = "✅ Đã thanh toán";
+          btn.onclick = () => markPaid(r.room);
+          div.appendChild(btn);
+        }
+        list.appendChild(div);
       });
     }
 
-    async function addRoom() {
-      const name = document.getElementById("roomName").value.trim();
-      const amount = document.getElementById("roomAmount").value.trim();
-      if (!name || !amount) {
-        alert("Vui lòng nhập đầy đủ tên phòng và số tiền!");
-        return;
-      }
-      await fetch(`${API_URL}?action=add&name=${encodeURIComponent(name)}&amount=${amount}`);
-      document.getElementById("roomName").value = "";
-      document.getElementById("roomAmount").value = "";
+    async function markPaid(room) {
+      await fetch(`${API_URL}?action=update&room=${encodeURIComponent(room)}&status=paid`);
       loadRooms();
     }
 
-    async function deleteRoom(name) {
-      if (!confirm(`Xác nhận phòng "${name}" đã thanh toán?`)) return;
-      await fetch(`${API_URL}?action=delete&name=${encodeURIComponent(name)}`);
-      loadRooms();
-    }
-
-    // Load ngay khi mở trang
     loadRooms();
+    setInterval(loadRooms, 5000); // refresh 5 giây 1 lần
   </script>
 </body>
 </html>
