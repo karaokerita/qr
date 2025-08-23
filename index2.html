@@ -101,6 +101,10 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
   </div>
 </div>
 
+<!-- Âm thanh -->
+<audio id="soundSuccess" src="success.mp3" preload="auto"></audio>
+<audio id="soundError" src="error.mp3" preload="auto"></audio>
+
 <script>
 const amountInput = document.getElementById("amount");
 const qrImg = document.getElementById("qrImage");
@@ -146,7 +150,6 @@ function updateQR(val){
 
 function clearQR(){ qrImg.src=""; amountText.textContent=""; }
 
-// Reset màn hình trước khi quét
 function resetScreen(){
   amountInput.value = "";
   clearQR();
@@ -191,17 +194,22 @@ function closeScanner(){
 function onScanSuccess(qrMessage){
   if(handled) return;
   const amt = extractAmountFromQR(qrMessage);
+  const successSound = document.getElementById("soundSuccess");
+  const errorSound = document.getElementById("soundError");
 
   if(amt && !isNaN(amt) && amt>0){
     handled = true;
     amountInput.value = Number(amt).toLocaleString("vi-VN");
     updateQR(amt);
     scanStatus.textContent = "Quét thành công!";
+    successSound.play(); // phát âm thanh thành công
     closeScanner();
   } else if(/amount/i.test(qrMessage)) {
     scanStatus.textContent = "Giữ yên điện thoại";
+    errorSound.play(); // phát âm thanh lỗi
   } else {
     scanStatus.textContent = "Không phải mã thanh toán";
+    errorSound.play(); // phát âm thanh lỗi
   }
 }
 
