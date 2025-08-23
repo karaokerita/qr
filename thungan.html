@@ -117,7 +117,7 @@
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
           <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${room.name}">${room.time || ""}</td>
+          <td id="time-${room.name}" >${room.time || ""}</td>
         `;
         table.appendChild(tr);
       });
@@ -128,25 +128,19 @@
       input.value = formatNumber(parseNumber(input.value));
 
       const btn = document.getElementById("update-" + room);
-      const statusEl = document.getElementById("status-" + room);
-      const timeEl = document.getElementById("time-" + room);
-
-      // Khi số tiền thay đổi hoặc xóa rỗng → bật nút cập nhật
+      // Bật nút cập nhật khi thay đổi số tiền (cả rỗng)
       btn.classList.add("enabled");
       btn.disabled = false;
-
-      // Nếu xóa rỗng hoặc thay đổi số tiền → trạng thái về Chưa thanh toán và xóa thời gian
-      statusEl.textContent = "Chưa thanh toán";
-      statusEl.className = "status-unpaid";
-      timeEl.textContent = "";
     }
 
     async function updateAmount(room) {
       const raw = document.getElementById("amount-" + room).value;
       const amount = parseNumber(raw);
-      // Cho phép cập nhật kể cả khi rỗng
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}`);
-      loadRooms();
+
+      // Khi số tiền thay đổi hoặc rỗng → trạng thái = Chưa thanh toán, thời gian = rỗng
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}&status=Chưa thanh toán&time=`);
+
+      loadRooms(); // load lại dữ liệu từ Sheet
     }
 
     async function markPaid(room) {
