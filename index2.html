@@ -2,94 +2,92 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thanh toán phòng - Nhân viên</title>
+  <title>Nhân viên Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #eef2f5;
       padding: 20px;
     }
-    h2 {
-      text-align: center;
-      color: #333;
+    h1 { color: #222; }
+    #reader {
+      width: 300px;
+      margin: 20px auto;
     }
-    .room {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       background: #fff;
-      margin: 10px 0;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin-top: 20px;
     }
-    .room span {
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
     }
-    button {
-      background: #28a745;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #218838;
+    th {
+      background: #f1f1f1;
     }
   </style>
 </head>
 <body>
-  <h2>Danh sách phòng cần thanh toán</h2>
-  <div id="roomList">Đang tải dữ liệu...</div>
+  <h1>Nhân viên Karaoke</h1>
+
+  <h2>Danh sách phòng</h2>
+  <table id="roomTable">
+    <thead>
+      <tr>
+        <th>Phòng</th>
+        <th>Số tiền</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Quét mã thanh toán</h2>
+  <div id="reader"></div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwEtQBldbNaiGtTg2Bop2yYJIYIfkfjOlpm7HAF88nmAxtb7DUdu3eN9jgcFCjSpbXw/exec";
 
-    // Lấy danh sách phòng
     async function loadRooms() {
-      try {
-        const res = await fetch(API_URL + "?action=get");
-        const data = await res.json();
-        const listDiv = document.getElementById("roomList");
-        listDiv.innerHTML = "";
+      const res = await fetch(API_URL + "?action=get");
+      const data = await res.json();
+      const tbody = document.querySelector("#roomTable tbody");
+      tbody.innerHTML = "";
 
-        if (data.length === 0) {
-          listDiv.innerHTML = "<p>Không có phòng nào cần thanh toán.</p>";
-          return;
-        }
-
-        data.forEach(room => {
-          const div = document.createElement("div");
-          div.className = "room";
-          div.innerHTML = `
-            <span>${room.name} - ${room.amount}₫</span>
-            <button onclick="markPaid('${room.name}')">Đã thanh toán</button>
-          `;
-          listDiv.appendChild(div);
-        });
-      } catch (e) {
-        document.getElementById("roomList").innerHTML = "Lỗi tải dữ liệu.";
+      if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='2'>Chưa có phòng nào</td></tr>";
+        return;
       }
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td>`;
+        tbody.appendChild(tr);
+      });
     }
 
-    // Đánh dấu phòng đã thanh toán
-    async function markPaid(name) {
-      if (!confirm("Xác nhận phòng " + name + " đã thanh toán?")) return;
-      try {
-        await fetch(API_URL + "?action=delete&name=" + encodeURIComponent(name));
-        loadRooms(); // refresh danh sách
-      } catch (e) {
-        alert("Lỗi khi cập nhật thanh toán!");
-      }
+    function onScanSuccess(decodedText) {
+      alert("Mã quét được: " + decodedText);
     }
 
-    // Tải dữ liệu ban đầu
+    // Bắt đầu quét QR
+    const html5QrCode = new Html5Qrcode("reader");
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          onScanSuccess
+        );
+      }
+    });
+
+    // Load danh sách khi mở trang + refresh mỗi 5s
     loadRooms();
-    // Tự động refresh 5 giây/lần
     setInterval(loadRooms, 5000);
   </script>
 </body>
