@@ -30,9 +30,10 @@
       background: #007bff;
       color: white;
     }
-    input[type="number"] {
-      width: 100px;
+    input[type="text"] {
+      width: 120px;
       padding: 5px;
+      text-align: right;
     }
     button {
       padding: 6px 10px;
@@ -69,6 +70,17 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec";
 
+    // Định dạng số có dấu . phân cách nghìn
+    function formatNumber(num) {
+      if (!num) return "";
+      return Number(num).toLocaleString("vi-VN");
+    }
+
+    // Bỏ định dạng để gửi về Sheet
+    function parseNumber(str) {
+      return str.replace(/\D/g, "");
+    }
+
     async function loadRooms() {
       const res = await fetch(API + "?action=getRooms");
       const data = await res.json();
@@ -79,7 +91,8 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${room.name}</td>
-          <td><input type="number" id="amount-${room.name}" value="${room.amount || ""}"></td>
+          <td><input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
+              oninput="this.value = formatNumber(parseNumber(this.value))"></td>
           <td>${room.status || ""}</td>
           <td>${room.time || ""}</td>
           <td>
@@ -92,7 +105,8 @@
     }
 
     async function updateAmount(room) {
-      const amount = document.getElementById("amount-" + room).value;
+      const raw = document.getElementById("amount-" + room).value;
+      const amount = parseNumber(raw);
       if (!amount) return alert("Vui lòng nhập số tiền!");
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
       loadRooms();
@@ -105,8 +119,8 @@
 
     // Load ban đầu
     loadRooms();
-    // Tự động refresh mỗi 5 giây
-    setInterval(loadRooms, 5000);
+    // Refresh mỗi 60 giây
+    setInterval(loadRooms, 60000);
   </script>
 </body>
 </html>
