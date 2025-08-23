@@ -19,9 +19,9 @@ body {
   max-width:420px; 
   margin: auto; 
   padding:20px; 
-  transform: scale(0.8);         /* thu nhỏ 80% */
-  transform-origin: top center;   /* căn giữa theo trục ngang */
-  background: rgba(255,255,255,0.8); /* nền hơi trong suốt */
+  transform: scale(0.8);         
+  transform-origin: top center;   
+  background: rgba(255,255,255,0.8); 
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.3);
 }
@@ -32,6 +32,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
 
 .amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
 .error { color:#d00; font-size:14px; display:none; margin:8px 0; }
+#scanStatus { font-size:14px; color:#555; margin-bottom:6px; }
 
 .btn { display:inline-block; padding:10px 20px; margin:8px 0; border:none; border-radius:8px; background:#007bff; color:#fff; font-size:16px; cursor:pointer; }
 .btn:hover { background:#0056b3; }
@@ -70,6 +71,7 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
 
   <input id="amount" class="amount-input" type="text" placeholder="Nhập số tiền" />
   <div id="errorMsg" class="error">Quét không thành công</div>
+  <div id="scanStatus"></div>
 
   <button class="btn" onclick="openScanner()">Quét mã</button>
 
@@ -99,11 +101,19 @@ h3 { margin:10px 0 14px; font-size:22px; color:#28a745; }
   </div>
 </div>
 
+<!-- Âm thanh -->
+<audio id="soundSuccess" src="success.mp3" preload="auto"></audio>
+<audio id="soundError" src="error.mp3" preload="auto"></audio>
+
 <script>
 const amountInput = document.getElementById("amount");
 const qrImg = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const errorMsg = document.getElementById("errorMsg");
+const scanStatus = document.getElementById("scanStatus");
+
+let html5QrCode; 
+let handled = false;
 
 // Chuyển số thành chữ tiếng Việt
 function readTriple(num){
@@ -140,40 +150,70 @@ function updateQR(val){
 
 function clearQR(){ qrImg.src=""; amountText.textContent=""; }
 
+function resetScreen(){
+  amountInput.value = "";
+  clearQR();
+  errorMsg.style.display = "none";
+  errorMsg.textContent = "Quét không thành công";
+  scanStatus.textContent = "";
+  handled = false;
+}
+
 // Input số tiền thủ công
 amountInput.addEventListener("input", function(){
   errorMsg.style.display="none";
+  scanStatus.textContent="";
   let val=this.value.replace(/\D/g,"");
   if(val){ this.value=Number(val).toLocaleString("vi-VN"); updateQR(val); }
   else { this.value=""; clearQR(); }
 });
 
 // Scanner QR
-let html5QrCode; let handled=false;
 function openScanner(){
-  amountInput.value=""; clearQR(); errorMsg.style.display="none"; handled=false;
+  resetScreen();  // refresh màn hình trước
   document.getElementById("scanModal").style.display="block";
-  html5QrCode=new Html5Qrcode("reader");
+  html5QrCode = new Html5Qrcode("reader");
+
   Html5Qrcode.getCameras().then(devices=>{
-    if(!devices||!devices.length) return;
-    const pick=devices.find(d=>/wide|ultra|0\.5|back|rear/i.test(d.label))?.id || devices[0].id;
-    html5QrCode.start(pick,{fps:12,qrbox:260,videoConstraints:{facingMode:"environment"}},onScanSuccess,()=>{}).catch(console.error);
+    if(!devices || !devices.length) return;
+    const pick = devices.find(d=>/wide|ultra|0\.5|back|rear/i.test(d.label))?.id || devices[0].id;
+    scanStatus.textContent = "Đang quét...";
+    html5QrCode.start(pick, {fps:12, qrbox:260, videoConstraints:{facingMode:"environment"}},
+      onScanSuccess,
+      ()=>{}
+    ).catch(console.error);
   }).catch(console.error);
 }
 
-function closeScanner(){ if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); } document.getElementById("scanModal").style.display="none"; }
+function closeScanner(){ 
+  if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); }
+  document.getElementById("scanModal").style.display="none"; 
+  scanStatus.textContent = "";
+}
 
 function onScanSuccess(qrMessage){
   if(handled) return;
-  const amt=extractAmountFromQR(qrMessage);
+  const amt = extractAmountFromQR(qrMessage);
+  const successSound = document.getElementById("soundSuccess");
+  const errorSound = document.getElementById("soundError");
+
   if(amt && !isNaN(amt) && amt>0){
-    handled=true;
-    amountInput.value=Number(amt).toLocaleString("vi-VN");
+    handled = true;
+    amountInput.value = Number(amt).toLocaleString("vi-VN");
     updateQR(amt);
+    scanStatus.textContent = "Quét thành công!";
+    successSound.play(); // phát âm thanh thành công
     closeScanner();
-  } else { errorMsg.style.display="block"; }
+  } else if(/amount/i.test(qrMessage)) {
+    scanStatus.textContent = "Giữ yên điện thoại";
+    errorSound.play(); // phát âm thanh lỗi
+  } else {
+    scanStatus.textContent = "Không phải mã thanh toán";
+    errorSound.play(); // phát âm thanh lỗi
+  }
 }
 
+// Parse QR
 function extractAmountFromQR(qrText){
   if(!qrText) return null;
   const m=qrText.match(/(?:^|[?&])amount=(\d+)/i);
@@ -186,28 +226,16 @@ function extractAmountFromQR(qrText){
     if(end>s.length) break;
     const value=s.substring(start,end);
     if(tag==="54"){
-      const normalized=value.replace(",",".").trim(); const f=parseFloat(normalized);
+      const normalized=value.replace(",",".").trim(); 
+      const f=parseFloat(normalized);
       if(!isNaN(f)) return Math.round(f);
-      const digits=value.replace(/[^\d]/g,""); if(digits) return parseInt(digits,10);
+      const digits=value.replace(/[^\d]/g,""); 
+      if(digits) return parseInt(digits,10);
       return null;
     }
     i=end;
   }
   return null;
-}
-
-// Optional: chạm vào video để lấy nét
-function enableTapToFocus(){
-  setTimeout(()=>{
-    const video=document.querySelector("#reader video");
-    if(!video||!video.srcObject) return;
-    video.addEventListener("click",async()=>{
-      try{
-        const track=video.srcObject.getVideoTracks()[0]; const caps=track.getCapabilities?.()||{};
-        if(caps.focusMode&&caps.focusMode.length){ await track.applyConstraints({advanced:[{focusMode:"continuous"}]}); }
-      }catch{}
-    });
-  },400);
 }
 </script>
 </body>
