@@ -123,7 +123,6 @@
       });
     }
 
-    // Khi số tiền thay đổi
     function onAmountChange(room) {
       const input = document.getElementById("amount-" + room);
       input.value = formatNumber(parseNumber(input.value));
@@ -132,15 +131,11 @@
       const statusEl = document.getElementById("status-" + room);
       const timeEl = document.getElementById("time-" + room);
 
-      if (parseNumber(input.value)) {
-        btn.classList.add("enabled");
-        btn.disabled = false;
-      } else {
-        btn.classList.remove("enabled");
-        btn.disabled = true;
-      }
+      // Khi số tiền thay đổi hoặc xóa rỗng → bật nút cập nhật
+      btn.classList.add("enabled");
+      btn.disabled = false;
 
-      // Nếu thay đổi số tiền hoặc xóa số tiền, chuyển trạng thái về Chưa thanh toán
+      // Nếu xóa rỗng hoặc thay đổi số tiền → trạng thái về Chưa thanh toán và xóa thời gian
       statusEl.textContent = "Chưa thanh toán";
       statusEl.className = "status-unpaid";
       timeEl.textContent = "";
@@ -149,8 +144,8 @@
     async function updateAmount(room) {
       const raw = document.getElementById("amount-" + room).value;
       const amount = parseNumber(raw);
-      if (!amount) return alert("Vui lòng nhập số tiền!");
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
+      // Cho phép cập nhật kể cả khi rỗng
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}`);
       loadRooms();
     }
 
