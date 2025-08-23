@@ -89,9 +89,7 @@
       const raw = document.getElementById("amount-" + room).value;
       const amount = parseNumber(raw);
 
-      // Khi nhấn Cập nhật: lưu số tiền, trạng thái = Chưa thanh toán, xóa thời gian thanh toán
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}`);
-
       loadRooms();
     }
 
