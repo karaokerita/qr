@@ -45,10 +45,24 @@
     .update {
       background: #28a745;
       color: white;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .update.enabled {
+      opacity: 1;
+      cursor: pointer;
     }
     .paid {
       background: #dc3545;
       color: white;
+    }
+    .status-unpaid {
+      color: red;
+      font-weight: bold;
+    }
+    .status-paid {
+      color: green;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -59,9 +73,9 @@
       <tr>
         <th>Phòng</th>
         <th>Số tiền</th>
+        <th>Hành động</th>
         <th>Trạng thái</th>
         <th>Thời gian TT</th>
-        <th>Hành động</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
@@ -89,19 +103,36 @@
 
       data.forEach(room => {
         const tr = document.createElement("tr");
+
+        const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
+
         tr.innerHTML = `
           <td>${room.name}</td>
           <td><input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
-              oninput="this.value = formatNumber(parseNumber(this.value))"></td>
-          <td>${room.status || ""}</td>
-          <td>${room.time || ""}</td>
+              oninput="enableUpdate('${room.name}')" /></td>
           <td>
-            <button class="update" onclick="updateAmount('${room.name}')">Cập nhật</button>
+            <button id="update-${room.name}" class="update" disabled onclick="updateAmount('${room.name}')">Cập nhật</button>
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
+          <td class="${statusClass}">${room.status || ""}</td>
+          <td>${room.time || ""}</td>
         `;
         table.appendChild(tr);
       });
+    }
+
+    function enableUpdate(room) {
+      const input = document.getElementById("amount-" + room);
+      input.value = formatNumber(parseNumber(input.value));
+
+      const btn = document.getElementById("update-" + room);
+      if (parseNumber(input.value)) {
+        btn.classList.add("enabled");
+        btn.disabled = false;
+      } else {
+        btn.classList.remove("enabled");
+        btn.disabled = true;
+      }
     }
 
     async function updateAmount(room) {
