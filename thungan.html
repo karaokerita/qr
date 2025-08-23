@@ -2,53 +2,40 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Nhân Viên - Karaoke</title>
+  <title>Thu Ngân - Karaoke</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #fffaf0; }
-    h2 { color: #444; }
-    .room { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
-    .paid { background: #d4edda; }
-    button { margin-top: 5px; padding: 8px 12px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    h2 { color: #333; }
+    input, button { padding: 10px; margin: 5px 0; width: 100%; }
+    #result { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>Danh sách phòng cần thanh toán</h2>
-  <div id="list"></div>
+  <h2>Thu Ngân - Nhập phòng & số tiền</h2>
+  <input type="text" id="room" placeholder="Tên phòng">
+  <input type="number" id="amount" placeholder="Số tiền">
+  <button onclick="addRoom()">Thêm phòng</button>
+  <div id="result"></div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycby6P2_RMRn3Vly9KSoc-nJ4pi6UbTyXDvxUV6GFgGKQEAyN-44VBNbnCFeh5l1-txQQ/exec";
 
-    async function loadRooms() {
-      let res = await fetch(`${API_URL}?action=get`);
-      let data = await res.json();
-      let list = document.getElementById("list");
-      list.innerHTML = "";
+    async function addRoom() {
+      let room = document.getElementById("room").value;
+      let amount = document.getElementById("amount").value;
 
-      data.forEach(r => {
-        let div = document.createElement("div");
-        div.className = "room " + (r.status === "paid" ? "paid" : "");
-        div.innerHTML = `
-          <b>Phòng:</b> ${r.room} <br>
-          <b>Số tiền:</b> ${r.amount} <br>
-          <b>Trạng thái:</b> ${r.status}
-        `;
-        if (r.status !== "paid") {
-          let btn = document.createElement("button");
-          btn.innerText = "✅ Đã thanh toán";
-          btn.onclick = () => markPaid(r.room);
-          div.appendChild(btn);
-        }
-        list.appendChild(div);
-      });
+      if (!room || !amount) {
+        document.getElementById("result").innerText = "⚠️ Vui lòng nhập đủ thông tin!";
+        return;
+      }
+
+      let res = await fetch(`${API_URL}?action=add&room=${encodeURIComponent(room)}&amount=${amount}`);
+      let text = await res.text();
+      document.getElementById("result").innerText = "✅ " + text;
+      
+      document.getElementById("room").value = "";
+      document.getElementById("amount").value = "";
     }
-
-    async function markPaid(room) {
-      await fetch(`${API_URL}?action=update&room=${encodeURIComponent(room)}&status=paid`);
-      loadRooms();
-    }
-
-    loadRooms();
-    setInterval(loadRooms, 5000); // refresh 5 giây 1 lần
   </script>
 </body>
 </html>
