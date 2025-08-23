@@ -2,12 +2,12 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Nhân viên - Thanh toán Karaoke</title>
+  <title>Thu ngân - Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f7f7f7;
+      background: #eef2f7;
       margin: 0; padding: 20px;
       text-align: center;
     }
@@ -16,91 +16,92 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 400px;
+      max-width: 420px;
       margin: auto;
     }
     h2 {
       color: #333;
+      margin-bottom: 20px;
     }
-    select, button {
-      padding: 10px;
-      margin: 10px 0;
+    input, select, button {
       width: 100%;
+      padding: 12px;
+      margin: 8px 0;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
     button {
-      background: #28a745;
+      background: #007bff;
       color: white;
       border: none;
       cursor: pointer;
     }
     button:hover {
-      background: #218838;
+      background: #0069d9;
     }
-    .amount {
-      font-size: 20px;
-      font-weight: bold;
-      color: #d9534f;
-      margin: 15px 0;
+    .list {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .list div {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>💁 Nhân viên - Thanh toán</h2>
-    <label for="roomSelect">Chọn phòng:</label>
-    <select id="roomSelect"></select>
+    <h2>💵 Thu ngân - Nhập số tiền</h2>
 
-    <div id="amount" class="amount">Số tiền: 0 đ</div>
+    <label for="room">Chọn phòng:</label>
+    <select id="room">
+      <option value="Phòng 1">Phòng 1</option>
+      <option value="Phòng 2">Phòng 2</option>
+      <option value="Phòng 3">Phòng 3</option>
+    </select>
 
-    <button onclick="markPaid()">Đã thanh toán</button>
+    <label for="amount">Nhập số tiền (đ):</label>
+    <input type="number" id="amount" placeholder="VD: 500000">
+
+    <button onclick="saveAmount()">💾 Lưu số tiền</button>
+
+    <div class="list" id="roomList"></div>
   </div>
 
 <script>
+// 👉 Thay link này bằng link exec của bạn
 const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
+
+async function saveAmount() {
+  const room = document.getElementById("room").value;
+  const amount = document.getElementById("amount").value;
+
+  if (!amount) return alert("Vui lòng nhập số tiền!");
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "setAmount", room: room, amount: amount })
+  });
+
+  alert("✅ Đã lưu số tiền cho " + room);
+  loadRooms();
+}
 
 async function loadRooms() {
   const res = await fetch(API_URL);
   const data = await res.json();
 
-  const select = document.getElementById("roomSelect");
-  select.innerHTML = "";
+  const list = document.getElementById("roomList");
+  list.innerHTML = "<h3>📋 Danh sách phòng:</h3>";
 
   data.slice(1).forEach(row => {
     const [room, amount, status] = row;
     if (room) {
-      let option = document.createElement("option");
-      option.value = room;
-      option.textContent = `${room} (${status})`;
-      option.dataset.amount = amount;
-      select.appendChild(option);
+      list.innerHTML += `<div>${room}: ${amount || 0} đ (${status})</div>`;
     }
   });
-
-  updateAmount();
-}
-
-function updateAmount() {
-  const select = document.getElementById("roomSelect");
-  const amount = select.options[select.selectedIndex]?.dataset.amount || 0;
-  document.getElementById("amount").textContent = "Số tiền: " + amount + " đ";
-}
-
-document.getElementById("roomSelect").addEventListener("change", updateAmount);
-
-async function markPaid() {
-  const room = document.getElementById("roomSelect").value;
-  if (!room) return alert("Chưa chọn phòng!");
-
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "paid", room: room })
-  });
-
-  alert("✅ Đã thanh toán phòng " + room);
-  loadRooms();
 }
 
 loadRooms();
