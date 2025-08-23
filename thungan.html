@@ -41,8 +41,9 @@
     function parseNumber(str) { return str.replace(/\D/g, ""); }
 
     function formatTime(dt) {
-      if(!dt) return "";
+      if (!dt) return "";
       const d = new Date(dt);
+      if (isNaN(d)) return "";
       const pad = n => n.toString().padStart(2,'0');
       return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
