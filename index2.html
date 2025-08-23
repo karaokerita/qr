@@ -105,6 +105,9 @@ const qrImg = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const errorMsg = document.getElementById("errorMsg");
 
+let html5QrCode; 
+let handled=false;
+
 // Chuyển số thành chữ tiếng Việt
 function readTriple(num){
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
@@ -149,21 +152,41 @@ amountInput.addEventListener("input", function(){
 });
 
 // Scanner QR
-let html5QrCode; let handled=false;
 function openScanner(){
   amountInput.value=""; clearQR(); errorMsg.style.display="none"; handled=false;
   const scanHint = document.getElementById("scanHint");
   scanHint.textContent = "Mẹo: đưa mã vào giữa khung, chạm vào video để máy lấy nét nếu thiết bị hỗ trợ.";
   document.getElementById("scanModal").style.display="block";
-  html5QrCode=new Html5Qrcode("reader");
+
+  if(html5QrCode) html5QrCode.clear().catch(()=>{});
+
+  html5QrCode = new Html5Qrcode("reader");
+
   Html5Qrcode.getCameras().then(devices=>{
-    if(!devices||!devices.length) return;
-    const pick=devices.find(d=>/wide|ultra|0\.5|back|rear/i.test(d.label))?.id || devices[0].id;
-    html5QrCode.start(pick,{fps:12,qrbox:260,videoConstraints:{facingMode:"environment"}},onScanSuccess,()=>{}).catch(console.error);
-  }).catch(console.error);
+    if(!devices || devices.length === 0){
+      scanHint.textContent = "Không tìm thấy camera";
+      return;
+    }
+    const pick = devices.find(d=>/back|rear/i.test(d.label))?.id || devices[0].id;
+    html5QrCode.start(
+      pick,
+      { fps: 12, qrbox: 260, videoConstraints: { facingMode: "environment" } },
+      onScanSuccess,
+      (error) => {}
+    ).catch(err=>{
+      scanHint.textContent = "Không thể mở camera";
+    });
+  }).catch(err=>{
+    scanHint.textContent = "Không thể truy cập camera";
+  });
 }
 
-function closeScanner(){ if(html5QrCode){ html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); } document.getElementById("scanModal").style.display="none"; }
+function closeScanner(){ 
+  if(html5QrCode){ 
+    html5QrCode.stop().then(()=>html5QrCode.clear()).catch(()=>{}); 
+  } 
+  document.getElementById("scanModal").style.display="none"; 
+}
 
 function onScanSuccess(qrMessage){
   if(handled) return;
@@ -205,20 +228,6 @@ function extractAmountFromQR(qrText){
     i=end;
   }
   return null;
-}
-
-// Optional: chạm vào video để lấy nét
-function enableTapToFocus(){
-  setTimeout(()=>{
-    const video=document.querySelector("#reader video");
-    if(!video||!video.srcObject) return;
-    video.addEventListener("click",async()=>{
-      try{
-        const track=video.srcObject.getVideoTracks()[0]; const caps=track.getCapabilities?.()||{};
-        if(caps.focusMode&&caps.focusMode.length){ await track.applyConstraints({advanced:[{focusMode:"continuous"}]); }
-      }catch{}
-    });
-  },400);
 }
 </script>
 </body>
