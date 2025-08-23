@@ -5,65 +5,18 @@
   <title>Thu ngân Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    input[type="text"] {
-      width: 120px;
-      padding: 5px;
-      text-align: right;
-    }
-    button {
-      padding: 6px 10px;
-      margin: 2px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .update {
-      background: #28a745;
-      color: white;
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .update.enabled {
-      opacity: 1;
-      cursor: pointer;
-    }
-    .paid {
-      background: #dc3545;
-      color: white;
-    }
-    .status-unpaid {
-      color: red;
-      font-weight: bold;
-    }
-    .status-paid {
-      color: green;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #007bff; color: white; }
+    input[type="text"] { width: 120px; padding: 5px; text-align: right; }
+    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
+    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
+    .update.enabled { opacity: 1; cursor: pointer; }
+    .paid { background: #dc3545; color: white; }
+    .status-unpaid { color: red; font-weight: bold; }
+    .status-paid { color: green; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -136,7 +89,7 @@
       const amount = parseNumber(raw);
 
       // Khi nhấn Cập nhật: lưu số tiền, trạng thái = Chưa thanh toán, xóa thời gian thanh toán
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}&status=Chưa thanh toán&time=`);
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}`);
 
       loadRooms();
     }
@@ -147,7 +100,7 @@
     }
 
     loadRooms();
-    setInterval(loadRooms, 60000);
+    setInterval(loadRooms, 60000); // Refresh mỗi 1 phút
   </script>
 </body>
 </html>
