@@ -2,80 +2,108 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Thu Ngân - Karaoke</title>
+  <title>Nhân viên - Thanh toán Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial; background: #f0f0f0; text-align: center; }
-    .card {
-      background: white; padding: 20px; margin: 20px auto;
-      width: 90%; max-width: 600px; border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0; padding: 20px;
+      text-align: center;
     }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    input { width: 80px; text-align: right; }
-    button { padding: 5px 10px; margin: 5px; }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
+    }
+    h2 {
+      color: #333;
+    }
+    select, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+    .amount {
+      font-size: 20px;
+      font-weight: bold;
+      color: #d9534f;
+      margin: 15px 0;
+    }
   </style>
 </head>
 <body>
-  <h2>Thu Ngân - Nhập số tiền</h2>
   <div class="card">
-    <table id="roomTable">
-      <tr><th>Phòng</th><th>Số tiền</th><th>Trạng thái</th><th>Hành động</th></tr>
-    </table>
+    <h2>💁 Nhân viên - Thanh toán</h2>
+    <label for="roomSelect">Chọn phòng:</label>
+    <select id="roomSelect"></select>
+
+    <div id="amount" class="amount">Số tiền: 0 đ</div>
+
+    <button onclick="markPaid()">Đã thanh toán</button>
   </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbyzfRB-aEGHX5Dq9C9_I30E9Mi5HDezEEghsMJDItFDoK-P99w2PiLHkLjSH41SKeJY/exec";
 
-// Load danh sách phòng
 async function loadRooms() {
-  let res = await fetch(API_URL);
-  let data = await res.json();
+  const res = await fetch(API_URL);
+  const data = await res.json();
 
-  let table = document.getElementById("roomTable");
-  table.innerHTML = "<tr><th>Phòng</th><th>Số tiền</th><th>Trạng thái</th><th>Hành động</th></tr>";
+  const select = document.getElementById("roomSelect");
+  select.innerHTML = "";
 
-  for (let i = 1; i < data.length; i++) {
-    let room = data[i][0];
-    let amount = data[i][1];
-    let status = data[i][2];
-
-    let row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${room}</td>
-      <td><input type="number" id="amt_${room}" value="${amount}"></td>
-      <td>${status}</td>
-      <td>
-        <button onclick="updateRoom('${room}')">Cập nhật</button>
-        <button onclick="markPaid('${room}')">Đã thanh toán</button>
-      </td>
-    `;
-    table.appendChild(row);
-  }
-}
-
-// Cập nhật số tiền
-async function updateRoom(room) {
-  let amount = document.getElementById("amt_" + room).value;
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "update", room: room, amount: amount })
+  data.slice(1).forEach(row => {
+    const [room, amount, status] = row;
+    if (room) {
+      let option = document.createElement("option");
+      option.value = room;
+      option.textContent = `${room} (${status})`;
+      option.dataset.amount = amount;
+      select.appendChild(option);
+    }
   });
-  loadRooms();
+
+  updateAmount();
 }
 
-// Đánh dấu đã thanh toán
-async function markPaid(room) {
+function updateAmount() {
+  const select = document.getElementById("roomSelect");
+  const amount = select.options[select.selectedIndex]?.dataset.amount || 0;
+  document.getElementById("amount").textContent = "Số tiền: " + amount + " đ";
+}
+
+document.getElementById("roomSelect").addEventListener("change", updateAmount);
+
+async function markPaid() {
+  const room = document.getElementById("roomSelect").value;
+  if (!room) return alert("Chưa chọn phòng!");
+
   await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({ action: "paid", room: room })
   });
+
+  alert("✅ Đã thanh toán phòng " + room);
   loadRooms();
 }
 
 loadRooms();
-setInterval(loadRooms, 5000); // refresh tự động 5s/lần
 </script>
 </body>
 </html>
