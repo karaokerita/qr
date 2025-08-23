@@ -108,24 +108,30 @@
 
         tr.innerHTML = `
           <td>${room.name}</td>
-          <td><input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
-              oninput="enableUpdate('${room.name}')" /></td>
+          <td>
+            <input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
+              oninput="onAmountChange('${room.name}')" />
+          </td>
           <td>
             <button id="update-${room.name}" class="update" disabled onclick="updateAmount('${room.name}')">Cập nhật</button>
             <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
           </td>
-          <td class="${statusClass}">${room.status || ""}</td>
-          <td>${room.time || ""}</td>
+          <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
+          <td id="time-${room.name}">${room.time || ""}</td>
         `;
         table.appendChild(tr);
       });
     }
 
-    function enableUpdate(room) {
+    // Khi số tiền thay đổi
+    function onAmountChange(room) {
       const input = document.getElementById("amount-" + room);
       input.value = formatNumber(parseNumber(input.value));
 
       const btn = document.getElementById("update-" + room);
+      const statusEl = document.getElementById("status-" + room);
+      const timeEl = document.getElementById("time-" + room);
+
       if (parseNumber(input.value)) {
         btn.classList.add("enabled");
         btn.disabled = false;
@@ -133,6 +139,11 @@
         btn.classList.remove("enabled");
         btn.disabled = true;
       }
+
+      // Nếu thay đổi số tiền hoặc xóa số tiền, chuyển trạng thái về Chưa thanh toán
+      statusEl.textContent = "Chưa thanh toán";
+      statusEl.className = "status-unpaid";
+      timeEl.textContent = "";
     }
 
     async function updateAmount(room) {
