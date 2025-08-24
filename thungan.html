@@ -92,7 +92,7 @@
       btn.disabled = true;
 
       const raw = document.getElementById("amount-" + id).value;
-      const amount = raw.replace(/\./g, ""); // loại bỏ dấu chấm trước khi gửi
+      const amount = raw.replace(/\./g, "").replace(/,/g, ""); // loại bỏ dấu . và ,
 
       await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
       await loadRooms(id);
