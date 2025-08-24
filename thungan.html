@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-  <h1>Thu ngân Karaoke</h1>
+  <h1>Thu ngân Karaoke v1</h1>
   <table>
     <thead>
       <tr>
@@ -40,7 +40,6 @@
     const API = "https://script.google.com/macros/s/AKfycbzPgOXVtYxWWidE09zBcmHf5N72SmuPkoHbtzw2hSQtO1mUAZz7Ikh9PNdOXycORNPZ/exec";
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
-    const parseNumber = s => s.replace(/\D/g,"");
 
     async function loadRooms(highlight=null) {
       const res = await fetch(API + "?action=getRooms");
@@ -58,6 +57,7 @@
           <td>${room.name}</td>
           <td>
             <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+              data-raw="${room.amount || 0}"
               oninput="onAmountChange('${roomId}')"
               onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}" />
           </td>
@@ -70,7 +70,6 @@
         `;
 
         table.appendChild(tr);
-
         if (highlight === roomId) {
           tr.classList.add("highlight");
           setTimeout(()=>tr.classList.remove("highlight"),2000);
@@ -80,7 +79,9 @@
 
     function onAmountChange(id) {
       const input = document.getElementById("amount-" + id);
-      input.value = formatNumber(parseNumber(input.value));
+      const raw = input.value.replace(/\./g, "").replace(/,/g, "");
+      input.dataset.raw = raw;
+      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
       const btn = document.getElementById("update-" + id);
       btn.classList.add("enabled");
       btn.disabled = false;
@@ -91,8 +92,8 @@
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
 
-      const raw = document.getElementById("amount-" + id).value;
-      const amount = raw.replace(/\./g, "").replace(/,/g, ""); // loại bỏ dấu . và ,
+      const input = document.getElementById("amount-" + id);
+      const amount = input.dataset.raw; // gửi giá trị thực
 
       await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
       await loadRooms(id);
