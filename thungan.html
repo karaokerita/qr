@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-  <h1>Thu ngân Karaoke v2</h1>
+  <h1>Thu ngân Karaoke v3</h1>
   <table>
     <thead>
       <tr>
@@ -93,9 +93,9 @@
       btn.disabled = true;
 
       const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw; // gửi giá trị thực
+      const amount = input.dataset.raw;
 
-      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
       await loadRooms(id);
 
       btn.innerText = "Cập nhật";
@@ -106,7 +106,7 @@
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
 
-      await fetch(`${API}?action=markPaid&room=${id}`);
+      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
       await loadRooms(id);
 
       btn.innerText = "Đã thanh toán";
