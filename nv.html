@@ -106,7 +106,7 @@ function fillQR(amount, roomName=null){
   manualInput.value = Number(amount).toLocaleString("vi-VN");
   document.getElementById("qrRoomName").textContent = roomName || "";
   document.getElementById("amountText").textContent = numberToWords(Number(amount));
-  document.getElementById("qrImage").src = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amount}&accountName=HUYNH+PHUONG+TRANG`;
+  document.getElementById("qrImage").src = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+you&accountName=HUYNH+PHUONG+TRANG`;
 }
 
 // Nhập tay số tiền
