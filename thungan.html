@@ -72,7 +72,7 @@
               ${room.status === "Đã thanh toán" ? "disabled" : ""}>Đã thanh toán</button>
           </td>
           <td id="status-${safeId}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${safeId}">${room.time || ""}</td>
+          <td id="time-${safeId}">${room.refTime || ""}</td>
         `;
 
         table.appendChild(tr);
