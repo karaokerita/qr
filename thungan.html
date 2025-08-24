@@ -1,51 +1,133 @@
-function doGet(e) {
-  var action = e.parameter.action;
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thu ngân Karaoke</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #007bff; color: white; }
+    input[type="text"] { width: 120px; padding: 5px; text-align: right; }
+    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
+    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
+    .update.enabled { opacity: 1; cursor: pointer; }
+    .paid { background: #dc3545; color: white; }
+    .paid:disabled { background: #aaa; cursor: not-allowed; }
+    .status-unpaid { color: red; font-weight: bold; }
+    .status-paid { color: green; font-weight: bold; }
+    .highlight { background: #d4edda !important; transition: background 2s ease; }
+  </style>
+</head>
+<body>
+  <h1>Thu ngân Karaoke</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Phòng</th>
+        <th>Số tiền</th>
+        <th>Hành động</th>
+        <th>Trạng thái</th>
+        <th>Thời gian</th>
+      </tr>
+    </thead>
+    <tbody id="roomTable"></tbody>
+  </table>
 
-  if (action === "getRooms") {
-    var data = sheet.getDataRange().getValues();
-    var result = [];
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec"; 
 
-    for (var i = 1; i < data.length; i++) {
-      result.push({
-        name: data[i][0],                  // cột A: Tên phòng
-        amount: data[i][1],                // cột B: Số tiền
-        status: data[i][2],                // cột C: Trạng thái
-        time: data[i][4] ? formatTime(data[i][4]) : ""  // cột E: Thời gian
+    function formatNumber(num) {
+      if (!num) return "";
+      return Number(num).toLocaleString("vi-VN");
+    }
+    function parseNumber(str) {
+      return str.replace(/\D/g,"");
+    }
+
+    async function loadRooms(highlightRoom = null) {
+      const res = await fetch(API + "?action=getRooms");
+      const data = await res.json();
+      const table = document.getElementById("roomTable");
+      table.innerHTML = "";
+
+      data.forEach(room => {
+        const safeId = encodeURIComponent(room.name);
+        const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
+
+        const tr = document.createElement("tr");
+        tr.id = "row-" + safeId;
+
+        tr.innerHTML = `
+          <td>${room.name}</td>
+          <td>
+            <input type="text" id="amount-${safeId}" 
+                   value="${formatNumber(room.amount)}"
+                   oninput="onAmountChange('${safeId}')"
+                   onkeypress="if(event.key==='Enter'){updateAmount('${safeId}')}" />
+          </td>
+          <td>
+            <button id="update-${safeId}" class="update" disabled 
+                    onclick="updateAmount('${safeId}')">Cập nhật</button>
+            <button id="paid-${safeId}" class="paid" 
+                    onclick="markPaid('${safeId}')"
+                    ${room.status === "Đã thanh toán" ? "disabled" : ""}>
+              Đã thanh toán
+            </button>
+          </td>
+          <td id="status-${safeId}" class="${statusClass}">
+            ${room.status || ""}
+          </td>
+          <td id="time-${safeId}">
+            ${room.time || ""}
+          </td>
+        `;
+        table.appendChild(tr);
+
+        if (highlightRoom === safeId) {
+          tr.classList.add("highlight");
+          setTimeout(() => tr.classList.remove("highlight"), 2000);
+        }
       });
     }
 
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (action === "updateAmount") {
-    var room = e.parameter.room;
-    var amount = e.parameter.amount;
-    var rows = sheet.getDataRange().getValues();
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][0] == room) {
-        sheet.getRange(i + 1, 2).setValue(amount); // cột B
-        break;
-      }
+    function onAmountChange(roomId) {
+      const input = document.getElementById("amount-" + roomId);
+      input.value = formatNumber(parseNumber(input.value));
+      const btn = document.getElementById("update-" + roomId);
+      btn.classList.add("enabled");
+      btn.disabled = false;
     }
-    return ContentService.createTextOutput("OK");
-  }
 
-  if (action === "markPaid") {
-    var room = e.parameter.room;
-    var rows = sheet.getDataRange().getValues();
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][0] == room) {
-        sheet.getRange(i + 1, 3).setValue("Đã thanh toán"); // cột C
-        sheet.getRange(i + 1, 5).setValue(new Date());      // cột E
-        break;
-      }
+    async function updateAmount(roomId) {
+      const btn = document.getElementById("update-" + roomId);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      const raw = document.getElementById("amount-" + roomId).value;
+      const amount = parseNumber(raw);
+
+      await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
+      await loadRooms(roomId);
+
+      btn.innerText = "Cập nhật";
     }
-    return ContentService.createTextOutput("OK");
-  }
-}
 
-function formatTime(value) {
-  return Utilities.formatDate(new Date(value), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
-}
+    async function markPaid(roomId) {
+      const btn = document.getElementById("paid-" + roomId);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      await fetch(`${API}?action=markPaid&room=${roomId}`);
+      await loadRooms(roomId);
+
+      btn.innerText = "Đã thanh toán";
+    }
+
+    loadRooms();
+    setInterval(loadRooms, 60000);
+  </script>
+</body>
+</html>
