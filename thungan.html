@@ -30,7 +30,7 @@
         <th>Số tiền</th>
         <th>Hành động</th>
         <th>Trạng thái</th>
-        <th>Thời gian</th>
+        <th>Thời gian (E)</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
@@ -107,9 +107,9 @@
       const btn = document.getElementById("paid-" + roomId);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-      const now = new Date().toLocaleString("vi-VN"); // thời gian hiện tại
 
-      await fetch(`${API}?action=markPaid&room=${roomId}&time=${encodeURIComponent(now)}`);
+      // Gọi API, Apps Script sẽ tự ghi thời gian vào cột D
+      await fetch(`${API}?action=markPaid&room=${roomId}`);
       await loadRooms(roomId);
       btn.innerText = "Đã thanh toán";
     }
