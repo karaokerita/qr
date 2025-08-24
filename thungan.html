@@ -56,36 +56,26 @@
       data.forEach(room => {
         const safeId = encodeURIComponent(room.name);
         const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
-
         const tr = document.createElement("tr");
         tr.id = "row-" + safeId;
 
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
-            <input type="text" id="amount-${safeId}" 
-                   value="${formatNumber(room.amount)}"
-                   oninput="onAmountChange('${safeId}')"
-                   onkeypress="if(event.key==='Enter'){updateAmount('${safeId}')}" />
+            <input type="text" id="amount-${safeId}" value="${formatNumber(room.amount)}"
+              oninput="onAmountChange('${safeId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${safeId}')}" />
           </td>
           <td>
-            <button id="update-${safeId}" class="update" disabled 
-                    onclick="updateAmount('${safeId}')">Cập nhật</button>
-            <button id="paid-${safeId}" class="paid" 
-                    onclick="markPaid('${safeId}')"
-                    ${room.status === "Đã thanh toán" ? "disabled" : ""}>
-              Đã thanh toán
-            </button>
+            <button id="update-${safeId}" class="update" disabled onclick="updateAmount('${safeId}')">Cập nhật</button>
+            <button id="paid-${safeId}" class="paid" onclick="markPaid('${safeId}')"
+              ${room.status === "Đã thanh toán" ? "disabled" : ""}>Đã thanh toán</button>
           </td>
-          <td id="status-${safeId}" class="${statusClass}">
-            ${room.status || ""}
-          </td>
-          <td id="time-${safeId}">
-            ${room.time || ""}
-          </td>
+          <td id="status-${safeId}" class="${statusClass}">${room.status || ""}</td>
+          <td id="time-${safeId}">${room.time || ""}</td>
         `;
-        table.appendChild(tr);
 
+        table.appendChild(tr);
         if (highlightRoom === safeId) {
           tr.classList.add("highlight");
           setTimeout(() => tr.classList.remove("highlight"), 2000);
@@ -105,13 +95,11 @@
       const btn = document.getElementById("update-" + roomId);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-
       const raw = document.getElementById("amount-" + roomId).value;
       const amount = parseNumber(raw);
 
       await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
       await loadRooms(roomId);
-
       btn.innerText = "Cập nhật";
     }
 
@@ -119,10 +107,10 @@
       const btn = document.getElementById("paid-" + roomId);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
+      const now = new Date().toLocaleString("vi-VN"); // thời gian hiện tại
 
-      await fetch(`${API}?action=markPaid&room=${roomId}`);
+      await fetch(`${API}?action=markPaid&room=${roomId}&time=${encodeURIComponent(now)}`);
       await loadRooms(roomId);
-
       btn.innerText = "Đã thanh toán";
     }
 
