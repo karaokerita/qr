@@ -15,8 +15,10 @@
     .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
     .update.enabled { opacity: 1; cursor: pointer; }
     .paid { background: #dc3545; color: white; }
+    .paid:disabled { background: #aaa; cursor: not-allowed; }
     .status-unpaid { color: red; font-weight: bold; }
     .status-paid { color: green; font-weight: bold; }
+    .highlight { background: #d4edda !important; transition: background 2s ease; }
   </style>
 </head>
 <body>
@@ -45,54 +47,73 @@
       return str.replace(/\D/g,"");
     }
 
-    async function loadRooms() {
+    async function loadRooms(highlightRoom = null) {
       const res = await fetch(API + "?action=getRooms");
       const data = await res.json();
       const table = document.getElementById("roomTable");
       table.innerHTML = "";
 
       data.forEach(room => {
-        const tr = document.createElement("tr");
+        const safeId = encodeURIComponent(room.name);
         const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
 
+        const tr = document.createElement("tr");
+        tr.id = "row-" + safeId;
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
-            <input type="text" id="amount-${room.name}" value="${formatNumber(room.amount)}"
-              oninput="onAmountChange('${room.name}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${room.name}')}"/>
+            <input type="text" id="amount-${safeId}" value="${formatNumber(room.amount)}"
+              oninput="onAmountChange('${safeId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${safeId}')}"/>
           </td>
           <td>
-            <button id="update-${room.name}" class="update" disabled onclick="updateAmount('${room.name}')">Cập nhật</button>
-            <button class="paid" onclick="markPaid('${room.name}')">Đã thanh toán</button>
+            <button id="update-${safeId}" class="update" disabled onclick="updateAmount('${safeId}')">Cập nhật</button>
+            <button id="paid-${safeId}" class="paid" onclick="markPaid('${safeId}')" ${room.status === "Đã thanh toán" ? "disabled" : ""}>Đã thanh toán</button>
           </td>
-          <td id="status-${room.name}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${room.name}">${room.time || ""}</td>
+          <td id="status-${safeId}" class="${statusClass}">${room.status || ""}</td>
+          <td id="time-${safeId}">${room.time || ""}</td>
         `;
         table.appendChild(tr);
+
+        if (highlightRoom === safeId) {
+          tr.classList.add("highlight");
+          setTimeout(() => tr.classList.remove("highlight"), 2000);
+        }
       });
     }
 
-    function onAmountChange(room) {
-      const input = document.getElementById("amount-" + room);
+    function onAmountChange(roomId) {
+      const input = document.getElementById("amount-" + roomId);
       input.value = formatNumber(parseNumber(input.value));
 
-      const btn = document.getElementById("update-" + room);
+      const btn = document.getElementById("update-" + roomId);
       btn.classList.add("enabled");
       btn.disabled = false;
     }
 
-    async function updateAmount(room) {
-      const raw = document.getElementById("amount-" + room).value;
+    async function updateAmount(roomId) {
+      const btn = document.getElementById("update-" + roomId);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      const raw = document.getElementById("amount-" + roomId).value;
       const amount = parseNumber(raw);
 
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount || ""}`);
-      loadRooms();
+      await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
+      await loadRooms(roomId);
+
+      btn.innerText = "Cập nhật";
     }
 
-    async function markPaid(room) {
-      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(room)}`);
-      loadRooms();
+    async function markPaid(roomId) {
+      const btn = document.getElementById("paid-" + roomId);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      await fetch(`${API}?action=markPaid&room=${roomId}`);
+      await loadRooms(roomId);
+
+      btn.innerText = "Đã thanh toán";
     }
 
     // Load ban đầu
