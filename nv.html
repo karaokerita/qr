@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Nhân viên phục vụ - Karaoke Rita</title>
+<title>QUÉT MÃ THANH TOÁN - KARAOKE RITA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body { 
@@ -13,18 +13,24 @@ body {
   text-align:center; 
   transform: scale(0.8); 
   transform-origin: top center;
+  color:#000;
 }
 
 .container { max-width:480px; margin:auto; padding:10px; background: rgba(255,255,255,0.85); border-radius:10px; }
 
-h2 { color:#007bff; margin:10px 0; }
+h1 { color:#007bff; margin:10px 0; font-size:24px; }
+h2 { margin:10px 0; font-size:20px; }
+
+input.amount-input { width:70%; padding:8px; font-size:18px; text-align:center; margin-bottom:10px; }
+
 table { width:100%; border-collapse: collapse; margin-top:10px; }
-th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+th, td { border:1px solid #ddd; padding:6px; text-align:center; font-size:14px; }
 th { background:#007bff; color:white; }
 .status-unpaid { color:red; font-weight:bold; }
 .status-paid { color:green; font-weight:bold; }
 .bg-unpaid { background:#eee; }
-.btn { padding:6px 10px; margin:2px; border:none; border-radius:5px; cursor:pointer; }
+
+.btn { padding:6px 8px; margin:2px; border:none; border-radius:5px; cursor:pointer; font-size:14px; }
 .btn-pay { background:#28a745; color:white; }
 .btn-qr { background:#007bff; color:white; }
 
@@ -37,6 +43,14 @@ th { background:#007bff; color:white; }
 <body>
 
 <div class="container">
+  <h1>QUÉT MÃ THANH TOÁN - KARAOKE RITA</h1>
+
+  <h2>Nhập số tiền</h2>
+  <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
+  <div id="amountText"></div>
+  <div id="qrRoomName"></div>
+  <img id="qrImage" src="" alt="QR Thanh toán"/>
+
   <h2>Danh sách phòng</h2>
   <table>
     <thead>
@@ -50,12 +64,6 @@ th { background:#007bff; color:white; }
     </thead>
     <tbody id="roomTable"></tbody>
   </table>
-
-  <div style="margin-top:15px;">
-    <div id="qrRoomName"></div>
-    <img id="qrImage" src="" alt="QR Thanh toán"/>
-    <div id="amountText"></div>
-  </div>
 </div>
 
 <script>
@@ -66,41 +74,7 @@ function formatNumber(num){
   return Number(num).toLocaleString("vi-VN");
 }
 
-async function loadRooms(){
-  const res = await fetch(API+"?action=getRooms");
-  const data = await res.json();
-  const table = document.getElementById("roomTable");
-  table.innerHTML="";
-
-  // Sắp xếp: chưa thanh toán lên trên, đã thanh toán dưới
-  data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
-
-  data.forEach(room=>{
-    const tr = document.createElement("tr");
-    if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
-
-    tr.innerHTML=`
-      <td>${room.name}</td>
-      <td>${formatNumber(room.amount)}</td>
-      <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
-      <td>${room.paidTime || ''}</td>
-      <td>
-        <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
-        <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
-      </td>
-    `;
-    table.appendChild(tr);
-  });
-}
-
-// Hiển thị QR
-function fillQR(amount, roomName){
-  document.getElementById("qrRoomName").textContent = roomName;
-  document.getElementById("amountText").textContent = numberToWords(Number(amount));
-  document.getElementById("qrImage").src = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amount}&accountName=HUYNH+PHUONG+TRANG`;
-}
-
-// Hàm chuyển số thành chữ
+// Số thành chữ
 function readTriple(num){
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
   let [hundreds,tens,ones]=String(num).padStart(3,'0').split("").map(Number);
@@ -126,6 +100,49 @@ function numberToWords(n){
   return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
 }
 
+// Hiển thị QR từ số tiền
+function fillQR(amount, roomName=null){
+  document.getElementById("qrRoomName").textContent = roomName || "";
+  document.getElementById("amountText").textContent = numberToWords(Number(amount));
+  document.getElementById("qrImage").src = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amount}&accountName=HUYNH+PHUONG+TRANG`;
+}
+
+// Nhập tay số tiền
+const manualInput = document.getElementById("manualAmount");
+manualInput.addEventListener("input", function(){
+  let val=this.value.replace(/\D/g,"");
+  if(val){ this.value=Number(val).toLocaleString("vi-VN"); fillQR(val); }
+  else { this.value=""; fillQR(0); }
+});
+
+// Load danh sách phòng
+async function loadRooms(){
+  const res = await fetch(API+"?action=getRooms");
+  const data = await res.json();
+  const table = document.getElementById("roomTable");
+  table.innerHTML="";
+
+  // Sắp xếp: chưa thanh toán lên trên
+  data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
+
+  data.forEach(room=>{
+    const tr = document.createElement("tr");
+    if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
+
+    tr.innerHTML=`
+      <td>${room.name}</td>
+      <td>${formatNumber(room.amount)}</td>
+      <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
+      <td>${room.paidTime || ''}</td>
+      <td>
+        <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
+        <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
+      </td>
+    `;
+    table.appendChild(tr);
+  });
+}
+
 // Thanh toán
 async function markPaid(roomName){
   await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
@@ -135,6 +152,5 @@ async function markPaid(roomName){
 loadRooms();
 setInterval(loadRooms,60000);
 </script>
-
 </body>
 </html>
