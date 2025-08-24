@@ -30,7 +30,7 @@
         <th>Số tiền</th>
         <th>Hành động</th>
         <th>Trạng thái</th>
-        <th>Thời gian TT</th>
+        <th>Thời gian</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
@@ -100,9 +100,6 @@
       const amount = parseNumber(raw);
 
       await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
-      
-      // Xóa thời gian TT trên giao diện và load lại
-      document.getElementById("time-" + roomId).innerText = "";
       await loadRooms(roomId);
 
       btn.innerText = "Cập nhật";
