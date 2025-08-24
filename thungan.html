@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-  <h1>Thu ngân Karaoke v3</h1>
+  <h1>Thu ngân Karaoke v4</h1>
   <table>
     <thead>
       <tr>
@@ -59,7 +59,7 @@
             <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
               data-raw="${room.amount || 0}"
               oninput="onAmountChange('${roomId}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}" />
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
             <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
@@ -79,7 +79,8 @@
 
     function onAmountChange(id) {
       const input = document.getElementById("amount-" + id);
-      const raw = input.value.replace(/\./g, "").replace(/,/g, "");
+      // Loại bỏ dấu . và , để lấy giá trị nguyên
+      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
       input.dataset.raw = raw;
       input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
       const btn = document.getElementById("update-" + id);
@@ -93,7 +94,7 @@
       btn.disabled = true;
 
       const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw;
+      const amount = input.dataset.raw; // gửi số nguyên lên Sheet
 
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
       await loadRooms(id);
