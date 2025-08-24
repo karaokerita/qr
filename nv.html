@@ -4,22 +4,23 @@
 <meta charset="UTF-8">
 <title>QUÉT MÃ THANH TOÁN - KARAOKE RITA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 body { font-family: Arial, sans-serif; background: url('background.jpg') no-repeat center center fixed; background-size: cover; color:#000; text-align:center; }
 .container { max-width:420px; margin:auto; padding:20px; transform: scale(0.8); transform-origin: top center; background: rgba(255,255,255,0.85); border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
 h1 { color:#007bff; margin-bottom:12px; }
-.amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:8px; }
-#amountText { font-size:18px; margin-top:5px; font-weight:bold;color:green; }
-table { width:100%; border-collapse: collapse; margin-top:15px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:4px; }
+#amountText { font-size:18px; margin-top:2px; font-weight:bold;color:green; }
+#roomNameQR { font-size:16px; margin-bottom:10px; color:#007bff; font-weight:bold; }
+table { width:100%; border-collapse: collapse; margin-top:10px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
 th, td { border:1px solid #ddd; padding:8px; text-align:center; }
 th { background:#007bff; color:white; }
-.bg-unpaid { background:#f0f0f0; }
 .status-unpaid { color:red; font-weight:bold; }
 .status-paid { color:green; font-weight:bold; }
-.btn { padding:5px 10px; margin:2px; border:none; border-radius:5px; cursor:pointer; background:#007bff; color:white; }
-.btn:disabled { background:#aaa; cursor:not-allowed; }
+.btn-pay { background:#28a745; color:white; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+.btn-qr { background:#007bff; color:white; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+.btn-pay:disabled, .btn-qr:disabled { background:#aaa; cursor:not-allowed; }
 .qr-box img { width:250px; height:250px; margin:10px 0; }
+.bg-unpaid { background:#f0f0f0; }
 </style>
 </head>
 <body>
@@ -27,6 +28,7 @@ th { background:#007bff; color:white; }
   <h1>QUÉT MÃ THANH TOÁN - KARAOKE RITA</h1>
   <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
   <div id="amountText"></div>
+  <div id="roomNameQR"></div>
   <div class="qr-box">
     <img id="qrImage" src="" alt="QR Thanh toán" />
   </div>
@@ -50,11 +52,12 @@ const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73
 const manualAmount = document.getElementById("manualAmount");
 const qrImage = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
+const roomNameQR = document.getElementById("roomNameQR");
 
-// format number với dấu . theo VN
+// format số VN
 function formatNumber(num){ return num?Number(num).toLocaleString("vi-VN"):""; }
 
-// Chuyển số sang chữ
+// số thành chữ
 function numberToWords(n){
   if(!n||n===0) return "không đồng";
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
@@ -73,16 +76,17 @@ function numberToWords(n){
 
 // Tạo QR
 function updateQR(val,name=""){
-  let info = name?`Phòng ${name}`:"Thank you";
+  let info = name?`Phòng ${name}`:"Thanh toán";
   qrImage.src=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=${encodeURIComponent(info)}&accountName=HUYNH+PHUONG+TRANG`;
-  amountText.textContent = numberToWords(Number(val)) + (name?" - Phòng "+name:"");
+  amountText.textContent = numberToWords(Number(val));
+  roomNameQR.textContent = name?name:"";
 }
 
 // Nhập số tiền tay
 manualAmount.addEventListener("input", function(){
   let val=this.value.replace(/\D/g,"");
   if(val){ this.value=Number(val).toLocaleString("vi-VN"); updateQR(val); }
-  else { this.value=""; qrImage.src=""; amountText.textContent=""; }
+  else { this.value=""; qrImage.src=""; amountText.textContent=""; roomNameQR.textContent=""; }
 });
 
 // Điền số tiền từ phòng
@@ -104,15 +108,14 @@ async function loadRooms(){
   data.forEach(room=>{
     const tr=document.createElement("tr");
     if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
-
     tr.innerHTML=`
       <td>${room.name}</td>
       <td>${formatNumber(room.amount)}</td>
       <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
       <td>${room.reftime || ''}</td>
       <td>
-        <button class="btn" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
-        <button class="btn" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
+        <button class="btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
+        <button class="btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
       </td>
     `;
     table.appendChild(tr);
