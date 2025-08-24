@@ -37,80 +37,77 @@
   </table>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzPgOXVtYxWWidE09zBcmHf5N72SmuPkoHbtzw2hSQtO1mUAZz7Ikh9PNdOXycORNPZ/exec"; 
+    const API = "https://script.google.com/macros/s/AKfycbzPgOXVtYxWWidE09zBcmHf5N72SmuPkoHbtzw2hSQtO1mUAZz7Ikh9PNdOXycORNPZ/exec";
 
-    function formatNumber(num) {
-      if (!num) return "";
-      return Number(num).toLocaleString("vi-VN");
-    }
-    function parseNumber(str) {
-      return str.replace(/\D/g,"");
-    }
+    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
+    const parseNumber = s => s.replace(/\D/g,"");
 
-    async function loadRooms(highlightRoom = null) {
+    async function loadRooms(highlight = null) {
       const res = await fetch(API + "?action=getRooms");
       const data = await res.json();
       const table = document.getElementById("roomTable");
       table.innerHTML = "";
 
       data.forEach(room => {
-        const safeId = encodeURIComponent(room.name);
-        const statusClass = (room.status === "Đã thanh toán") ? "status-paid" : "status-unpaid";
+        const roomId = encodeURIComponent(room.name);
+        const paid = room.status === "Đã thanh toán";
         const tr = document.createElement("tr");
-        tr.id = "row-" + safeId;
+        tr.id = "row-" + roomId;
 
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
-            <input type="text" id="amount-${safeId}" value="${formatNumber(room.amount)}"
-              oninput="onAmountChange('${safeId}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${safeId}')}" />
+            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+              oninput="onAmountChange('${roomId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}" />
           </td>
           <td>
-            <button id="update-${safeId}" class="update" disabled onclick="updateAmount('${safeId}')">Cập nhật</button>
-            <button id="paid-${safeId}" class="paid" onclick="markPaid('${safeId}')"
-              ${room.status === "Đã thanh toán" ? "disabled" : ""}>Đã thanh toán</button>
+            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
+            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
-          <td id="status-${safeId}" class="${statusClass}">${room.status || ""}</td>
-          <td id="time-${safeId}">${room.reftime || ""}</td>
+          <td id="status-${roomId}" class="${paid ? "status-paid" : "status-unpaid"}">${room.status || ""}</td>
+          <td id="time-${roomId}">${room.reftime || ""}</td>
         `;
 
         table.appendChild(tr);
-        if (highlightRoom === safeId) {
+
+        if (highlight === roomId) {
           tr.classList.add("highlight");
           setTimeout(() => tr.classList.remove("highlight"), 2000);
         }
       });
     }
 
-    function onAmountChange(roomId) {
-      const input = document.getElementById("amount-" + roomId);
+    function onAmountChange(id) {
+      const input = document.getElementById("amount-" + id);
       input.value = formatNumber(parseNumber(input.value));
-      const btn = document.getElementById("update-" + roomId);
+      const btn = document.getElementById("update-" + id);
       btn.classList.add("enabled");
       btn.disabled = false;
     }
 
-    async function updateAmount(roomId) {
-      const btn = document.getElementById("update-" + roomId);
+    async function updateAmount(id) {
+      const btn = document.getElementById("update-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-      const raw = document.getElementById("amount-" + roomId).value;
+
+      const raw = document.getElementById("amount-" + id).value;
       const amount = parseNumber(raw);
 
-      await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
-      await loadRooms(roomId);
+      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
+      await loadRooms(id);
+
       btn.innerText = "Cập nhật";
     }
 
-    async function markPaid(roomId) {
-      const btn = document.getElementById("paid-" + roomId);
+    async function markPaid(id) {
+      const btn = document.getElementById("paid-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
 
-      // Gọi API, Apps Script sẽ tự ghi thời gian vào cột D
-      await fetch(`${API}?action=markPaid&room=${roomId}`);
-      await loadRooms(roomId);
+      await fetch(`${API}?action=markPaid&room=${id}`);
+      await loadRooms(id);
+
       btn.innerText = "Đã thanh toán";
     }
 
