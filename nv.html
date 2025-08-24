@@ -11,7 +11,7 @@ body {
   background: url('background.jpg') no-repeat center center fixed; 
   background-size: cover;
   text-align:center; 
-  transform: scale(0.9); 
+  transform: scale(0.8); 
   transform-origin: top center;
   color:#000;
 }
@@ -74,7 +74,7 @@ function formatNumber(num){
   return Number(num).toLocaleString("vi-VN");
 }
 
-// Số thành chữ
+// Chuyển số thành chữ
 function readTriple(num){
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
   let [hundreds,tens,ones]=String(num).padStart(3,'0').split("").map(Number);
@@ -100,8 +100,10 @@ function numberToWords(n){
   return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
 }
 
-// Hiển thị QR từ số tiền
+// Hiển thị QR và điền vào ô nhập tay
 function fillQR(amount, roomName=null){
+  const manualInput = document.getElementById("manualAmount");
+  manualInput.value = Number(amount).toLocaleString("vi-VN");
   document.getElementById("qrRoomName").textContent = roomName || "";
   document.getElementById("amountText").textContent = numberToWords(Number(amount));
   document.getElementById("qrImage").src = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amount}&accountName=HUYNH+PHUONG+TRANG`;
