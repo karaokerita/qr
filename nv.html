@@ -96,7 +96,7 @@ function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 // tạo QR
 function updateQR(val, roomName=""){
   roomNameQR.textContent = roomName;
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thanh+toán+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
+  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
   qrImage.src=url;
   amountText.textContent = numberToWords(Number(val));
 }
