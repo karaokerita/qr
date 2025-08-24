@@ -42,7 +42,7 @@
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
     const parseNumber = s => s.replace(/\D/g,"");
 
-    async function loadRooms(highlight = null) {
+    async function loadRooms(highlight=null) {
       const res = await fetch(API + "?action=getRooms");
       const data = await res.json();
       const table = document.getElementById("roomTable");
@@ -65,7 +65,7 @@
             <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
             <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
-          <td id="status-${roomId}" class="${paid ? "status-paid" : "status-unpaid"}">${room.status || ""}</td>
+          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
           <td id="time-${roomId}">${room.refTime || ""}</td>
         `;
 
@@ -73,7 +73,7 @@
 
         if (highlight === roomId) {
           tr.classList.add("highlight");
-          setTimeout(() => tr.classList.remove("highlight"), 2000);
+          setTimeout(()=>tr.classList.remove("highlight"),2000);
         }
       });
     }
@@ -92,7 +92,7 @@
       btn.disabled = true;
 
       const raw = document.getElementById("amount-" + id).value;
-      const amount = parseNumber(raw);
+      const amount = raw.replace(/\./g, ""); // loại bỏ dấu chấm trước khi gửi
 
       await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
       await loadRooms(id);
