@@ -5,33 +5,47 @@
 <title>QUÉT MÃ THANH TOÁN - KARAOKE RITA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body { font-family: Arial, sans-serif; background: url('background.jpg') no-repeat center center fixed; background-size: cover; color:#000; text-align:center; }
-.container { max-width:420px; margin:auto; padding:20px; transform: scale(0.8); transform-origin: top center; background: rgba(255,255,255,0.85); border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
-h1 { color:#007bff; margin-bottom:12px; }
-.amount-input { font-size:30px; padding:10px; width:80%; text-align:center; margin-bottom:4px; }
-#amountText { font-size:18px; margin-top:2px; font-weight:bold;color:green; }
-#roomNameQR { font-size:16px; margin-bottom:10px; color:#007bff; font-weight:bold; }
-table { width:100%; border-collapse: collapse; margin-top:10px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+body { 
+  font-family: Arial, sans-serif;
+  background: url('background.jpg') no-repeat center center fixed; 
+  background-size: cover; 
+  margin:0; 
+  text-align:center; 
+}
+.container { 
+  max-width:420px; 
+  margin:auto; 
+  padding:20px; 
+  transform: scale(0.8); 
+  transform-origin: top center; 
+  background: rgba(255,255,255,0.8); 
+  border-radius:10px; 
+}
+h1 { color:#007bff; font-size:24px; margin-bottom:10px; }
+.amount-input { width:80%; font-size:24px; padding:8px; margin-bottom:10px; text-align:center; }
+.qr-box img { width:250px; height:250px; margin:10px 0; }
+.room-name-qr { font-size:18px; color:#007bff; font-weight:bold; margin-bottom:10px; }
+.amount-text { font-size:16px; color:green; margin-bottom:10px; }
+
+table { width:100%; border-collapse: collapse; margin-top:15px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
 th, td { border:1px solid #ddd; padding:8px; text-align:center; }
 th { background:#007bff; color:white; }
+.bg-unpaid { background:#f0f0f0; } /* nền nhẹ cho phòng chưa thanh toán */
 .status-unpaid { color:red; font-weight:bold; }
 .status-paid { color:green; font-weight:bold; }
-.btn-pay { background:#28a745; color:white; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
-.btn-qr { background:#007bff; color:white; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+.btn-pay { background:#28a745; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
+.btn-qr { background:#007bff; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
 .btn-pay:disabled, .btn-qr:disabled { background:#aaa; cursor:not-allowed; }
-.qr-box img { width:250px; height:250px; margin:10px 0; }
-.bg-unpaid { background:#f0f0f0; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>QUÉT MÃ THANH TOÁN - KARAOKE RITA</h1>
+  
   <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
-  <div id="amountText"></div>
-  <div id="roomNameQR"></div>
-  <div class="qr-box">
-    <img id="qrImage" src="" alt="QR Thanh toán" />
-  </div>
+  <div class="room-name-qr" id="roomNameQR"></div>
+  <div class="amount-text" id="amountText"></div>
+  <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
 
   <table>
     <thead>
@@ -54,65 +68,65 @@ const qrImage = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const roomNameQR = document.getElementById("roomNameQR");
 
-// format số VN
-function formatNumber(num){ return num?Number(num).toLocaleString("vi-VN"):""; }
-
-// số thành chữ
+// chuyển số sang chữ tiếng Việt
+function readTriple(num){
+  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+  let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
+  let s="";
+  if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
+  if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
+  else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
+  else if(t===0&&o>0&&h===0){ s+=units[o]; } else if(o>0){ s+=" "+units[o]; }
+  return s.trim();
+}
 function numberToWords(n){
   if(!n||n===0) return "không đồng";
-  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
   const scales=["","nghìn","triệu","tỷ"];
-  function readTriple(num){
-    let [h,t,o]=String(num).padStart(3,'0').split("").map(Number); let s="";
-    if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
-    if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-    else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-    else if(t===0&&o>0&&h===0){ s+=units[o]; } else if(o>0){ s+=" "+units[o]; }
-    return s.trim();
+  let parts=[], scaleIdx=0;
+  while(n>0){
+    let chunk=n%1000;
+    if(chunk>0){ let words=readTriple(chunk); if(scales[scaleIdx]) words+=" "+scales[scaleIdx]; parts.unshift(words); }
+    n=Math.floor(n/1000); scaleIdx++;
   }
-  let parts=[], scaleIdx=0; while(n>0){ let chunk=n%1000; if(chunk>0){ let words=readTriple(chunk); if(scales[scaleIdx]) words+=" "+scales[scaleIdx]; parts.unshift(words); } n=Math.floor(n/1000); scaleIdx++; }
   return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
 }
 
-// Tạo QR
-function updateQR(val,name=""){
-  let info = name?`Phòng ${name}`:"Thanh toán";
-  qrImage.src=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=${encodeURIComponent(info)}&accountName=HUYNH+PHUONG+TRANG`;
+function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
+
+// tạo QR
+function updateQR(val, roomName=""){
+  roomNameQR.textContent = roomName;
+  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thanh+toán+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
+  qrImage.src=url;
   amountText.textContent = numberToWords(Number(val));
-  roomNameQR.textContent = name?name:"";
 }
 
-// Nhập số tiền tay
+// khi nhập số tiền thủ công
 manualAmount.addEventListener("input", function(){
   let val=this.value.replace(/\D/g,"");
-  if(val){ this.value=Number(val).toLocaleString("vi-VN"); updateQR(val); }
-  else { this.value=""; qrImage.src=""; amountText.textContent=""; roomNameQR.textContent=""; }
+  if(val){ this.value=formatNumber(val); updateQR(val); } else { this.value=""; roomNameQR.textContent=""; amountText.textContent=""; qrImage.src=""; }
 });
 
-// Điền số tiền từ phòng
-function fillQR(amount,name){
-  manualAmount.value=formatNumber(amount);
-  updateQR(amount,name);
-}
-
-// Load danh sách phòng
+// load danh sách phòng
 async function loadRooms(){
-  const res=await fetch(API+"?action=getRooms");
-  const data=await res.json();
-  const table=document.getElementById("roomTable");
-  table.innerHTML="";
+  manualAmount.value=""; qrImage.src=""; amountText.textContent=""; roomNameQR.textContent="";
+  const res = await fetch(API+"?action=getRooms");
+  const data = await res.json();
+  const table = document.getElementById("roomTable");
+  table.innerHTML = "";
 
-  // Sắp xếp: chưa thanh toán lên trên
+  // sắp xếp nhóm chưa thanh toán lên trên
   data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
 
   data.forEach(room=>{
     const tr=document.createElement("tr");
     if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
+
     tr.innerHTML=`
       <td>${room.name}</td>
       <td>${formatNumber(room.amount)}</td>
       <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
-      <td>${room.reftime || ''}</td>
+      <td>${room.refTime || ''}</td>
       <td>
         <button class="btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
         <button class="btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
@@ -122,14 +136,20 @@ async function loadRooms(){
   });
 }
 
-// Thanh toán
+// đánh dấu thanh toán
 async function markPaid(roomName){
   await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
   loadRooms();
 }
 
+// lấy mã QR từ phòng
+function fillQR(amount, roomName){
+  manualAmount.value=formatNumber(amount);
+  updateQR(amount, roomName);
+}
+
 loadRooms();
-setInterval(loadRooms,60000);
+setInterval(loadRooms, 60000); // refresh mỗi 1 phút
 </script>
 </body>
 </html>
