@@ -37,7 +37,7 @@
   </table>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec"; // Thay bằng URL Deploy của bạn
+    const API = "https://script.google.com/macros/s/AKfycbwpqJ9xMu6bb7uMIkquX20Wd0ArKF2dCNTcw1qHSTT8_ImWJUagBv1m40GVgRkvELVP/exec"; // Thay bằng URL deploy của bạn
 
     function formatNumber(num) {
       if (!num) return "";
@@ -101,9 +101,8 @@
 
       await fetch(`${API}?action=updateAmount&room=${roomId}&amount=${amount || ""}`);
       
-      // Xóa thời gian TT trên giao diện
+      // Xóa thời gian TT trên giao diện và load lại
       document.getElementById("time-" + roomId).innerText = "";
-
       await loadRooms(roomId);
 
       btn.innerText = "Cập nhật";
