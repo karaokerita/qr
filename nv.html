@@ -18,7 +18,7 @@ body {
   padding:20px; 
   transform: scale(0.8); 
   transform-origin: top center; 
-  background: rgba(255,255,255,0.8); 
+  background: rgba(255,255,255,0.9); 
   border-radius:10px; 
 }
 h1 { color:#007bff; font-size:24px; margin-bottom:10px; }
@@ -35,7 +35,9 @@ th { background:#007bff; color:white; }
 .btn-pay { background:#28a745; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
 .btn-qr { background:#007bff; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
 .btn-pay:disabled, .btn-qr:disabled { background:#aaa; cursor:not-allowed; }
-#captureBtn { background:#17a2b8; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:5px 0; }
+#snapBtn { background:#17a2b8; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:5px 0; }
+.camera-box { margin:10px 0; }
+video { border:1px solid #007bff; border-radius:5px; }
 </style>
 </head>
 <body>
@@ -46,7 +48,13 @@ th { background:#007bff; color:white; }
   <div class="amount-text" id="amountText"></div>
   <div class="room-name-qr" id="roomNameQR"></div>
   <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
-  <button id="captureBtn" class="btn-qr">Chụp hình</button>
+  <button id="captureQRBtn" class="btn-qr">Lấy QR</button>
+
+  <div class="camera-box">
+    <video id="video" width="320" height="240" autoplay></video>
+    <br>
+    <button id="snapBtn">Chụp ảnh người thanh toán</button>
+  </div>
 
   <table>
     <thead>
@@ -68,9 +76,11 @@ const manualAmount = document.getElementById("manualAmount");
 const qrImage = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const roomNameQR = document.getElementById("roomNameQR");
-const captureBtn = document.getElementById("captureBtn");
+const snapBtn = document.getElementById("snapBtn");
+const captureQRBtn = document.getElementById("captureQRBtn");
+const video = document.getElementById("video");
 
-// Chuyển số sang chữ tiếng Việt
+// Hàm chuyển số sang chữ
 function readTriple(num){
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
   let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
@@ -94,7 +104,7 @@ function numberToWords(n){
 }
 function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
-// Tạo QR
+// Hàm tạo QR
 function updateQR(val, roomName=""){
   roomNameQR.textContent = roomName;
   const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
@@ -163,38 +173,44 @@ function fillQR(amount, roomName){
   updateQR(amount, roomName);
 }
 
-loadRooms();
-setInterval(loadRooms, 60000); // refresh mỗi 1 phút
+// Mở camera
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => { video.srcObject = stream; })
+.catch(err => { alert("Không thể mở camera: " + err); });
 
-// Chụp hình chỉ với text info (không QR)
-captureBtn.addEventListener("click", function(){
+// Chụp ảnh người thanh toán
+snapBtn.addEventListener("click", () => {
   const roomName = roomNameQR.textContent || "";
   const amount = amountText.textContent || "";
-  if(!roomName && !amount) return alert("Chưa có thông tin để chụp!");
+  if(!roomName && !amount) return alert("Chưa có thông tin để lưu ảnh!");
 
   const now = new Date();
   const timeStr = now.toLocaleString('vi-VN');
 
   const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
   const ctx = canvas.getContext("2d");
 
-  canvas.width = 400;
-  canvas.height = 200;
+  // Vẽ video hiện tại
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Thêm thông tin text lên ảnh
+  ctx.fillStyle = "red";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Phòng: ${roomName}`, 10, 30);
+  ctx.fillText(`Số tiền: ${amount}`, 10, 60);
+  ctx.fillText(`Thời gian: ${timeStr}`, 10, 90);
 
-  ctx.fillStyle = "#000";
-  ctx.font = "22px Arial";
-  ctx.fillText(`Phòng: ${roomName}`, 20, 50);
-  ctx.fillText(`Số tiền: ${amount}`, 20, 100);
-  ctx.fillText(`Thời gian: ${timeStr}`, 20, 150);
-
+  // Tải ảnh xuống
   const link = document.createElement("a");
   link.href = canvas.toDataURL("image/png");
-  link.download = `Info_${roomName}_${Date.now()}.png`;
+  link.download = `ThanhToan_${roomName}_${Date.now()}.png`;
   link.click();
 });
+
+loadRooms();
+setInterval(loadRooms, 60000);
 </script>
 </body>
 </html>
