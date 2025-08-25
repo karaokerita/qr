@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>QUÉT MÃ THANH TOÁN <br> KARAOKE RITA</title>
+<title>QUÉT MÃ THANH TOÁN - KARAOKE RITA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body { 
@@ -49,7 +49,7 @@ canvas { display:none; position:absolute; top:0; left:0; width:100%; height:100%
 </head>
 <body>
 <div class="container">
-  <h1>QUÉT MÃ THANH TOÁN - KARAOKE RITA</h1>
+  <h1>QUÉT MÃ THANH TOÁN <br> KARAOKE RITA</h1>
   
   <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
   <div class="room-name-qr" id="roomNameQR"></div>
@@ -208,7 +208,7 @@ captureBtn.addEventListener("click", () => {
   // --- Nền mờ phía sau text ---
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.font = "20px Arial";
-  ctx.fillRect(15, 15, ctx.measureText(` ${roomName}`).width + 20, 50);
+  ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 50);
   ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
   ctx.fillRect(15, 130, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 30);
 
