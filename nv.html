@@ -55,7 +55,7 @@ canvas { display:none; position:absolute; top:0; left:0; width:100%; height:100%
   <div class="room-name-qr" id="roomNameQR"></div>
   <div class="amount-text" id="amountText"></div>
   <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
-  <button id="openCamera" class="btn-camera">Chụp ảnh thanh toán</button>
+  <button id="openCamera" class="btn-camera">Chụp ảnh người thanh toán</button>
 
   <table>
     <thead>
@@ -201,14 +201,24 @@ captureBtn.addEventListener("click", () => {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "red";
-  ctx.font = "40px Arial";
   const roomName = roomNameQR.textContent || "Chưa có phòng";
   const amountNumber = manualAmount.value || "0";
   const timeStr = new Date().toLocaleString('vi-VN');
+
+  // --- Nền mờ phía sau text ---
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.font = "40px Arial";
+  ctx.fillRect(15, 15, ctx.measureText(`Phòng: ${roomName}`).width + 20, 50);
+  ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
+  ctx.fillRect(15, 130, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 50);
+
+  // --- Text màu xanh lá đậm ---
+  ctx.fillStyle = "darkgreen";
+  ctx.font = "40px Arial";
   ctx.fillText(`Phòng: ${roomName}`, 20, 50);
-  ctx.fillText(`Số tiền: ${amountNumber}`, 20, 100);
   ctx.fillText(`Thời gian: ${timeStr}`, 20, 150);
+  ctx.font = "30px Arial";
+  ctx.fillText(`Số tiền: ${amountNumber}`, 20, 100);
 
   canvas.style.display = "block";
   downloadBtn.style.display = "inline-block";
