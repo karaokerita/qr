@@ -208,7 +208,7 @@ captureBtn.addEventListener("click", () => {
   // --- Nền mờ phía sau text ---
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.font = "20px Arial";
-  ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 50);
+  ctx.fillRect(15, 15, ctx.measureText(`       ${roomName}`).width + 20, 50);
   ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
   ctx.fillRect(15, 130, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 30);
 
