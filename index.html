@@ -30,22 +30,32 @@ h1 { color:#007bff; font-size:24px; margin-bottom:10px; }
 table { width:100%; border-collapse: collapse; margin-top:15px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
 th, td { border:1px solid #ddd; padding:8px; text-align:center; }
 th { background:#007bff; color:white; }
-.bg-unpaid { background:#f0f0f0; } /* nền nhẹ cho phòng chưa thanh toán */
+.bg-unpaid { background:#f0f0f0; } 
 .status-unpaid { color:red; font-weight:bold; }
 .status-paid { color:green; font-weight:bold; }
 .btn-pay { background:#28a745; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
 .btn-qr { background:#007bff; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:2px; }
 .btn-pay:disabled, .btn-qr:disabled { background:#aaa; cursor:not-allowed; }
+.btn-camera { background:#ff6600; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; margin:5px; }
+
+#cameraModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; z-index:1000; }
+.modal-content { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+video { width:100%; height:100%; object-fit:cover; }
+canvas { display:none; position:absolute; top:0; left:0; width:100%; height:100%; }
+.modal-buttons { position:absolute; bottom:20px; display:flex; justify-content:center; width:100%; gap:10px; }
+.modal-buttons button { font-size:18px; }
+.btn-save { background:#28a745; color:white; padding:10px 15px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>QUÉT MÃ THANH TOÁN - KARAOKE RITA</h1>
+  <h1>QUÉT MÃ THANH TOÁN <br> KARAOKE RITA</h1>
   
   <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
   <div class="room-name-qr" id="roomNameQR"></div>
   <div class="amount-text" id="amountText"></div>
   <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
+  <button id="openCamera" class="btn-camera">Chụp ảnh thanh toán</button>
 
   <table>
     <thead>
@@ -61,14 +71,36 @@ th { background:#007bff; color:white; }
   </table>
 </div>
 
+<!-- Modal camera full màn hình -->
+<div id="cameraModal">
+  <div class="modal-content">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <div class="modal-buttons">
+      <button id="captureBtn" class="btn-camera">Chụp</button>
+      <button id="downloadBtn" class="btn-save" style="display:none;">Chia sẻ / Lưu ảnh</button>
+      <button id="closeModal" class="btn">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec";
 const manualAmount = document.getElementById("manualAmount");
 const qrImage = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const roomNameQR = document.getElementById("roomNameQR");
+const openCamera = document.getElementById("openCamera");
+const cameraModal = document.getElementById("cameraModal");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const captureBtn = document.getElementById("captureBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const closeModal = document.getElementById("closeModal");
 
-// chuyển số sang chữ tiếng Việt
+let stream;
+
+// --- Số thành chữ ---
 function readTriple(num){
   const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
   let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
@@ -90,10 +122,9 @@ function numberToWords(n){
   }
   return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
 }
-
 function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
-// tạo QR
+// --- QR ---
 function updateQR(val, roomName=""){
   roomNameQR.textContent = roomName;
   const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
@@ -101,13 +132,13 @@ function updateQR(val, roomName=""){
   amountText.textContent = numberToWords(Number(val));
 }
 
-// khi nhập số tiền thủ công
+// --- Nhập số tiền ---
 manualAmount.addEventListener("input", function(){
   let val=this.value.replace(/\D/g,"");
   if(val){ this.value=formatNumber(val); updateQR(val); } else { this.value=""; roomNameQR.textContent=""; amountText.textContent=""; qrImage.src=""; }
 });
 
-// load danh sách phòng
+// --- Load danh sách phòng ---
 async function loadRooms(){
   manualAmount.value=""; qrImage.src=""; amountText.textContent=""; roomNameQR.textContent="";
   const res = await fetch(API+"?action=getRooms");
@@ -115,7 +146,6 @@ async function loadRooms(){
   const table = document.getElementById("roomTable");
   table.innerHTML = "";
 
-  // sắp xếp nhóm chưa thanh toán lên trên
   data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
 
   data.forEach(room=>{
@@ -136,20 +166,93 @@ async function loadRooms(){
   });
 }
 
-// đánh dấu thanh toán
+// --- Đánh dấu thanh toán ---
 async function markPaid(roomName){
   await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
   loadRooms();
 }
 
-// lấy mã QR từ phòng
+// --- Lấy mã QR ---
 function fillQR(amount, roomName){
   manualAmount.value=formatNumber(amount);
   updateQR(amount, roomName);
 }
 
 loadRooms();
-setInterval(loadRooms, 60000); // refresh mỗi 1 phút
+setInterval(loadRooms, 60000);
+
+// --- Camera ---
+openCamera.addEventListener("click", async () => {
+  cameraModal.style.display = "flex";
+  canvas.style.display = "none";
+  downloadBtn.style.display = "none";
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }, audio:false });
+  } catch(e) {
+    stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+  }
+  video.srcObject = stream;
+});
+
+captureBtn.addEventListener("click", () => {
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const roomName = roomNameQR.textContent || " ";
+  const amountNumber = manualAmount.value || "0";
+  const timeStr = new Date().toLocaleString('vi-VN');
+
+  // --- Nền mờ phía sau text ---
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.font = "30px Arial";
+  ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 50);
+  ctx.fillRect(15, 80, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 50);
+  ctx.fillRect(15, 150, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 50);
+
+  // --- Text màu xanh lá đậm ---
+  ctx.fillStyle = "lightgreen";
+  ctx.font = "30px Arial";
+  ctx.fillText(`${roomName}`, 20, 50);
+  ctx.fillText(`Số tiền: ${amountNumber}`, 20, 120);
+  ctx.fillText(`Thời gian: ${timeStr}`, 20, 190);
+
+  canvas.style.display = "block";
+  downloadBtn.style.display = "inline-block";
+});
+
+// --- Chia sẻ / Lưu ảnh ---
+downloadBtn.addEventListener("click", async () => {
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], `ThanhToan_${Date.now()}.png`, { type: "image/png" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "Ảnh thanh toán",
+          text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
+        });
+      } catch (err) {
+        alert("Chia sẻ thất bại: " + err);
+      }
+    } else {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `ThanhToan_${Date.now()}.png`;
+      link.click();
+    }
+  }, "image/png");
+});
+
+closeModal.addEventListener("click", () => {
+  cameraModal.style.display = "none";
+  if(stream){
+    stream.getTracks().forEach(track => track.stop());
+  }
+});
 </script>
 </body>
 </html>
