@@ -208,9 +208,9 @@ captureBtn.addEventListener("click", () => {
   // --- Nền mờ phía sau text ---
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.font = "30px Arial";
-  ctx.fillRect(15, 20, ctx.measureText(`${roomName}`).width + 20, 40);
-  ctx.fillRect(15, 50, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
-  ctx.fillRect(15, 80, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 40);
+  ctx.fillRect(15, 20, ctx.measureText(`${roomName}`).width + 20, 20);
+  ctx.fillRect(15, 50, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 20);
+  ctx.fillRect(15, 80, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 20);
 
   // --- Text màu xanh lá đậm ---
   ctx.fillStyle = "lightgreen";
