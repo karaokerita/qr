@@ -208,12 +208,12 @@ captureBtn.addEventListener("click", () => {
   // --- Nền mờ phía sau text ---
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.font = "20px Arial";
-  ctx.fillRect(15, 15, ctx.measureText(`Phòng: ${roomName}`).width + 20, 50);
-  ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
-  ctx.fillRect(15, 130, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 50);
+  ctx.fillRect(15, 15, ctx.measureText(`Phòng: ${roomName}`).width + 20, 30);
+  ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 30);
+  ctx.fillRect(15, 130, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 30);
 
   // --- Text màu xanh lá đậm ---
-  ctx.fillStyle = "green";
+  ctx.fillStyle = "lightgreen";
   ctx.font = "20px Arial";
   ctx.fillText(`Phòng: ${roomName}`, 20, 50);
   ctx.fillText(`Thời gian: ${timeStr}`, 20, 150);
