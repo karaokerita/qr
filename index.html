@@ -208,16 +208,16 @@ captureBtn.addEventListener("click", () => {
   // --- Nền mờ phía sau text ---
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.font = "30px Arial";
-  ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 50);
-  ctx.fillRect(15, 60, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 50);
-  ctx.fillRect(15, 100, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 50);
+  ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 40);
+  ctx.fillRect(15, 70, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
+  ctx.fillRect(15, 110, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 40);
 
   // --- Text màu xanh lá đậm ---
   ctx.fillStyle = "lightgreen";
   ctx.font = "30px Arial";
   ctx.fillText(`${roomName}`, 20, 50);
-  ctx.fillText(`Số tiền: ${amountNumber}`, 20, 100);
-  ctx.fillText(`Thời gian: ${timeStr}`, 20, 150);
+  ctx.fillText(`Số tiền: ${amountNumber}`, 20, 90);
+  ctx.fillText(`Thời gian: ${timeStr}`, 20, 130);
 
   canvas.style.display = "block";
   downloadBtn.style.display = "inline-block";
