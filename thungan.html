@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; color: #333; }
+    h1 { text-align: center; color: blue; }
+    #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
     th { background: #007bff; color: white; }
@@ -22,7 +23,9 @@
   </style>
 </head>
 <body>
-  <h1>THU NGÂN <BR>KARAOKE RITA</h1>
+  <h1>THU NGÂN <br>KARAOKE RITA</h1>
+  <p id="currentTime"></p>
+
   <table>
     <thead>
       <tr>
@@ -79,10 +82,8 @@
 
     function onAmountChange(id) {
       const input = document.getElementById("amount-" + id);
-      // Loại bỏ tất cả dấu . và , để lấy giá trị nguyên
       const raw = input.value.replace(/\./g,"").replace(/,/g,"");
       input.dataset.raw = raw;
-      // Hiển thị lại với dấu phân cách hàng nghìn
       input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
       const btn = document.getElementById("update-" + id);
       btn.classList.add("enabled");
@@ -95,7 +96,7 @@
       btn.disabled = true;
 
       const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw; // gửi số nguyên lên Sheet
+      const amount = input.dataset.raw;
 
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
       await loadRooms(id);
@@ -113,6 +114,18 @@
 
       btn.innerText = "Đã thanh toán";
     }
+
+    // Hàm đồng hồ hiển thị ngày giờ hiện tại
+    function updateClock() {
+      const now = new Date();
+      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
+      const date = now.toLocaleDateString("vi-VN");
+      const dayName = days[now.getDay()];
+      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
     loadRooms();
     setInterval(loadRooms, 15000);
