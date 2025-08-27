@@ -42,7 +42,7 @@
   </table>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec"; // Thay bằng URL web app của bạn
+    const API = "YOUR_WEB_APP_URL_HERE";
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
@@ -122,4 +122,18 @@
     }
 
     function updateClock(){
-      const now = new Date
+      const now = new Date();
+      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+      const time = now.toLocaleTimeString("vi-VN",{hour12:false});
+      const date = now.toLocaleDateString("vi-VN");
+      const dayName = days[now.getDay()];
+      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+    }
+    setInterval(updateClock,1000);
+    updateClock();
+
+    loadRooms();
+    setInterval(loadRooms,15000);
+  </script>
+</body>
+</html>
