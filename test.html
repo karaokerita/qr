@@ -42,39 +42,44 @@ button { padding:6px 10px; margin:2px; border:none; border-radius:4px; cursor:po
 </table>
 
 <script>
-function formatNumber(n){ return n ? Number(n).toLocaleString("vi-VN") : ""; }
+const API = "YOUR_WEB_APP_URL_HERE"; // thay bằng URL Web App deploy từ Apps Script
 
-function loadRooms(highlight=null){
-  google.script.run.withSuccessHandler(function(data){
-    const table=document.getElementById("roomTable");
-    table.innerHTML="";
-    data.forEach(room=>{
-      const roomId=encodeURIComponent(room.name);
-      const paid=room.status==="Đã thanh toán";
-      const tr=document.createElement("tr");
-      tr.id="row-"+roomId;
-      tr.innerHTML=`
-        <td>${room.name}</td>
-        <td><input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
-          data-raw="${room.amount||0}"
-          oninput="onAmountChange('${roomId}')"
-          onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
-        </td>
-        <td>
-          <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-          <button id="paid-${roomId}" class="paid" ${paid?"disabled":""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
-          <button id="open-${roomId}" class="open" ${!paid?"disabled":""} onclick="markUnpaid('${roomId}')">Mở phòng</button>
-        </td>
-        <td id="status-${roomId}" class="${paid?'status-paid':'status-unpaid'}">${room.status||""}</td>
-        <td id="time-${roomId}">${room.refTime||""}</td>
-      `;
-      table.appendChild(tr);
-      if(highlight===roomId){
-        tr.classList.add("highlight");
-        setTimeout(()=>tr.classList.remove("highlight"),2000);
-      }
-    });
-  }).getRooms();
+function formatNumber(n){ return n?Number(n).toLocaleString("vi-VN"):""; }
+
+async function api(action, data={}){
+  const res = await fetch(API, {
+    method: "POST",
+    body: JSON.stringify({action, ...data})
+  });
+  return await res.json();
+}
+
+async function loadRooms(highlight=null){
+  const data = await api("getRooms");
+  const table = document.getElementById("roomTable");
+  table.innerHTML = "";
+  data.forEach(room=>{
+    const roomId = encodeURIComponent(room.name);
+    const paid = room.status==="Đã thanh toán";
+    const tr = document.createElement("tr");
+    tr.id="row-"+roomId;
+    tr.innerHTML=`
+      <td>${room.name}</td>
+      <td><input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+        data-raw="${room.amount||0}" oninput="onAmountChange('${roomId}')"
+        onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
+      </td>
+      <td>
+        <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
+        <button id="paid-${roomId}" class="paid" ${paid?"disabled":""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+        <button id="open-${roomId}" class="open" ${!paid?"disabled":""} onclick="markUnpaid('${roomId}')">Mở phòng</button>
+      </td>
+      <td id="status-${roomId}" class="${paid?'status-paid':'status-unpaid'}">${room.status||""}</td>
+      <td id="time-${roomId}">${room.refTime||""}</td>
+    `;
+    table.appendChild(tr);
+    if(highlight===roomId){ tr.classList.add("highlight"); setTimeout(()=>tr.classList.remove("highlight"),2000);}
+  });
 }
 
 function onAmountChange(id){
@@ -86,20 +91,20 @@ function onAmountChange(id){
   btn.classList.add("enabled"); btn.disabled=false;
 }
 
-function updateAmount(id){
+async function updateAmount(id){
   const input=document.getElementById("amount-"+id);
-  google.script.run.withSuccessHandler(()=>loadRooms(id))
-    .updateAmount(decodeURIComponent(id), input.dataset.raw);
+  await api("updateAmount",{room:decodeURIComponent(id), amount:input.dataset.raw});
+  loadRooms(id);
 }
 
-function markPaid(id){
-  google.script.run.withSuccessHandler(()=>loadRooms(id))
-    .markPaid(decodeURIComponent(id));
+async function markPaid(id){
+  await api("markPaid",{room:decodeURIComponent(id)});
+  loadRooms(id);
 }
 
-function markUnpaid(id){
-  google.script.run.withSuccessHandler(()=>loadRooms(id))
-    .markUnpaid(decodeURIComponent(id));
+async function markUnpaid(id){
+  await api("markUnpaid",{room:decodeURIComponent(id)});
+  loadRooms(id);
 }
 
 function updateClock(){
