@@ -42,7 +42,7 @@
   </table>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec"; // Thay bằng URL web app
+    const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec";
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
@@ -74,7 +74,6 @@
           <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
           <td id="time-${roomId}">${room.refTime || ""}</td>
         `;
-
         table.appendChild(tr);
         if (highlight === roomId) {
           tr.classList.add("highlight");
@@ -97,13 +96,10 @@
       const btn = document.getElementById("update-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-
       const input = document.getElementById("amount-" + id);
       const amount = input.dataset.raw;
-
       await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
       await loadRooms(id);
-
       btn.innerText = "Cập nhật";
     }
 
@@ -111,10 +107,8 @@
       const btn = document.getElementById("paid-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-
       await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
       await loadRooms(id);
-
       btn.innerText = "Đã thanh toán";
     }
 
@@ -122,14 +116,10 @@
       const btn = document.getElementById("open-" + id);
       btn.innerText = "Đang mở...";
       btn.disabled = true;
-
-      await fetch(`${API}?action=openRoom&room=${encodeURIComponent(id)}`);
+      await fetch(`${API}?action=markUnpaid&room=${encodeURIComponent(id)}`);
       await loadRooms(id);
-
-      btn.innerText = "Mở phòng";
     }
 
-    // Đồng hồ hiển thị ngày giờ hiện tại
     function updateClock() {
       const now = new Date();
       const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
