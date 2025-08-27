@@ -42,7 +42,7 @@
   </table>
 
   <script>
-    const API = "YOUR_WEB_APP_URL"; // Thay bằng URL web app Google Apps Script
+    const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec"; // Thay bằng URL web app
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
@@ -53,30 +53,30 @@
       table.innerHTML = "";
 
       data.forEach(room => {
-        const name = encodeURIComponent(room.name);
+        const roomId = encodeURIComponent(room.name);
         const paid = room.status === "Đã thanh toán";
         const tr = document.createElement("tr");
-        tr.id = "row-" + name;
+        tr.id = "row-" + roomId;
 
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
-            <input type="text" id="amount-${name}" value="${formatNumber(room.amount)}"
+            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
               data-raw="${room.amount || 0}"
-              oninput="onAmountChange('${name}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${name}')}"/>
+              oninput="onAmountChange('${roomId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
-            <button id="update-${name}" class="update" disabled onclick="updateAmount('${name}')">Cập nhật</button>
-            <button id="paid-${name}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${name}')">Đã thanh toán</button>
-            <button id="open-${name}" class="open" ${paid ? "" : "disabled"} onclick="openRoom('${name}')">Mở phòng</button>
+            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
+            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+            <button id="open-${roomId}" class="open" ${paid ? "" : "disabled"} onclick="openRoom('${roomId}')">Mở phòng</button>
           </td>
-          <td id="status-${name}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
-          <td id="time-${name}">${room.refTime || ""}</td>
+          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
+          <td id="time-${roomId}">${room.refTime || ""}</td>
         `;
 
         table.appendChild(tr);
-        if (highlight === name) {
+        if (highlight === roomId) {
           tr.classList.add("highlight");
           setTimeout(()=>tr.classList.remove("highlight"),2000);
         }
@@ -93,39 +93,43 @@
       btn.disabled = false;
     }
 
-    async function updateAmount(name) {
-      const btn = document.getElementById("update-" + name);
+    async function updateAmount(id) {
+      const btn = document.getElementById("update-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
 
-      const input = document.getElementById("amount-" + name);
+      const input = document.getElementById("amount-" + id);
       const amount = input.dataset.raw;
 
-      await fetch(`${API}?action=updateAmount&room=${name}&amount=${amount}`);
-      await loadRooms(name);
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
+      await loadRooms(id);
 
       btn.innerText = "Cập nhật";
     }
 
-    async function markPaid(name) {
-      const btn = document.getElementById("paid-" + name);
+    async function markPaid(id) {
+      const btn = document.getElementById("paid-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
 
-      await fetch(`${API}?action=markPaid&room=${name}`);
-      await loadRooms(name);
+      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
+      await loadRooms(id);
+
+      btn.innerText = "Đã thanh toán";
     }
 
-    async function openRoom(name) {
-      const btn = document.getElementById("open-" + name);
+    async function openRoom(id) {
+      const btn = document.getElementById("open-" + id);
       btn.innerText = "Đang mở...";
       btn.disabled = true;
 
-      await fetch(`${API}?action=openRoom&room=${name}`);
-      await loadRooms(name);
+      await fetch(`${API}?action=openRoom&room=${encodeURIComponent(id)}`);
+      await loadRooms(id);
+
+      btn.innerText = "Mở phòng";
     }
 
-    // Đồng hồ hiển thị ngày giờ
+    // Đồng hồ hiển thị ngày giờ hiện tại
     function updateClock() {
       const now = new Date();
       const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
