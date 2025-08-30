@@ -6,97 +6,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; color: #333; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    h1 { text-align: center; color: blue; }
+    #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background: #333; color: #fff; }
-    input[type="text"] { width: 100px; text-align: right; padding: 5px; }
-    button { padding: 5px 10px; border: none; border-radius: 6px; cursor: pointer; }
-    .pay { background: #4CAF50; color: white; }
-    .open { background: #2196F3; color: white; }
-    .disabled { opacity: 0.5; cursor: not-allowed; }
-    #clock { text-align: center; margin-top: 10px; font-weight: bold; }
+    th { background: #007bff; color: white; }
+    input[type="text"] { width: 140px; padding: 5px; text-align: right; }
+    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
+    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
+    .update.enabled { opacity: 1; cursor: pointer; }
+    .paid { background: #dc3545; color: white; }
+    .paid:disabled { background: #aaa; cursor: not-allowed; }
+    .status-unpaid { color: red; font-weight: bold; }
+    .status-paid { color: green; font-weight: bold; }
+    .highlight { background: #d4edda !important; transition: background 2s ease; }
   </style>
 </head>
 <body>
-  <h1>Thu ngân Karaoke</h1>
-  <div id="clock"></div>
-  <table id="roomTable">
+  <h1>THU NGÂN <br>KARAOKE RITA</h1>
+  <p id="currentTime"></p>
+
+  <table>
     <thead>
       <tr>
-        <th>Tên phòng</th>
+        <th>Phòng</th>
         <th>Số tiền</th>
+        <th>Hành động</th>
         <th>Trạng thái</th>
         <th>Thời gian thanh toán</th>
-        <th>Hành động</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="roomTable"></tbody>
   </table>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwumEhSgb6kkUIYED9snXe8rM2vFSNLdQ6OYTgwkssC2cOJSf3dTW-P6YbIL-PNn0A/exec";
+    const API = "https://script.google.com/macros/s/AKfycbz5mmvzJlznD4fOE8aoj5wg5z73N1St4KiV9MuZIZyT8uwxugDvcIE05CaS8Vh2XklM/exec"; // Thay bằng URL web app
 
-    async function loadRooms() {
-      const res = await fetch(`${SCRIPT_URL}?action=getRooms`);
-      const rooms = await res.json();
-      const tbody = document.querySelector("#roomTable tbody");
-      tbody.innerHTML = "";
+    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
-      rooms.forEach(room => {
+    async function loadRooms(highlight=null) {
+      const res = await fetch(API + "?action=getRooms");
+      const data = await res.json();
+      const table = document.getElementById("roomTable");
+      table.innerHTML = "";
+
+      data.forEach(room => {
+        const roomId = encodeURIComponent(room.name);
+        const paid = room.status === "Đã thanh toán";
         const tr = document.createElement("tr");
+        tr.id = "row-" + roomId;
 
         tr.innerHTML = `
           <td>${room.name}</td>
           <td>
-            <input type="text" value="${room.amount}" 
-              onchange="updateAmount('${room.name}', this.value)">
+            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+              data-raw="${room.amount || 0}"
+              oninput="onAmountChange('${roomId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
-          <td>${room.status}</td>
-          <td>${room.refTime || ""}</td>
           <td>
-            <button class="open ${room.status === 'Đã thanh toán' ? '' : 'disabled'}" 
-              onclick="openRoom('${room.name}')" ${room.status === 'Đã thanh toán' ? '' : 'disabled'}>
-              Mở phòng
-            </button>
-            <button class="pay ${room.status === 'Chưa thanh toán' ? '' : 'disabled'}" 
-              onclick="markPaid('${room.name}')" ${room.status === 'Chưa thanh toán' ? '' : 'disabled'}>
-              Đã thanh toán
-            </button>
+            <button id="open-${roomId}" class="update" onclick="openRoom('${roomId}')">Mở phòng</button>
+            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
+            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
+          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
+          <td id="time-${roomId}">${room.refTime || ""}</td>
         `;
 
-        tbody.appendChild(tr);
+        table.appendChild(tr);
+        if (highlight === roomId) {
+          tr.classList.add("highlight");
+          setTimeout(()=>tr.classList.remove("highlight"),2000);
+        }
       });
     }
 
-    async function updateAmount(room, amount) {
-      await fetch(`${SCRIPT_URL}?action=updateAmount&room=${encodeURIComponent(room)}&amount=${amount}`);
-      loadRooms();
+    function onAmountChange(id) {
+      const input = document.getElementById("amount-" + id);
+      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
+      input.dataset.raw = raw;
+      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
+      const btn = document.getElementById("update-" + id);
+      btn.classList.add("enabled");
+      btn.disabled = false;
     }
 
-    async function markPaid(room) {
-      await fetch(`${SCRIPT_URL}?action=markPaid&room=${encodeURIComponent(room)}`);
-      loadRooms();
+    async function updateAmount(id) {
+      const btn = document.getElementById("update-" + id);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      const input = document.getElementById("amount-" + id);
+      const amount = input.dataset.raw;
+
+      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
+      await loadRooms(id);
+
+      btn.innerText = "Cập nhật";
     }
 
-    async function openRoom(room) {
-      await fetch(`${SCRIPT_URL}?action=openRoom&room=${encodeURIComponent(room)}`);
-      loadRooms();
+    async function markPaid(id) {
+      const btn = document.getElementById("paid-" + id);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+
+      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
+      await loadRooms(id);
+
+      btn.innerText = "Đã thanh toán";
     }
 
-    // Đồng hồ
+    async function openRoom(id) {
+      // Xóa số tiền và thời gian thanh toán, chuyển trạng thái thành "Chưa thanh toán"
+      const input = document.getElementById("amount-" + id);
+      input.value = "";
+      input.dataset.raw = 0;
+
+      const timeCell = document.getElementById("time-" + id);
+      timeCell.innerText = "";
+
+      const statusCell = document.getElementById("status-" + id);
+      statusCell.innerText = "Chưa thanh toán";
+      statusCell.classList.remove("status-paid");
+      statusCell.classList.add("status-unpaid");
+
+      // Kích hoạt lại nút "Đã thanh toán"
+      const paidButton = document.getElementById("paid-" + id);
+      paidButton.disabled = false;
+
+      // Cập nhật phòng
+      await fetch(`${API}?action=openRoom&room=${encodeURIComponent(id)}`);
+      await loadRooms(id);
+    }
+
+    // Hàm đồng hồ hiển thị ngày giờ hiện tại
     function updateClock() {
       const now = new Date();
-      document.getElementById("clock").textContent =
-        now.toLocaleDateString("vi-VN") + " " + now.toLocaleTimeString("vi-VN");
+      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
+      const date = now.toLocaleDateString("vi-VN");
+      const dayName = days[now.getDay()];
+      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Refresh data mỗi 10s
-    setInterval(loadRooms, 10000);
     loadRooms();
+    setInterval(loadRooms, 15000);
   </script>
 </body>
 </html>
