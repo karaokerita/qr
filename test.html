@@ -1,274 +1,113 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8" />
-<title>Thu ngân Karaoke</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<style>
-  body{font-family:Arial,Helvetica,sans-serif;padding:18px;background:#f5f7fa}
-  h1{text-align:center;margin-bottom:8px}
-  #info{font-size:13px;text-align:center;margin-bottom:10px}
-  table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.06)}
-  th,td{padding:10px;border:1px solid #eee;text-align:center}
-  th{background:#0d6efd;color:#fff}
-  input.money{width:140px;padding:6px;text-align:right}
-  button{padding:6px 10px;border-radius:6px;border:none;cursor:pointer;margin:0 4px}
-  .btn-open{background:#0dcaf0;color:#000}
-  .btn-paid{background:#198754;color:#fff}
-  .btn-update{background:#ffc107;color:#000}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  .status-unpaid{color:red;font-weight:bold}
-  .status-paid{color:green;font-weight:bold}
-  #msg{color:#666;text-align:center;margin-top:8px}
-</style>
+  <meta charset="UTF-8">
+  <title>Thu ngân Karaoke</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #4CAF50; color: white; }
+    input[type="text"] { width: 100px; text-align: right; }
+    .text-red { color: red; font-weight: bold; }
+    .text-green { color: green; font-weight: bold; }
+    button { margin: 2px; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .open-btn { background: #2196F3; color: white; }
+    .update-btn { background: #FF9800; color: white; }
+    .paid-btn { background: #4CAF50; color: white; }
+  </style>
 </head>
 <body>
-  <h1>THU NGÂN — KARAOKE</h1>
-  <div id="info">API: <span id="apiUrl"></span> · <button id="refreshBtn">Tải lại</button></div>
-  <table aria-label="Bảng phòng">
+  <h2>Thu ngân Karaoke</h2>
+  <table id="roomTable">
     <thead>
-      <tr><th>Phòng</th><th>Số tiền</th><th>Trạng thái</th><th>RefTime</th><th>Hành động</th></tr>
+      <tr>
+        <th>Phòng</th>
+        <th>Số tiền</th>
+        <th>Trạng thái</th>
+        <th>Giờ thanh toán</th>
+        <th>Hành động</th>
+      </tr>
     </thead>
-    <tbody id="tbody"></tbody>
+    <tbody></tbody>
   </table>
-  <div id="msg"></div>
 
 <script>
-/* ====== CẤU HÌNH ====== */
 const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
-document.getElementById('apiUrl').textContent = API_URL;
 
-/* ====== HỖ TRỢ GỌI API (POST JSON, fallback GET) ====== */
-async function apiCall(action, payload = {}) {
-  // thử POST JSON
-  try {
-    const body = Object.assign({}, payload, { action });
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      cache: 'no-store'
-    });
-    const txt = await res.text();
-    try { return JSON.parse(txt); } catch(e){ return txt; }
-  } catch (e) {
-    console.warn('POST lỗi, thử GET fallback', e);
-  }
-  // fallback GET
-  const params = new URLSearchParams({ action });
-  for (const k in payload) if (payload[k] !== undefined && payload[k] !== null) params.append(k, payload[k]);
-  const res2 = await fetch(API_URL + '?' + params.toString(), { method: 'GET', cache: 'no-store' });
-  if (!res2.ok) throw new Error('GET failed: ' + res2.status);
-  return await res2.json();
+// Render bảng
+function renderTable(data) {
+  const tbody = document.querySelector("#roomTable tbody");
+  tbody.innerHTML = "";
+
+  data.slice(1).forEach(row => {
+    const [room, amount, status, time, reftime] = row;
+    const tr = document.createElement("tr");
+
+    // format số tiền có dấu .
+    let formattedAmount = amount ? Number(amount).toLocaleString("vi-VN") : "";
+
+    tr.innerHTML = `
+      <td>${room}</td>
+      <td>
+        <input type="text" value="${formattedAmount}" data-room="${room}" 
+          oninput="enableUpdate(this)" />
+      </td>
+      <td class="${status === 'Đã thanh toán' ? 'text-green' : 'text-red'}">${status}</td>
+      <td>${reftime || ""}</td>
+      <td>
+        <button class="open-btn" onclick="openRoom('${room}')">Mở phòng</button>
+        <button class="update-btn" onclick="updateRoom('${room}', this)" disabled>Cập nhật</button>
+        <button class="paid-btn" onclick="setPaid('${room}')">Đã thanh toán</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
 }
 
-/* ====== Chuẩn hoá dữ liệu từ backend ====== */
-function normalize(raw) {
-  if (!raw) return [];
-  // case: array of arrays with header row
-  if (Array.isArray(raw) && raw.length && Array.isArray(raw[0])) {
-    const header = raw[0].map(h=>String(h||'').trim().toLowerCase());
-    const rows = raw.slice(1);
-    return rows.map(r => {
-      const obj = {};
-      header.forEach((h,i)=> obj[h]=r[i]);
-      return {
-        name: obj['phòng'] || obj['phong'] || obj['name'] || obj['room'] || '',
-        amount: (obj['số tiền']!==undefined? obj['số tiền'] : obj['so tien']!==undefined? obj['so tien']: obj['amount']),
-        status: obj['trạng thái'] || obj['trang thai'] || obj['status'] || '',
-        refTime: obj['reftime'] || obj['refTime'] || obj['time'] || ''
-      };
-    });
-  }
-  // case: array of objects
-  if (Array.isArray(raw) && raw.length && typeof raw[0] === 'object') {
-    return raw.map(o => ({
-      name: o.name || o['Phòng'] || o.room || o['Room'] || '',
-      amount: (o.amount===0 || o.amount) ? o.amount : (o['Số tiền']||o['so tien']||0),
-      status: o.status || o['Trạng thái'] || '',
-      refTime: o.refTime || o.reftime || o.time || ''
-    }));
-  }
-  // try parse string
-  try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return normalize(p); } catch(e) { return []; }
+// Bật nút cập nhật khi sửa số tiền
+function enableUpdate(input) {
+  const tr = input.closest("tr");
+  const updateBtn = tr.querySelector(".update-btn");
+  updateBtn.disabled = false;
 }
 
-/* ====== Format tiền: hiển thị dấu . trên blur, bỏ trên focus ====== */
-function formatDisplay(value) {
-  if (value === null || value === undefined || value === '') return '';
-  const n = Number(String(value).replace(/\D/g,'')) || 0;
-  return n.toLocaleString('vi-VN'); // dùng dấu . của vi-VN
+// Hàm gọi API chung
+async function callAPI(params) {
+  const res = await fetch(`${API_URL}?${new URLSearchParams(params)}`);
+  return await res.json();
 }
 
-/* ====== Render bảng và gắn sự kiện ====== */
-let currentRows = []; // lưu để dùng sau call
+async function updateRoom(room, btn) {
+  const tr = btn.closest("tr");
+  const amountInput = tr.querySelector("input");
+  let amount = amountInput.value.replace(/\./g, "").replace(/,/g, ""); // bỏ dấu
+  if (isNaN(amount) || amount === "") amount = 0;
 
-async function loadAndRender() {
-  setMsg('Đang tải dữ liệu...');
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '<tr><td colspan="5">Đang tải...</td></tr>';
-  try {
-    const raw = await apiCall('getRooms', {}); // backend nên trả danh sách
-    const rows = normalize(raw);
-    currentRows = rows;
-    if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="5">Không có dữ liệu</td></tr>';
-      setMsg('');
-      return;
-    }
-    tbody.innerHTML = '';
-    rows.forEach((r, i) => {
-      const tr = document.createElement('tr');
-
-      // Tên phòng
-      const tdName = document.createElement('td'); tdName.textContent = r.name || `Phòng ${i+1}`; tr.appendChild(tdName);
-
-      // Số tiền (input text for formatting)
-      const tdAmt = document.createElement('td');
-      const inp = document.createElement('input');
-      inp.type = 'text';
-      inp.className = 'money';
-      inp.value = formatDisplay(r.amount);
-      inp.setAttribute('data-raw', (r.amount===0 || r.amount) ? String(r.amount) : '');
-      // only digits while typing
-      inp.addEventListener('input', (e) => {
-        const onlyDigits = e.target.value.replace(/\D/g,'');
-        e.target.dataset.raw = onlyDigits;
-        // show raw while typing (do not format to avoid caret jump)
-        e.target.value = onlyDigits;
-      });
-      // on focus: show raw digits (already)
-      inp.addEventListener('focus', (e)=> {
-        e.target.value = e.target.dataset.raw || '';
-      });
-      // on blur: format display with dots
-      inp.addEventListener('blur', (e)=> {
-        const raw = e.target.dataset.raw || '';
-        e.target.value = raw ? formatDisplay(raw) : '';
-      });
-      tdAmt.appendChild(inp); tr.appendChild(tdAmt);
-
-      // Trạng thái
-      const tdStatus = document.createElement('td');
-      tdStatus.id = `status-${i}`;
-      tdStatus.className = (String(r.status).trim() === 'Chưa thanh toán') ? 'status-unpaid' : 'status-paid';
-      tdStatus.textContent = r.status || '';
-      tr.appendChild(tdStatus);
-
-      // refTime
-      const tdRef = document.createElement('td');
-      tdRef.id = `ref-${i}`;
-      tdRef.textContent = r.refTime || '';
-      tr.appendChild(tdRef);
-
-      // Actions
-      const tdAct = document.createElement('td');
-
-      const btnOpen = document.createElement('button');
-      btnOpen.className = 'btn-open';
-      btnOpen.textContent = 'Mở phòng';
-      const btnUpd = document.createElement('button');
-      btnUpd.className = 'btn-update';
-      btnUpd.textContent = 'Cập nhật';
-      const btnPaid = document.createElement('button');
-      btnPaid.className = 'btn-paid';
-      btnPaid.textContent = 'Đã thanh toán';
-
-      // initial enable/disable logic
-      if (String(r.status).trim() === 'Chưa thanh toán') {
-        btnOpen.disabled = true; btnUpd.disabled = true; btnPaid.disabled = false;
-      } else {
-        btnOpen.disabled = false; btnUpd.disabled = false; btnPaid.disabled = true;
-      }
-
-      tdAct.appendChild(btnOpen); tdAct.appendChild(btnUpd); tdAct.appendChild(btnPaid);
-      tr.appendChild(tdAct);
-      tbody.appendChild(tr);
-
-      // EVENTS (closure capture r.name and index i)
-      btnUpd.addEventListener('click', async () => {
-        btnUpd.disabled = true;
-        try {
-          const amountRaw = inp.dataset.raw || '';
-          // ensure at least 0
-          const amountVal = amountRaw ? amountRaw : '0';
-          // call backend: update amount, clear reftime, set status "Chưa thanh toán"
-          await tryActionList(['updateAmount','updateRoom','update','setAmount'], { name: r.name, amount: amountVal, clearRefTime: true, setStatus: 'Chưa thanh toán' });
-          // UI changes per requirements:
-          tdStatus.textContent = 'Chưa thanh toán';
-          tdStatus.className = 'status-unpaid';
-          tdRef.textContent = ''; // reftime cleared
-          btnPaid.disabled = false;
-          btnOpen.disabled = true;
-          btnUpd.disabled = true;
-        } catch (e) {
-          console.error('Update failed', e); alert('Cập nhật thất bại — xem console');
-          btnUpd.disabled = false;
-        }
-      });
-
-      btnOpen.addEventListener('click', async () => {
-        btnOpen.disabled = true;
-        try {
-          // open: reset money, clear refTime, set status "Chưa thanh toán"
-          await tryActionList(['openRoom','open','reopen','addRoom'], { name: r.name });
-          inp.value = ''; inp.dataset.raw = '';
-          tdStatus.textContent = 'Chưa thanh toán'; tdStatus.className = 'status-unpaid';
-          tdRef.textContent = '';
-          btnPaid.disabled = false;
-          btnUpd.disabled = true;
-        } catch (e) {
-          console.error('Open failed', e); alert('Mở phòng thất bại — xem console');
-          btnOpen.disabled = false;
-        }
-      });
-
-      btnPaid.addEventListener('click', async () => {
-        btnPaid.disabled = true;
-        try {
-          await tryActionList(['markPaid','paid','pay','mark_paid'], { name: r.name });
-          tdStatus.textContent = 'Đã thanh toán'; tdStatus.className = 'status-paid';
-          const now = new Date(); tdRef.textContent = now.toLocaleString('vi-VN');
-          btnOpen.disabled = false;
-          btnUpd.disabled = true;
-        } catch (e) {
-          console.error('Mark paid failed', e); alert('Đánh dấu đã thanh toán thất bại — xem console');
-          btnPaid.disabled = false;
-        }
-      });
-    });
-    setMsg('');
-  } catch (err) {
-    console.error('Load error', err);
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5">Lỗi tải dữ liệu — xem console</td></tr>';
-    setMsg('Lỗi kết nối API (xem console).');
-  }
+  await callAPI({ action: "update", room, amount });
+  btn.disabled = true; // tắt nút sau khi cập nhật
+  loadData();
 }
 
-/* ===== tryActionList: thử nhiều tên action để tương thích backend khác nhau ===== */
-async function tryActionList(actions, payload) {
-  let lastErr = null;
-  for (const action of actions) {
-    try {
-      const res = await apiCall(action, payload);
-      if (res && typeof res === 'object' && (res.error || res.status === 'error')) {
-        lastErr = new Error(res.error || 'Server trả lỗi');
-        continue;
-      }
-      return res;
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr || new Error('Tất cả requests đều thất bại');
+async function openRoom(room) {
+  await callAPI({ action: "open", room });
+  loadData();
 }
 
-/* ===== utility ===== */
-function setMsg(t) { document.getElementById('msg').textContent = t || ''; }
-document.getElementById('refreshBtn').addEventListener('click', () => loadAndRender());
+async function setPaid(room) {
+  await callAPI({ action: "paid", room });
+  loadData();
+}
 
-/* ===== start ===== */
-loadAndRender();
+async function loadData() {
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  renderTable(data);
+}
+
+window.onload = loadData;
 </script>
 </body>
 </html>
