@@ -34,7 +34,6 @@ button:disabled { background: #ccc; cursor: not-allowed; }
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-// Format số tiền
 function formatAmountInput(input){
   let value = input.value.replace(/\./g,'');
   if(!isNaN(value) && value!==''){
@@ -43,7 +42,6 @@ function formatAmountInput(input){
 }
 window.formatAmountInput = formatAmountInput;
 
-// Bật nút cập nhật khi thay đổi số tiền
 function enableUpdate(input){
   const tr=input.closest('tr');
   const updateBtn=tr.querySelector('.update-btn');
@@ -51,7 +49,6 @@ function enableUpdate(input){
 }
 window.enableUpdate = enableUpdate;
 
-// Gọi API
 async function callAPI(params){
   try{
     const res = await fetch(`${API_URL}?${new URLSearchParams(params)}`);
@@ -63,14 +60,12 @@ async function callAPI(params){
   }
 }
 
-// Load dữ liệu
 async function loadData(){
   const res = await fetch(API_URL);
   const data = await res.json();
   renderTable(data);
 }
 
-// Render bảng
 function renderTable(data){
   const tbody = document.querySelector('#roomTable tbody');
   tbody.innerHTML = '';
@@ -79,22 +74,19 @@ function renderTable(data){
     return;
   }
   data.slice(1).forEach(row=>{
-    const [room, amount, status, , reftime] = [row[0], row[1], row[2], row[3], row[4]];
+    const [room, amount, status, , time] = [row[0], row[1], row[2], row[3], row[4]];
     const tr = document.createElement('tr');
     const formattedAmount = amount ? Number(amount).toLocaleString('vi-VN') : '';
-
-    let openDisabled = false;
-    let updateDisabled = true;
-    let paidDisabled = (status==='Đã thanh toán');
-
+    const paidDisabled = (status==='Đã thanh toán');
+    
     tr.innerHTML = `
       <td>${room}</td>
       <td><input type="text" value="${formattedAmount}" oninput="enableUpdate(this)" onblur="formatAmountInput(this)" /></td>
       <td>${status}</td>
-      <td>${reftime || ''}</td>
+      <td>${time || ''}</td>
       <td>
-        <button class="open-btn" onclick="openRoom('${room}', this)" ${openDisabled?'':'active'}>Mở phòng</button>
-        <button class="update-btn" onclick="updateRoom('${room}', this)" ${updateDisabled?'disabled':''}>Cập nhật</button>
+        <button class="open-btn" onclick="openRoom('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Mở phòng</button>
+        <button class="update-btn" onclick="updateRoom('${room}', this)" disabled>Cập nhật</button>
         <button class="paid-btn" onclick="setPaid('${room}', this)" ${paidDisabled?'disabled':''}>Đã thanh toán</button>
       </td>
     `;
@@ -102,44 +94,29 @@ function renderTable(data){
   });
 }
 
-// Nút Mở phòng
 async function openRoom(room, btn){
   const tr = btn.closest('tr');
   btn.innerText = 'Đang mở...';
   btn.disabled = true;
-
-  const now = new Date();
-  const formattedTime = now.toLocaleString('vi-VN');
-
   await callAPI({action:'open', room});
-
   tr.querySelector('.update-btn').disabled = false;
   tr.querySelector('.paid-btn').disabled = false;
-  btn.disabled = true;
-  btn.innerText = 'Mở phòng';
   loadData();
 }
 
-// Nút Cập nhật
 async function updateRoom(room, btn){
   const tr = btn.closest('tr');
   const input = tr.querySelector('input');
   let amount = input.value.replace(/\./g,'');
   if(isNaN(amount) || amount==='') amount = 0;
-
   btn.innerText = 'Đang cập nhật...';
   btn.disabled = true;
-
   await callAPI({action:'update', room, amount});
-
   tr.querySelector('.open-btn').disabled = true;
   tr.querySelector('.paid-btn').disabled = false;
-  btn.disabled = true;
-  btn.innerText = 'Cập nhật';
   loadData();
 }
 
-// Nút Đã thanh toán
 async function setPaid(room, btn){
   btn.disabled = true;
   await callAPI({action:'paid', room});
