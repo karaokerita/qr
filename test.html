@@ -11,6 +11,7 @@ th { background: #4CAF50; color: white; }
 input[type="text"] { width: 100px; text-align: right; }
 .text-red { color: red; font-weight: bold; }
 .text-green { color: green; font-weight: bold; }
+.text-blue { color: blue; font-weight: bold; }
 button { margin: 2px; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
 button:disabled { background: #ccc; cursor: not-allowed; }
 .open-btn { background: #2196F3; color: white; }
@@ -30,11 +31,11 @@ button:disabled { background: #ccc; cursor: not-allowed; }
 <th>Hành động</th>
 </tr>
 </thead>
-<tbody><tr><td colspan="5">Đang tải...</td></tr></tbody>
+<tbody></tbody>
 </table>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec"; // Thay URL web app
+const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
 // Format số tiền
 function formatAmountInput(input) {
@@ -67,30 +68,40 @@ async function callAPI(params){
 
 // Cập nhật số tiền
 async function updateRoom(room, btn){
-  const tr=btn.closest("tr");
-  const amountInput=tr.querySelector("input");
-  let amount=amountInput.value.replace(/\./g,'');
-  if(isNaN(amount)||amount==='') amount=0;
+  const tr = btn.closest("tr");
+  const amountInput = tr.querySelector("input");
+  let amount = amountInput.value.replace(/\./g,'');
+  if(isNaN(amount) || amount==='') amount=0;
+
+  btn.disabled = true;
+  const oldText = btn.innerText;
+  btn.innerText = "Đang cập nhật..."; 
   await callAPI({action:'update', room, amount});
-  btn.disabled=true;
+  btn.innerText = oldText;
+  btn.disabled = true;
   loadData();
 }
-window.updateRoom=updateRoom;
+window.updateRoom = updateRoom;
 
 // Mở phòng
-async function openRoom(room){
+async function openRoom(room, btn){
+  const tr = btn.closest("tr");
+  const statusTd = tr.querySelector("td:nth-child(3)");
+  statusTd.innerText = "Đang mở"; 
+  statusTd.className = "text-blue";
+
   await callAPI({action:'open', room});
   loadData();
 }
-window.openRoom=openRoom;
+window.openRoom = openRoom;
 
 // Đã thanh toán
 async function setPaid(room, btn){
+  btn.disabled = true;
   await callAPI({action:'paid', room});
-  btn.disabled=true;
   loadData();
 }
-window.setPaid=setPaid;
+window.setPaid = setPaid;
 
 // Render bảng
 function renderTable(data){
@@ -101,16 +112,16 @@ function renderTable(data){
     return;
   }
   data.slice(1).forEach(row=>{
-    const [room, amount, status, reftime] = [row[0], row[1], row[2], row[3]]; // D = index 3
+    const [room, amount, status, , reftime] = [row[0], row[1], row[2], row[3], row[4]]; 
     const tr=document.createElement("tr");
-    const formattedAmount = amount?Number(amount).toLocaleString("vi-VN"):'';
+    const formattedAmount = amount ? Number(amount).toLocaleString("vi-VN") : '';
     tr.innerHTML=`
       <td>${room}</td>
       <td><input type="text" value="${formattedAmount}" oninput="enableUpdate(this)" onblur="formatAmountInput(this)" /></td>
-      <td class="${status==='Đã thanh toán'?'text-green':'text-red'}">${status}</td>
+      <td class="${status==='Đã thanh toán'?'text-green':(status==='Đang mở'?'text-blue':'text-red')}">${status}</td>
       <td>${reftime||''}</td>
       <td>
-        <button class="open-btn" onclick="window.openRoom('${room}')">Mở phòng</button>
+        <button class="open-btn" onclick="window.openRoom('${room}', this)">Mở phòng</button>
         <button class="update-btn" onclick="window.updateRoom('${room}', this)" disabled>Cập nhật</button>
         <button class="paid-btn" onclick="window.setPaid('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Đã thanh toán</button>
       </td>
@@ -119,16 +130,15 @@ function renderTable(data){
   });
 }
 
-// Load dữ liệu
+// Load dữ liệu từ sheet ngay khi mở trang
 async function loadData(){
-  const tbody=document.querySelector("#roomTable tbody");
-  tbody.innerHTML="<tr><td colspan='5'>Đang tải...</td></tr>";
   const res=await fetch(API_URL);
   const data=await res.json();
   renderTable(data);
 }
 
-window.onload=loadData;
+// Load dữ liệu khi mở trang
+window.onload = loadData;
 </script>
 </body>
 </html>
