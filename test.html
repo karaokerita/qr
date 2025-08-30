@@ -14,6 +14,7 @@ button:disabled { background: #ccc; cursor: not-allowed; }
 .open-btn { background: #2196F3; color: white; }
 .update-btn { background: #FF9800; color: white; }
 .paid-btn { background: #4CAF50; color: white; }
+.paid-btn.active { box-shadow: 0 0 10px #4CAF50; }
 </style>
 </head>
 <body>
@@ -34,23 +35,18 @@ button:disabled { background: #ccc; cursor: not-allowed; }
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-// Format số tiền
 function formatAmountInput(input){
   let value = input.value.replace(/\./g,'');
-  if(!isNaN(value) && value!==''){
-    input.value = Number(value).toLocaleString('vi-VN');
-  }
+  if(!isNaN(value) && value!=='') input.value = Number(value).toLocaleString('vi-VN');
 }
 window.formatAmountInput = formatAmountInput;
 
-// Bật nút cập nhật khi sửa số tiền
 function enableUpdate(input){
   const tr=input.closest('tr');
   tr.querySelector('.update-btn').disabled=false;
 }
 window.enableUpdate = enableUpdate;
 
-// Gọi API
 async function callAPI(params){
   try{
     const res = await fetch(`${API_URL}?${new URLSearchParams(params)}`);
@@ -58,14 +54,12 @@ async function callAPI(params){
   }catch(e){ console.error(e); alert('Lỗi API'); return null; }
 }
 
-// Load dữ liệu
 async function loadData(){
   const res = await fetch(API_URL);
   const data = await res.json();
   renderTable(data);
 }
 
-// Render bảng
 function renderTable(data){
   const tbody = document.querySelector('#roomTable tbody');
   tbody.innerHTML = '';
@@ -85,7 +79,7 @@ function renderTable(data){
       <td>
         <button class="open-btn" onclick="openRoom('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Mở phòng</button>
         <button class="update-btn" onclick="updateRoom('${room}', this)" disabled>Cập nhật</button>
-        <button class="paid-btn" onclick="setPaid('${room}', this)" ${paidDisabled?'disabled':''}>Đã thanh toán</button>
+        <button class="paid-btn ${status==='Đã thanh toán'?'active':''}" onclick="setPaid('${room}', this)" ${paidDisabled?'disabled':''}>Đã thanh toán</button>
       </td>
     `;
     tbody.appendChild(tr);
