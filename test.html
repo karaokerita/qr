@@ -20,6 +20,8 @@
     .status-unpaid { color: red; font-weight: bold; }
     .status-paid { color: green; font-weight: bold; }
     .highlight { background: #d4edda !important; transition: background 2s ease; }
+    .openRoom { background: #17a2b8; color: white; }
+    .openRoom:disabled { background: #aaa; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -65,7 +67,7 @@
               onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
-            <button id="open-${roomId}" class="update" onclick="openRoom('${roomId}')">Mở phòng</button>
+            <button id="open-${roomId}" class="openRoom" onclick="openRoom('${roomId}')">Mở phòng</button>
             <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
             <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
@@ -117,26 +119,36 @@
     }
 
     async function openRoom(id) {
-      // Xóa số tiền và thời gian thanh toán, chuyển trạng thái thành "Chưa thanh toán"
+      const btn = document.getElementById("open-" + id);
+      btn.innerText = "Đang mở...";
+      btn.disabled = true;
+
+      // Xóa số tiền
       const input = document.getElementById("amount-" + id);
       input.value = "";
       input.dataset.raw = 0;
 
+      // Xóa thời gian thanh toán
       const timeCell = document.getElementById("time-" + id);
       timeCell.innerText = "";
 
+      // Chuyển trạng thái về "Chưa thanh toán"
       const statusCell = document.getElementById("status-" + id);
       statusCell.innerText = "Chưa thanh toán";
       statusCell.classList.remove("status-paid");
       statusCell.classList.add("status-unpaid");
 
-      // Kích hoạt lại nút "Đã thanh toán"
+      // Cho phép lại nút "Đã thanh toán"
       const paidButton = document.getElementById("paid-" + id);
       paidButton.disabled = false;
 
-      // Cập nhật phòng
+      // Gọi API để reset trong sheet
       await fetch(`${API}?action=openRoom&room=${encodeURIComponent(id)}`);
       await loadRooms(id);
+
+      // Sau khi load lại vẫn giữ nút disable
+      btn.innerText = "Mở phòng";
+      btn.disabled = true;
     }
 
     // Hàm đồng hồ hiển thị ngày giờ hiện tại
