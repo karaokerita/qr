@@ -6,129 +6,125 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; color: blue; }
-    #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background: #007bff; color: white; }
-    input[type="text"] { width: 140px; padding: 5px; text-align: right; }
-    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
-    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
-    .update.enabled { opacity: 1; cursor: pointer; }
-    .paid { background: #dc3545; color: white; }
-    .paid:disabled { background: #aaa; cursor: not-allowed; }
-    .status-unpaid { color: red; font-weight: bold; }
-    .status-paid { color: green; font-weight: bold; }
-    .highlight { background: #d4edda !important; transition: background 2s ease; }
+    h1 { text-align: center; color: #333; }
+    #clock { text-align: center; font-size: 18px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #eee; }
+    button { padding: 6px 12px; margin: 2px; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-update { background: #2196F3; color: #fff; }
+    .btn-paid { background: #4CAF50; color: #fff; }
+    .btn-open { background: #FF9800; color: #fff; }
+    input[type="number"] { width: 80px; padding: 5px; text-align: right; }
   </style>
 </head>
 <body>
-  <h1>THU NGÂN <br>KARAOKE RITA</h1>
-  <p id="currentTime"></p>
-
+  <h1>Thu ngân Karaoke</h1>
+  <div id="clock"></div>
   <table>
     <thead>
       <tr>
         <th>Phòng</th>
-        <th>Số tiền</th>
-        <th>Hành động</th>
+        <th>Số tiền (VNĐ)</th>
         <th>Trạng thái</th>
-        <th>Thời gian thanh toán</th>
+        <th>Giờ thanh toán</th>
+        <th>Thao tác</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
   </table>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwwumEhSgb6kkUIYED9snXe8rM2vFSNLdQ6OYTgwkssC2cOJSf3dTW-P6YbIL-PNn0A/exec"; // đổi bằng URL Web App
+    const API_URL = "https://script.google.com/macros/s/AKfycbwwumEhSgb6kkUIYED9snXe8rM2vFSNLdQ6OYTgwkssC2cOJSf3dTW-P6YbIL-PNn0A/exec"; // thay bằng URL web app sau khi deploy
 
-    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
-
-    async function loadRooms(highlight=null) {
-      const res = await fetch(API + "?action=getRooms");
-      const data = await res.json();
-      const table = document.getElementById("roomTable");
-      table.innerHTML = "";
-
-      data.forEach(room => {
-        const roomId = encodeURIComponent(room.name);
-        const paid = room.status === "Đã thanh toán";
-        const tr = document.createElement("tr");
-        tr.id = "row-" + roomId;
-
-        tr.innerHTML = `
-          <td>${room.name}</td>
-          <td>
-            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
-              data-raw="${room.amount || 0}"
-              oninput="onAmountChange('${roomId}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
-          </td>
-          <td>
-            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
-          </td>
-          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
-          <td id="time-${roomId}">${room.refTime || ""}</td>
-        `;
-
-        table.appendChild(tr);
-        if (highlight === roomId) {
-          tr.classList.add("highlight");
-          setTimeout(()=>tr.classList.remove("highlight"),2000);
-        }
-      });
-    }
-
-    function onAmountChange(id) {
-      const input = document.getElementById("amount-" + id);
-      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
-      input.dataset.raw = raw;
-      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
-      const btn = document.getElementById("update-" + id);
-      btn.classList.add("enabled");
-      btn.disabled = false;
-    }
-
-    async function updateAmount(id) {
-      const btn = document.getElementById("update-" + id);
-      btn.innerText = "Đang lưu...";
-      btn.disabled = true;
-
-      const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw;
-
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
-      await loadRooms(id);
-
-      btn.innerText = "Cập nhật";
-    }
-
-    async function markPaid(id) {
-      const btn = document.getElementById("paid-" + id);
-      btn.innerText = "Đang lưu...";
-      btn.disabled = true;
-
-      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
-      await loadRooms(id);
-
-      btn.innerText = "Đã thanh toán";
-    }
-
-    // Đồng hồ hiển thị ngày giờ hiện tại
+    // Đồng hồ
     function updateClock() {
       const now = new Date();
-      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
-      const date = now.toLocaleDateString("vi-VN");
-      const dayName = days[now.getDay()];
-      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+      document.getElementById("clock").innerText = now.toLocaleString("vi-VN");
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    loadRooms();
-    setInterval(loadRooms, 15000);
+    // Load dữ liệu từ Google Sheet
+    async function loadData() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      const tbody = document.getElementById("roomTable");
+      tbody.innerHTML = "";
+
+      for (let i = 1; i < data.length; i++) {
+        const [room, amount, status, reftime] = data[i];
+
+        const tr = document.createElement("tr");
+
+        // Cột phòng
+        const tdRoom = document.createElement("td");
+        tdRoom.textContent = room;
+        tr.appendChild(tdRoom);
+
+        // Cột số tiền
+        const tdAmount = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "number";
+        input.value = amount || "";
+        tdAmount.appendChild(input);
+        tr.appendChild(tdAmount);
+
+        // Cột trạng thái
+        const tdStatus = document.createElement("td");
+        tdStatus.textContent = status;
+        tr.appendChild(tdStatus);
+
+        // Cột giờ thanh toán
+        const tdTime = document.createElement("td");
+        tdTime.textContent = reftime ? new Date(reftime).toLocaleTimeString("vi-VN") : "";
+        tr.appendChild(tdTime);
+
+        // Cột thao tác
+        const tdActions = document.createElement("td");
+
+        // Nút mở phòng
+        const btnOpen = document.createElement("button");
+        btnOpen.textContent = "Mở phòng";
+        btnOpen.className = "btn-open";
+        btnOpen.disabled = false;
+        btnOpen.onclick = async () => {
+          await fetch(API_URL + "?action=openRoom&room=" + encodeURIComponent(room));
+          btnOpen.disabled = true;
+          loadData();
+        };
+        tdActions.appendChild(btnOpen);
+
+        // Nút cập nhật
+        const btnUpdate = document.createElement("button");
+        btnUpdate.textContent = "Cập nhật";
+        btnUpdate.className = "btn-update";
+        btnUpdate.onclick = async () => {
+          const value = input.value || 0;
+          await fetch(API_URL + "?action=updateAmount&room=" + encodeURIComponent(room) + "&amount=" + value);
+          loadData();
+        };
+        tdActions.appendChild(btnUpdate);
+
+        // Nút đã thanh toán
+        const btnPaid = document.createElement("button");
+        btnPaid.textContent = "Đã thanh toán";
+        btnPaid.className = "btn-paid";
+        btnPaid.onclick = async () => {
+          await fetch(API_URL + "?action=markPaid&room=" + encodeURIComponent(room));
+          loadData();
+        };
+        tdActions.appendChild(btnPaid);
+
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Refresh mỗi 15s
+    setInterval(loadData, 15000);
+    loadData();
   </script>
 </body>
 </html>
