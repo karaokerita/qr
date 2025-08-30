@@ -45,33 +45,6 @@ function formatAmountInput(input) {
 }
 window.formatAmountInput = formatAmountInput;
 
-// Render bảng
-function renderTable(data){
-  const tbody = document.querySelector("#roomTable tbody");
-  tbody.innerHTML = "";
-  if(!data || data.length<=1){
-    tbody.innerHTML="<tr><td colspan='5'>Không có dữ liệu</td></tr>";
-    return;
-  }
-  data.slice(1).forEach(row=>{
-    const [room, amount, status, , reftime] = row; // cột D = giờ thanh toán
-    const tr=document.createElement("tr");
-    const formattedAmount = amount?Number(amount).toLocaleString("vi-VN"):'';
-    tr.innerHTML=`
-      <td>${room}</td>
-      <td><input type="text" value="${formattedAmount}" oninput="enableUpdate(this)" onblur="formatAmountInput(this)" /></td>
-      <td class="${status==='Đã thanh toán'?'text-green':'text-red'}">${status}</td>
-      <td>${reftime||''}</td>
-      <td>
-        <button class="open-btn" onclick="openRoom('${room}')">Mở phòng</button>
-        <button class="update-btn" onclick="updateRoom('${room}', this)" disabled>Cập nhật</button>
-        <button class="paid-btn" onclick="setPaid('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Đã thanh toán</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
 // Bật nút cập nhật khi sửa
 function enableUpdate(input){
   const tr=input.closest("tr");
@@ -102,18 +75,48 @@ async function updateRoom(room, btn){
   btn.disabled=true;
   loadData();
 }
+window.updateRoom=updateRoom;
 
 // Mở phòng
 async function openRoom(room){
   await callAPI({action:'open', room});
   loadData();
 }
+window.openRoom=openRoom;
 
 // Đã thanh toán
 async function setPaid(room, btn){
   await callAPI({action:'paid', room});
   btn.disabled=true;
   loadData();
+}
+window.setPaid=setPaid;
+
+// Render bảng
+function renderTable(data){
+  const tbody = document.querySelector("#roomTable tbody");
+  tbody.innerHTML = "";
+  if(!data || data.length<=1){
+    tbody.innerHTML="<tr><td colspan='5'>Không có dữ liệu</td></tr>";
+    return;
+  }
+  data.slice(1).forEach(row=>{
+    const [room, amount, status, reftime] = [row[0], row[1], row[2], row[3]]; // D = index 3
+    const tr=document.createElement("tr");
+    const formattedAmount = amount?Number(amount).toLocaleString("vi-VN"):'';
+    tr.innerHTML=`
+      <td>${room}</td>
+      <td><input type="text" value="${formattedAmount}" oninput="enableUpdate(this)" onblur="formatAmountInput(this)" /></td>
+      <td class="${status==='Đã thanh toán'?'text-green':'text-red'}">${status}</td>
+      <td>${reftime||''}</td>
+      <td>
+        <button class="open-btn" onclick="window.openRoom('${room}')">Mở phòng</button>
+        <button class="update-btn" onclick="window.updateRoom('${room}', this)" disabled>Cập nhật</button>
+        <button class="paid-btn" onclick="window.setPaid('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Đã thanh toán</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // Load dữ liệu
@@ -124,11 +127,6 @@ async function loadData(){
   const data=await res.json();
   renderTable(data);
 }
-
-// Gắn hàm window
-window.updateRoom=updateRoom;
-window.openRoom=openRoom;
-window.setPaid=setPaid;
 
 window.onload=loadData;
 </script>
