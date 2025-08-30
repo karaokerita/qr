@@ -8,24 +8,24 @@
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; color: #333; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    button { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
-    .update { background: #007bff; color: #fff; }
-    .open { background: #28a745; color: #fff; }
-    .paid { background: #dc3545; color: #fff; }
-    input[type="number"] { width: 100px; padding: 5px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #333; color: #fff; }
+    button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .update-btn { background: #007bff; color: white; }
+    .open-btn { background: #28a745; color: white; }
+    .paid-btn { background: #dc3545; color: white; }
+    .disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
   <h1>Thu ngân Karaoke</h1>
-  <table id="roomsTable">
+  <table id="roomTable">
     <thead>
       <tr>
-        <th>Phòng</th>
+        <th>Tên phòng</th>
         <th>Số tiền</th>
         <th>Trạng thái</th>
-        <th>Giờ thanh toán</th>
+        <th>Thời gian</th>
         <th>Hành động</th>
       </tr>
     </thead>
@@ -35,94 +35,52 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-    // Load dữ liệu từ API
     async function loadRooms() {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      const tbody = document.querySelector("#roomsTable tbody");
-      tbody.innerHTML = "";
+      try {
+        const res = await fetch(API_URL);
+        const rooms = await res.json();
 
-      data.forEach((row, index) => {
-        const tr = document.createElement("tr");
+        const tbody = document.querySelector("#roomTable tbody");
+        tbody.innerHTML = "";
 
-        // phòng
-        tr.innerHTML = `
-          <td>${row.name}</td>
-          <td><input type="number" id="amount-${index}" value="${row.amount || 0}"></td>
-          <td id="status-${index}">${row.status || "Chưa thanh toán"}</td>
-          <td id="time-${index}">${row.refTime || ""}</td>
-          <td>
-            <button class="open" id="open-${index}" onclick="openRoom(${index}, '${row.name}')">Mở phòng</button>
-            <button class="paid" id="paid-${index}" onclick="markPaid(${index}, '${row.name}')">Đã thanh toán</button>
-            <button class="update" onclick="updateAmount(${index}, '${row.name}')">Cập nhật</button>
-          </td>
-        `;
+        rooms.forEach(room => {
+          const tr = document.createElement("tr");
 
-        tbody.appendChild(tr);
-
-        // Logic bật/tắt nút
-        if (row.status === "Chưa thanh toán") {
-          document.getElementById(`open-${index}`).disabled = true;
-          document.getElementById(`paid-${index}`).disabled = false;
-        } else {
-          document.getElementById(`open-${index}`).disabled = false;
-          document.getElementById(`paid-${index}`).disabled = true;
-        }
-      });
+          tr.innerHTML = `
+            <td>${room.name || ""}</td>
+            <td>${room.amount || 0}</td>
+            <td>${room.status || ""}</td>
+            <td>${room.refTime || ""}</td>
+            <td>
+              <button class="open-btn" id="open-${room.name}" onclick="openRoom('${room.name}')" ${room.status === 'Chưa thanh toán' ? 'disabled' : ''}>Mở phòng</button>
+              <button class="paid-btn" id="paid-${room.name}" onclick="markPaid('${room.name}')" ${room.status === 'Chưa thanh toán' ? '' : 'disabled'}>Đã thanh toán</button>
+              <button class="update-btn" onclick="updateRoom('${room.name}')">Cập nhật</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Lỗi loadRooms:", err);
+      }
     }
 
-    // Hàm mở phòng
-    async function openRoom(index, name) {
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "openRoom",
-          name: name
-        })
-      });
-
-      document.getElementById(`status-${index}`).innerText = "Chưa thanh toán";
-      document.getElementById(`amount-${index}`).value = 0;
-      document.getElementById(`time-${index}`).innerText = "";
-
-      document.getElementById(`open-${index}`).disabled = true;
-      document.getElementById(`paid-${index}`).disabled = false;
+    async function openRoom(name) {
+      if (!name) return alert("Tên phòng không xác định!");
+      const now = new Date().toLocaleString("vi-VN");
+      await fetch(`${API_URL}?action=open&name=${encodeURIComponent(name)}&refTime=${encodeURIComponent(now)}`);
+      loadRooms();
     }
 
-    // Hàm đã thanh toán
-    async function markPaid(index, name) {
-      const now = new Date().toLocaleTimeString("vi-VN");
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "markPaid",
-          name: name,
-          refTime: now
-        })
-      });
-
-      document.getElementById(`status-${index}`).innerText = "Đã thanh toán";
-      document.getElementById(`time-${index}`).innerText = now;
-
-      document.getElementById(`open-${index}`).disabled = false;
-      document.getElementById(`paid-${index}`).disabled = true;
+    async function markPaid(name) {
+      if (!name) return alert("Tên phòng không xác định!");
+      await fetch(`${API_URL}?action=pay&name=${encodeURIComponent(name)}`);
+      loadRooms();
     }
 
-    // Hàm cập nhật số tiền
-    async function updateAmount(index, name) {
-      const amount = document.getElementById(`amount-${index}`).value;
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "updateAmount",
-          name: name,
-          amount: amount
-        })
-      });
-      alert("Đã cập nhật số tiền cho " + name);
+    async function updateRoom(name) {
+      if (!name) return alert("Tên phòng không xác định!");
+      await fetch(`${API_URL}?action=update&name=${encodeURIComponent(name)}`);
+      loadRooms();
     }
 
     loadRooms();
