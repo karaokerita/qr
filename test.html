@@ -6,20 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #eee; }
-    button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
-    .open-btn { background: #007bff; color: #fff; }
-    .paid-btn { background: #28a745; color: #fff; }
-    .update-btn { background: #ffc107; color: #000; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    h1 { text-align: center; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: #fff; }
+    button { padding: 5px 10px; margin: 2px; border: none; border-radius: 5px; cursor: pointer; }
+    .btn-open { background: orange; color: #fff; }
+    .btn-update { background: #007bff; color: #fff; }
+    .btn-paid { background: green; color: #fff; }
+    .btn-disabled { background: #ccc; color: #666; cursor: not-allowed; }
+    input { width: 100px; text-align: right; }
   </style>
 </head>
 <body>
   <h1>Thu ngân Karaoke</h1>
-  <table id="roomTable">
+  <table>
     <thead>
       <tr>
         <th>Phòng</th>
@@ -29,69 +30,100 @@
         <th>Thao tác</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="roomData"></tbody>
   </table>
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-async function loadRooms() {
-  const res = await fetch(API_URL);
-  const rooms = await res.json();
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL);
+        let data = await res.json();
 
-  const tbody = document.querySelector("#roomTable tbody");
-  tbody.innerHTML = "";
+        // Bỏ qua hàng tiêu đề
+        data = data.slice(1);
 
-  rooms.forEach(room => {
-    const name = room.name;
-    const amount = room.amount || 0;
-    const status = room.status || "Đã thanh toán";
-    const refTime = room.refTime || "";
+        const tbody = document.getElementById("roomData");
+        tbody.innerHTML = "";
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${name}</td>
-      <td>${amount}</td>
-      <td>${status}</td>
-      <td>${refTime}</td>
-      <td>
-        <button class="open-btn" id="open-${name}" onclick="openRoom('${name}')" ${status === 'Chưa thanh toán' ? 'disabled' : ''}>Mở phòng</button>
-        <button class="paid-btn" id="paid-${name}" onclick="markPaid('${name}')" ${status === 'Chưa thanh toán' ? '' : 'disabled'}>Đã thanh toán</button>
-        <button class="update-btn" onclick="updateRoom('${name}')">Cập nhật</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+        data.forEach((row, i) => {
+          const [room, amount, status, time, reftime] = row;
 
-async function openRoom(name) {
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "openRoom", name })
-  });
-  loadRooms();
-}
+          const tr = document.createElement("tr");
 
-async function markPaid(name) {
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "markPaid", name })
-  });
-  loadRooms();
-}
+          // Tên phòng
+          const tdRoom = document.createElement("td");
+          tdRoom.textContent = room || "Không tên";
+          tr.appendChild(tdRoom);
 
-async function updateRoom(name) {
-  const amount = prompt("Nhập số tiền mới:");
-  if (amount !== null) {
-    await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "updateRoom", name, amount })
-    });
-    loadRooms();
-  }
-}
+          // Ô nhập số tiền
+          const tdAmount = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "number";
+          input.value = amount || 0;
+          tdAmount.appendChild(input);
+          tr.appendChild(tdAmount);
 
-loadRooms();
-</script>
+          // Trạng thái
+          const tdStatus = document.createElement("td");
+          tdStatus.textContent = status || "Chưa thanh toán";
+          tr.appendChild(tdStatus);
+
+          // Giờ thanh toán
+          const tdTime = document.createElement("td");
+          tdTime.textContent = reftime || "";
+          tr.appendChild(tdTime);
+
+          // Các nút thao tác
+          const tdActions = document.createElement("td");
+
+          // Nút mở phòng
+          const btnOpen = document.createElement("button");
+          btnOpen.textContent = "Mở phòng";
+          btnOpen.className = "btn-open";
+          btnOpen.disabled = status === "Chưa thanh toán"; 
+          btnOpen.onclick = () => updateRoom(room, 0, "Chưa thanh toán", "", true);
+          tdActions.appendChild(btnOpen);
+
+          // Nút cập nhật
+          const btnUpdate = document.createElement("button");
+          btnUpdate.textContent = "Cập nhật";
+          btnUpdate.className = "btn-update";
+          btnUpdate.onclick = () => updateRoom(room, input.value, status, reftime, false);
+          tdActions.appendChild(btnUpdate);
+
+          // Nút đã thanh toán
+          const btnPaid = document.createElement("button");
+          btnPaid.textContent = "Đã thanh toán";
+          btnPaid.className = "btn-paid";
+          btnPaid.disabled = status !== "Chưa thanh toán";
+          btnPaid.onclick = () => updateRoom(room, 0, "Đã thanh toán", new Date().toLocaleTimeString(), false);
+          tdActions.appendChild(btnPaid);
+
+          tr.appendChild(tdActions);
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu:", err);
+      }
+    }
+
+    async function updateRoom(room, amount, status, reftime, isOpen) {
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ room, amount, status, reftime }),
+          headers: { "Content-Type": "application/json" }
+        });
+        fetchData();
+      } catch (err) {
+        console.error("Lỗi cập nhật:", err);
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 15000);
+  </script>
 </body>
 </html>
