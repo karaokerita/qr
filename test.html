@@ -66,6 +66,19 @@ async function callAPI(params){
   }
 }
 
+// Mở phòng
+async function openRoom(room, btn){
+  const oldText = btn.innerText;
+  btn.innerText = "Đang mở..."; 
+  btn.disabled = true;
+
+  await callAPI({action:'open', room}); // ghi sheet trạng thái "Chưa thanh toán"
+  btn.innerText = oldText;
+  btn.disabled = false;
+  loadData();
+}
+window.openRoom = openRoom;
+
 // Cập nhật số tiền
 async function updateRoom(room, btn){
   const tr = btn.closest("tr");
@@ -73,27 +86,16 @@ async function updateRoom(room, btn){
   let amount = amountInput.value.replace(/\./g,'');
   if(isNaN(amount) || amount==='') amount=0;
 
-  btn.disabled = true;
   const oldText = btn.innerText;
-  btn.innerText = "Đang cập nhật..."; 
+  btn.innerText = "Đang cập nhật...";
+  btn.disabled = true;
+
   await callAPI({action:'update', room, amount});
   btn.innerText = oldText;
   btn.disabled = true;
   loadData();
 }
 window.updateRoom = updateRoom;
-
-// Mở phòng
-async function openRoom(room, btn){
-  const tr = btn.closest("tr");
-  const statusTd = tr.querySelector("td:nth-child(3)");
-  statusTd.innerText = "Đang mở"; 
-  statusTd.className = "text-blue";
-
-  await callAPI({action:'open', room});
-  loadData();
-}
-window.openRoom = openRoom;
 
 // Đã thanh toán
 async function setPaid(room, btn){
