@@ -11,10 +11,10 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background: #eee; }
     button { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
-    .update-btn { background: #007bff; color: white; }
-    .paid-btn { background: #28a745; color: white; }
-    .open-btn { background: #ff9800; color: white; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
+    .update { background: #007bff; color: #fff; }
+    .open { background: #28a745; color: #fff; }
+    .paid { background: #dc3545; color: #fff; }
+    input[type="number"] { width: 100px; padding: 5px; }
   </style>
 </head>
 <body>
@@ -25,7 +25,7 @@
         <th>Phòng</th>
         <th>Số tiền</th>
         <th>Trạng thái</th>
-        <th>Thời gian</th>
+        <th>Giờ thanh toán</th>
         <th>Hành động</th>
       </tr>
     </thead>
@@ -33,79 +33,99 @@
   </table>
 
   <script>
-    const API_URL = "YOUR_WEB_APP_URL"; // thay bằng link web app của bạn
+    const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-    async function fetchData() {
+    // Load dữ liệu từ API
+    async function loadRooms() {
       const res = await fetch(API_URL);
       const data = await res.json();
-      renderTable(data);
-    }
-
-    function renderTable(data) {
       const tbody = document.querySelector("#roomsTable tbody");
       tbody.innerHTML = "";
-      data.forEach((row, i) => {
+
+      data.forEach((row, index) => {
         const tr = document.createElement("tr");
 
+        // phòng
         tr.innerHTML = `
           <td>${row.name}</td>
-          <td><input type="number" value="${row.amount}" id="amount-${i}"></td>
-          <td id="status-${i}">${row.status}</td>
-          <td id="time-${i}">${row.refTime || ""}</td>
+          <td><input type="number" id="amount-${index}" value="${row.amount || 0}"></td>
+          <td id="status-${index}">${row.status || "Chưa thanh toán"}</td>
+          <td id="time-${index}">${row.refTime || ""}</td>
           <td>
-            <button class="open-btn" id="open-${i}" onclick="openRoom(${i}, '${row.name}')">Mở phòng</button>
-            <button class="update-btn" onclick="updateRoom(${i}, '${row.name}')">Cập nhật</button>
-            <button class="paid-btn" id="paid-${i}" onclick="markPaid(${i}, '${row.name}')">Đã thanh toán</button>
+            <button class="open" id="open-${index}" onclick="openRoom(${index}, '${row.name}')">Mở phòng</button>
+            <button class="paid" id="paid-${index}" onclick="markPaid(${index}, '${row.name}')">Đã thanh toán</button>
+            <button class="update" onclick="updateAmount(${index}, '${row.name}')">Cập nhật</button>
           </td>
         `;
 
         tbody.appendChild(tr);
 
-        // Trạng thái mặc định của nút
-        document.getElementById(`paid-${i}`).disabled = true;
+        // Logic bật/tắt nút
         if (row.status === "Chưa thanh toán") {
-          document.getElementById(`open-${i}`).disabled = true;
-          document.getElementById(`paid-${i}`).disabled = false;
+          document.getElementById(`open-${index}`).disabled = true;
+          document.getElementById(`paid-${index}`).disabled = false;
+        } else {
+          document.getElementById(`open-${index}`).disabled = false;
+          document.getElementById(`paid-${index}`).disabled = true;
         }
       });
     }
 
-    async function openRoom(i, name) {
-      const statusEl = document.getElementById(`status-${i}`);
-      const timeEl = document.getElementById(`time-${i}`);
-      const amountEl = document.getElementById(`amount-${i}`);
-
-      statusEl.textContent = "Chưa thanh toán";
-      timeEl.textContent = "";
-      amountEl.value = 0;
-
-      document.getElementById(`open-${i}`).disabled = true;
-      document.getElementById(`paid-${i}`).disabled = false;
-
+    // Hàm mở phòng
+    async function openRoom(index, name) {
       await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "open", name: name }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "openRoom",
+          name: name
+        })
       });
+
+      document.getElementById(`status-${index}`).innerText = "Chưa thanh toán";
+      document.getElementById(`amount-${index}`).value = 0;
+      document.getElementById(`time-${index}`).innerText = "";
+
+      document.getElementById(`open-${index}`).disabled = true;
+      document.getElementById(`paid-${index}`).disabled = false;
     }
 
-    async function updateRoom(i, name) {
-      const amount = document.getElementById(`amount-${i}`).value;
+    // Hàm đã thanh toán
+    async function markPaid(index, name) {
+      const now = new Date().toLocaleTimeString("vi-VN");
       await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "update", name: name, amount: amount }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "markPaid",
+          name: name,
+          refTime: now
+        })
       });
-      fetchData();
+
+      document.getElementById(`status-${index}`).innerText = "Đã thanh toán";
+      document.getElementById(`time-${index}`).innerText = now;
+
+      document.getElementById(`open-${index}`).disabled = false;
+      document.getElementById(`paid-${index}`).disabled = true;
     }
 
-    async function markPaid(i, name) {
+    // Hàm cập nhật số tiền
+    async function updateAmount(index, name) {
+      const amount = document.getElementById(`amount-${index}`).value;
       await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "paid", name: name }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateAmount",
+          name: name,
+          amount: amount
+        })
       });
-      fetchData();
+      alert("Đã cập nhật số tiền cho " + name);
     }
 
-    fetchData();
+    loadRooms();
   </script>
 </body>
 </html>
