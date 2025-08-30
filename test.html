@@ -82,8 +82,7 @@ function renderTable(data){
     const [room, amount, status, , reftime] = [row[0], row[1], row[2], row[3], row[4]];
     const tr = document.createElement('tr');
     const formattedAmount = amount ? Number(amount).toLocaleString('vi-VN') : '';
-    
-    // Các trạng thái nút mặc định
+
     let openDisabled = false;
     let updateDisabled = true;
     let paidDisabled = (status==='Đã thanh toán');
@@ -112,10 +111,8 @@ async function openRoom(room, btn){
   const now = new Date();
   const formattedTime = now.toLocaleString('vi-VN');
 
-  // Ghi trạng thái "Chưa thanh toán" + thời gian mở vào sheet
   await callAPI({action:'open', room});
 
-  // Sau khi mở xong
   tr.querySelector('.update-btn').disabled = false;
   tr.querySelector('.paid-btn').disabled = false;
   btn.disabled = true;
@@ -133,10 +130,8 @@ async function updateRoom(room, btn){
   btn.innerText = 'Đang cập nhật...';
   btn.disabled = true;
 
-  // Ghi số tiền vào sheet và trạng thái "Chưa thanh toán"
   await callAPI({action:'update', room, amount});
 
-  // Sau khi ghi xong
   tr.querySelector('.open-btn').disabled = true;
   tr.querySelector('.paid-btn').disabled = false;
   btn.disabled = true;
@@ -155,4 +150,3 @@ window.onload = loadData;
 </script>
 </body>
 </html>
-
