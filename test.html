@@ -16,8 +16,8 @@
     .open { background: #17a2b8; color: white; }
     .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
     .update.enabled { opacity: 1; cursor: pointer; }
-    .paid { background: #dc3545; color: white; }
-    .paid:disabled, .open:disabled { background: #aaa; cursor: not-allowed; }
+    .paid { background: #dc3545; color: white; opacity: 0.5; cursor: not-allowed; }
+    .paid.enabled { opacity: 1; cursor: pointer; }
     .status-unpaid { color: red; font-weight: bold; }
     .status-paid { color: green; font-weight: bold; }
     .highlight { background: #d4edda !important; transition: background 2s ease; }
@@ -68,9 +68,9 @@
               onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
-            <button id="open-${roomId}" class="open" ${unpaid ? "disabled":""} onclick="openRoom('${roomId}')">Mở phòng</button>
+            <button id="open-${roomId}" class="open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">Mở phòng</button>
             <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+            <button id="paid-${roomId}" class="paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
           <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
           <td id="time-${roomId}">${room.refTime || ""}</td>
