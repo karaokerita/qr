@@ -8,19 +8,9 @@
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; color: blue; }
     #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
     th { background: #007bff; color: white; }
-    input[type="text"] { width: 140px; padding: 5px; text-align: right; }
-    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
-    .open { background: #17a2b8; color: white; }
-    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
-    .update.enabled { opacity: 1; cursor: pointer; }
-    .paid { background: #dc3545; color: white; opacity: 0.5; cursor: not-allowed; }
-    .paid.enabled { opacity: 1; cursor: pointer; }
-    .status-unpaid { color: red; font-weight: bold; }
-    .status-paid { color: green; font-weight: bold; }
-    .highlight { background: #d4edda !important; transition: background 2s ease; }
   </style>
 </head>
 <body>
@@ -32,7 +22,6 @@
       <tr>
         <th>Phòng</th>
         <th>Số tiền</th>
-        <th>Hành động</th>
         <th>Trạng thái</th>
         <th>Thời gian</th>
       </tr>
@@ -41,95 +30,36 @@
   </table>
 
   <script>
+    // ✅ bỏ khoảng trắng thừa ở URL
     const API = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
+    async function loadRooms() {
+      try {
+        const res = await fetch(API + "?action=getRooms");
+        const data = await res.json();
+        const table = document.getElementById("roomTable");
+        table.innerHTML = "";
 
-    async function loadRooms(highlight=null) {
-      const res = await fetch(API + "?action=getRooms");
-      const data = await res.json();
-      const table = document.getElementById("roomTable");
-      table.innerHTML = "";
-
-      data.forEach(room => {
-        const roomId = encodeURIComponent(room.name);
-        const paid = room.status === "Đã thanh toán";
-        const unpaid = room.status === "Chưa thanh toán";
-
-        const tr = document.createElement("tr");
-        tr.id = "row-" + roomId;
-
-        tr.innerHTML = `
-          <td>${room.name}</td>
-          <td>
-            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
-              data-raw="${room.amount || 0}"
-              oninput="onAmountChange('${roomId}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
-          </td>
-          <td>
-            <button id="open-${roomId}" class="open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">Mở phòng</button>
-            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-            <button id="paid-${roomId}" class="paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">Đã thanh toán</button>
-          </td>
-          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
-          <td id="time-${roomId}">${room.refTime || ""}</td>
-        `;
-
-        table.appendChild(tr);
-        if (highlight === roomId) {
-          tr.classList.add("highlight");
-          setTimeout(()=>tr.classList.remove("highlight"),2000);
-        }
-      });
-    }
-
-    function onAmountChange(id) {
-      const input = document.getElementById("amount-" + id);
-      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
-      input.dataset.raw = raw;
-      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
-      const btn = document.getElementById("update-" + id);
-      btn.classList.add("enabled");
-      btn.disabled = false;
-    }
-
-    async function openRoom(id) {
-      const btn = document.getElementById("open-" + id);
-      btn.innerText = "Đang mở...";
-      btn.disabled = true;
-      await fetch(`${API}?action=openRoom&room=${id}`);
-      await loadRooms(id);
-      btn.innerText = "Mở phòng";
-    }
-
-    async function updateAmount(id) {
-      const btn = document.getElementById("update-" + id);
-      btn.innerText = "Đang lưu...";
-      btn.disabled = true;
-      const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw;
-      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
-      await loadRooms(id);
-      btn.innerText = "Cập nhật";
-    }
-
-    async function markPaid(id) {
-      const btn = document.getElementById("paid-" + id);
-      btn.innerText = "Đang lưu...";
-      btn.disabled = true;
-      await fetch(`${API}?action=markPaid&room=${id}`);
-      await loadRooms(id);
-      btn.innerText = "Đã thanh toán";
+        data.forEach(room => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${room.name}</td>
+            <td>${room.amount || ""}</td>
+            <td>${room.status || ""}</td>
+            <td>${room.refTime || ""}</td>
+          `;
+          table.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Lỗi load dữ liệu:", err);
+      }
     }
 
     function updateClock() {
       const now = new Date();
-      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
       const time = now.toLocaleTimeString("vi-VN", { hour12: false });
       const date = now.toLocaleDateString("vi-VN");
-      const dayName = days[now.getDay()];
-      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+      document.getElementById("currentTime").innerText = `${time} - ${date}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
