@@ -1,122 +1,141 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Thu ngân Karaoke</title>
-<style>
-body { font-family: Arial; background: #f5f5f5; padding: 20px; }
-table { border-collapse: collapse; width: 100%; background: white; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-th { background: #4CAF50; color: white; }
-input[type="text"] { width: 100px; text-align: right; }
-button { margin: 2px; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
-button:disabled { background: #ccc; cursor: not-allowed; }
-.open-btn { background: #2196F3; color: white; }
-.update-btn { background: #FF9800; color: white; }
-.paid-btn { background: #4CAF50; color: white; }
-.paid-btn.active { box-shadow: 0 0 10px #4CAF50; }
-</style>
+  <meta charset="UTF-8">
+  <title>Thu ngân Karaoke</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; color: blue; }
+    #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #007bff; color: white; }
+    input[type="text"] { width: 140px; padding: 5px; text-align: right; }
+    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
+    .open { background: #17a2b8; color: white; }
+    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
+    .update.enabled { opacity: 1; cursor: pointer; }
+    .paid { background: #dc3545; color: white; }
+    .paid:disabled, .open:disabled { background: #aaa; cursor: not-allowed; }
+    .status-unpaid { color: red; font-weight: bold; }
+    .status-paid { color: green; font-weight: bold; }
+    .highlight { background: #d4edda !important; transition: background 2s ease; }
+  </style>
 </head>
 <body>
-<h2>Thu ngân Karaoke</h2>
-<table id="roomTable">
-<thead>
-<tr>
-<th>Phòng</th>
-<th>Số tiền</th>
-<th>Trạng thái</th>
-<th>Giờ thanh toán</th>
-<th>Hành động</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+  <h1>THU NGÂN <br>KARAOKE RITA</h1>
+  <p id="currentTime"></p>
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
+  <table>
+    <thead>
+      <tr>
+        <th>Phòng</th>
+        <th>Số tiền</th>
+        <th>Hành động</th>
+        <th>Trạng thái</th>
+        <th>Thời gian</th>
+      </tr>
+    </thead>
+    <tbody id="roomTable"></tbody>
+  </table>
 
-function formatAmountInput(input){
-  let value = input.value.replace(/\./g,'');
-  if(!isNaN(value) && value!=='') input.value = Number(value).toLocaleString('vi-VN');
-}
-window.formatAmountInput = formatAmountInput;
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec";
 
-function enableUpdate(input){
-  const tr=input.closest('tr');
-  tr.querySelector('.update-btn').disabled=false;
-}
-window.enableUpdate = enableUpdate;
+    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
-async function callAPI(params){
-  try{
-    const res = await fetch(`${API_URL}?${new URLSearchParams(params)}`);
-    return await res.json();
-  }catch(e){ console.error(e); alert('Lỗi API'); return null; }
-}
+    async function loadRooms(highlight=null) {
+      const res = await fetch(API + "?action=getRooms");
+      const data = await res.json();
+      const table = document.getElementById("roomTable");
+      table.innerHTML = "";
 
-async function loadData(){
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  renderTable(data);
-}
+      data.forEach(room => {
+        const roomId = encodeURIComponent(room.name);
+        const paid = room.status === "Đã thanh toán";
+        const unpaid = room.status === "Chưa thanh toán";
 
-function renderTable(data){
-  const tbody = document.querySelector('#roomTable tbody');
-  tbody.innerHTML = '';
-  if(!data || data.length<=1){ tbody.innerHTML='<tr><td colspan="5">Không có dữ liệu</td></tr>'; return; }
+        const tr = document.createElement("tr");
+        tr.id = "row-" + roomId;
 
-  data.slice(1).forEach(row=>{
-    const [room, amount, status, , time] = [row[0], row[1], row[2], row[3], row[4]];
-    const tr = document.createElement('tr');
-    const formattedAmount = amount ? Number(amount).toLocaleString('vi-VN') : '';
-    const paidDisabled = (status==='Đã thanh toán');
+        tr.innerHTML = `
+          <td>${room.name}</td>
+          <td>
+            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+              data-raw="${room.amount || 0}"
+              oninput="onAmountChange('${roomId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
+          </td>
+          <td>
+            <button id="open-${roomId}" class="open" ${unpaid ? "disabled":""} onclick="openRoom('${roomId}')">Mở phòng</button>
+            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
+            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+          </td>
+          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
+          <td id="time-${roomId}">${room.refTime || ""}</td>
+        `;
 
-    tr.innerHTML = `
-      <td>${room}</td>
-      <td><input type="text" value="${formattedAmount}" oninput="enableUpdate(this)" onblur="formatAmountInput(this)" /></td>
-      <td>${status}</td>
-      <td>${time || ''}</td>
-      <td>
-        <button class="open-btn" onclick="openRoom('${room}', this)" ${status==='Đã thanh toán'?'disabled':''}>Mở phòng</button>
-        <button class="update-btn" onclick="updateRoom('${room}', this)" disabled>Cập nhật</button>
-        <button class="paid-btn ${status==='Đã thanh toán'?'active':''}" onclick="setPaid('${room}', this)" ${paidDisabled?'disabled':''}>Đã thanh toán</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+        table.appendChild(tr);
+        if (highlight === roomId) {
+          tr.classList.add("highlight");
+          setTimeout(()=>tr.classList.remove("highlight"),2000);
+        }
+      });
+    }
 
-// Nút Mở phòng
-async function openRoom(room, btn){
-  const tr = btn.closest('tr');
-  btn.innerText='Đang mở...'; btn.disabled=true;
-  await callAPI({action:'open', room});
-  tr.querySelector('.update-btn').disabled=false;
-  tr.querySelector('.paid-btn').disabled=false;
-  loadData();
-}
+    function onAmountChange(id) {
+      const input = document.getElementById("amount-" + id);
+      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
+      input.dataset.raw = raw;
+      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
+      const btn = document.getElementById("update-" + id);
+      btn.classList.add("enabled");
+      btn.disabled = false;
+    }
 
-// Nút Cập nhật
-async function updateRoom(room, btn){
-  const tr = btn.closest('tr');
-  const input = tr.querySelector('input');
-  let amount = input.value.replace(/\./g,'');
-  if(isNaN(amount) || amount==='') amount=0;
-  btn.innerText='Đang cập nhật...'; btn.disabled=true;
-  await callAPI({action:'update', room, amount});
-  tr.querySelector('.open-btn').disabled=true;
-  tr.querySelector('.paid-btn').disabled=false;
-  loadData();
-}
+    async function openRoom(id) {
+      const btn = document.getElementById("open-" + id);
+      btn.innerText = "Đang mở...";
+      btn.disabled = true;
+      await fetch(`${API}?action=openRoom&room=${id}`);
+      await loadRooms(id);
+      btn.innerText = "Mở phòng";
+    }
 
-// Nút Đã thanh toán
-async function setPaid(room, btn){
-  btn.disabled=true;
-  await callAPI({action:'paid', room});
-  loadData();
-}
+    async function updateAmount(id) {
+      const btn = document.getElementById("update-" + id);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+      const input = document.getElementById("amount-" + id);
+      const amount = input.dataset.raw;
+      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
+      await loadRooms(id);
+      btn.innerText = "Cập nhật";
+    }
 
-window.onload = loadData;
-</script>
+    async function markPaid(id) {
+      const btn = document.getElementById("paid-" + id);
+      btn.innerText = "Đang lưu...";
+      btn.disabled = true;
+      await fetch(`${API}?action=markPaid&room=${id}`);
+      await loadRooms(id);
+      btn.innerText = "Đã thanh toán";
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
+      const date = now.toLocaleDateString("vi-VN");
+      const dayName = days[now.getDay()];
+      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    loadRooms();
+    setInterval(loadRooms, 15000);
+  </script>
 </body>
 </html>
