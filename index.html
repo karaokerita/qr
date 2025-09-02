@@ -209,12 +209,12 @@ captureBtn.addEventListener("click", () => {
   const timeStr = new Date().toLocaleString('vi-VN');
 
   function drawLabel(text, x, y) {
-    ctx.font = "26px Arial";
+    ctx.font = "20px Arial";
     ctx.textBaseline = "top";
     const padding = 10;
     const textWidth = ctx.measureText(text).width;
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 34);
+    ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 28);
     ctx.fillStyle = "lightgreen";
     ctx.fillText(text, x, y);
   }
