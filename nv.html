@@ -39,7 +39,6 @@
   <div class="container">
     <h1>NHÂN VIÊN<br>KARAOKE RITA</h1>
     <p id="currentTime"></p>
-
     <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
     <div class="room-name-qr" id="roomNameQR"></div>
     <div class="amount-text" id="amountText"></div>
@@ -73,162 +72,183 @@
     </div>
   </div>
 
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
-    const manualAmount = document.getElementById("manualAmount");
-    const qrImage = document.getElementById("qrImage");
-    const amountText = document.getElementById("amountText");
-    const roomNameQR = document.getElementById("roomNameQR");
-    const openCamera = document.getElementById("openCamera");
-    const cameraModal = document.getElementById("cameraModal");
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const closeModal = document.getElementById("closeModal");
-    let stream;
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
+const manualAmount = document.getElementById("manualAmount");
+const qrImage = document.getElementById("qrImage");
+const amountText = document.getElementById("amountText");
+const roomNameQR = document.getElementById("roomNameQR");
+const openCamera = document.getElementById("openCamera");
+const cameraModal = document.getElementById("cameraModal");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const captureBtn = document.getElementById("captureBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const closeModal = document.getElementById("closeModal");
+let stream;
 
-    // Hiển thị đồng hồ
-    function updateClock() {
-      const now = new Date();
-      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-      const time = now.toLocaleTimeString("vi-VN",{hour12:false});
-      const date = now.toLocaleDateString("vi-VN");
-      document.getElementById("currentTime").innerText = `${time} - ${days[now.getDay()]}, ${date}`;
+// Hiển thị đồng hồ
+function updateClock() {
+  const now = new Date();
+  const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+  const time = now.toLocaleTimeString("vi-VN",{hour12:false});
+  const date = now.toLocaleDateString("vi-VN");
+  document.getElementById("currentTime").innerText = `${time} - ${days[now.getDay()]}, ${date}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// Chuyển số thành chữ
+function readTriple(num){
+  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+  let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
+  let s="";
+  if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
+  if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
+  else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
+  else if(t===0&&o>0&&h===0){ s+=units[o]; }
+  else if(o>0){ s+=" "+units[o]; }
+  return s.trim();
+}
+function numberToWords(n){
+  if(!n||n===0) return "không đồng";
+  const scales=["","nghìn","triệu","tỷ"];
+  let parts=[], scaleIdx=0;
+  while(n>0){
+    let chunk=n%1000;
+    if(chunk>0){
+      let words=readTriple(chunk);
+      if(scales[scaleIdx]) words+=" "+scales[scaleIdx];
+      parts.unshift(words);
     }
-    setInterval(updateClock,1000); updateClock();
+    n=Math.floor(n/1000);
+    scaleIdx++;
+  }
+  return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
+}
+function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
-    // Số thành chữ
-    function readTriple(num){
-      const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-      let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
-      let s="";
-      if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
-      if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-      else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-      else if(t===0&&o>0&&h===0){ s+=units[o]; } else if(o>0){ s+=" "+units[o]; }
-      return s.trim();
-    }
-    function numberToWords(n){
-      if(!n||n===0) return "không đồng";
-      const scales=["","nghìn","triệu","tỷ"];
-      let parts=[], scaleIdx=0;
-      while(n>0){
-        let chunk=n%1000;
-        if(chunk>0){ let words=readTriple(chunk); if(scales[scaleIdx]) words+=" "+scales[scaleIdx]; parts.unshift(words); }
-        n=Math.floor(n/1000); scaleIdx++;
-      }
-      return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
-    }
-    function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
+// QR
+function updateQR(val, roomName=""){
+  roomNameQR.textContent = roomName;
+  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
+  qrImage.src=url;
+  amountText.textContent = numberToWords(Number(val));
+}
+manualAmount.addEventListener("input", function(){
+  let val=this.value.replace(/\D/g,"");
+  if(val){
+    this.value=formatNumber(val);
+    updateQR(val);
+  } else {
+    this.value="";
+    roomNameQR.textContent="";
+    amountText.textContent="";
+    qrImage.src="";
+  }
+});
 
-    // QR
-    function updateQR(val, roomName=""){
-      roomNameQR.textContent = roomName;
-      const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
-      qrImage.src=url;
-      amountText.textContent = numberToWords(Number(val));
-    }
-    manualAmount.addEventListener("input", function(){
-      let val=this.value.replace(/\D/g,"");
-      if(val){ this.value=formatNumber(val); updateQR(val); } 
-      else { this.value=""; roomNameQR.textContent=""; amountText.textContent=""; qrImage.src=""; }
-    });
+// Load danh sách phòng
+async function loadRooms(){
+  manualAmount.value="";
+  qrImage.src="";
+  amountText.textContent="";
+  roomNameQR.textContent="";
+  const res = await fetch(API+"?action=getRooms");
+  const data = await res.json();
+  const table = document.getElementById("roomTable");
+  table.innerHTML = "";
+  data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
+  data.forEach(room=>{
+    const tr=document.createElement("tr");
+    if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
+    tr.innerHTML=`
+      <td>${room.name}</td>
+      <td>${formatNumber(room.amount)}</td>
+      <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
+      <td>${room.refTime || ''}</td>
+      <td>
+        <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
+        <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
+      </td>`;
+    table.appendChild(tr);
+  });
+}
+async function markPaid(roomName){
+  await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
+  loadRooms();
+}
+function fillQR(amount, roomName){
+  manualAmount.value=formatNumber(amount);
+  updateQR(amount, roomName);
+}
+loadRooms();
+setInterval(loadRooms, 15000); // chỉ load lại dữ liệu, KHÔNG refresh trang
 
-    // Load danh sách phòng
-    async function loadRooms(){
-      manualAmount.value=""; qrImage.src=""; amountText.textContent=""; roomNameQR.textContent="";
-      const res = await fetch(API+"?action=getRooms");
-      const data = await res.json();
-      const table = document.getElementById("roomTable");
-      table.innerHTML = "";
+// Camera
+openCamera.addEventListener("click", async () => {
+  cameraModal.style.display = "flex";
+  canvas.style.display = "none";
+  downloadBtn.style.display = "none";
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }, audio:false });
+  } catch(e) {
+    stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+  }
+  video.srcObject = stream;
+});
 
-      data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
+captureBtn.addEventListener("click", () => {
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      data.forEach(room=>{
-        const tr=document.createElement("tr");
-        if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
-        tr.innerHTML=`
-          <td>${room.name}</td>
-          <td>${formatNumber(room.amount)}</td>
-          <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
-          <td>${room.refTime || ''}</td>
-          <td>
-            <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
-            <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
-          </td>
-        `;
-        table.appendChild(tr);
+  const roomName = roomNameQR.textContent || " ";
+  const amountNumber = manualAmount.value || "0";
+  const timeStr = new Date().toLocaleString('vi-VN');
+
+  // Vẽ nền mờ và chữ
+  function drawLabel(text, x, y) {
+    ctx.font = "26px Arial";
+    ctx.textBaseline = "top";
+    const padding = 10;
+    const textWidth = ctx.measureText(text).width;
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 34);
+    ctx.fillStyle = "lightgreen";
+    ctx.fillText(text, x, y);
+  }
+  drawLabel(`${roomName}`, 20, 20);
+  drawLabel(`Số tiền: ${amountNumber}`, 20, 70);
+  drawLabel(`Thời gian: ${timeStr}`, 20, 120);
+
+  canvas.style.display = "block";
+  downloadBtn.style.display = "inline-block";
+});
+
+downloadBtn.addEventListener("click", async () => {
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], `ThanhToan_${Date.now()}.png`, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "Ảnh thanh toán",
+        text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
       });
+    } else {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `ThanhToan_${Date.now()}.png`;
+      link.click();
     }
-    async function markPaid(roomName){
-      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
-      loadRooms();
-    }
-    function fillQR(amount, roomName){
-      manualAmount.value=formatNumber(amount);
-      updateQR(amount, roomName);
-    }
-    loadRooms();
-    setInterval(loadRooms, 15000); // chỉ load lại dữ liệu, KHÔNG refresh trang
+  }, "image/png");
+});
 
-    // Camera
-    openCamera.addEventListener("click", async () => {
-      cameraModal.style.display = "flex";
-      canvas.style.display = "none";
-      downloadBtn.style.display = "none";
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }, audio:false });
-      } catch(e) {
-        stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-      }
-      video.srcObject = stream;
-    });
-    captureBtn.addEventListener("click", () => {
-      const ctx = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const roomName = roomNameQR.textContent || " ";
-      const amountNumber = manualAmount.value || "0";
-      const timeStr = new Date().toLocaleString('vi-VN');
-
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.font = "26px Arial";
-      ctx.fillRect(15, 15, ctx.measureText(`${roomName}`).width + 20, 40);
-      ctx.fillRect(15, 65, ctx.measureText(`Số tiền: ${amountNumber}`).width + 20, 40);
-      ctx.fillRect(15, 115, ctx.measureText(`Thời gian: ${timeStr}`).width + 20, 40);
-
-      ctx.fillStyle = "lightgreen";
-      ctx.fillText(`${roomName}`, 20, 45);
-      ctx.fillText(`Số tiền: ${amountNumber}`, 20, 95);
-      ctx.fillText(`Thời gian: ${timeStr}`, 20, 145);
-
-      canvas.style.display = "block";
-      downloadBtn.style.display = "inline-block";
-    });
-    downloadBtn.addEventListener("click", async () => {
-      canvas.toBlob(async (blob) => {
-        const file = new File([blob], `ThanhToan_${Date.now()}.png`, { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "Ảnh thanh toán",
-            text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
-          });
-        } else {
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `ThanhToan_${Date.now()}.png`;
-          link.click();
-        }
-      }, "image/png");
-    });
-    closeModal.addEventListener("click", () => {
-      cameraModal.style.display = "none";
-      if(stream){ stream.getTracks().forEach(track => track.stop()); }
-    });
-  </script>
+closeModal.addEventListener("click", () => {
+  cameraModal.style.display = "none";
+  if(stream){ stream.getTracks().forEach(track => track.stop()); }
+});
+</script>
 </body>
 </html>
