@@ -130,8 +130,8 @@ function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
 // QR
 function updateQR(val, roomName=""){
-  roomNameQR.textContent = roomName;
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomName}&accountName=HUYNH+PHUONG+TRANG`;
+  if(roomName) roomNameQR.textContent = roomName;
+  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=Thank+You+${roomNameQR.textContent}&accountName=HUYNH+PHUONG+TRANG`;
   qrImage.src=url;
   amountText.textContent = numberToWords(Number(val));
 }
@@ -139,12 +139,12 @@ manualAmount.addEventListener("input", function(){
   let val=this.value.replace(/\D/g,"");
   if(val){
     this.value=formatNumber(val);
-    updateQR(val);
+    updateQR(val); // giữ tên phòng cũ
   } else {
     this.value="";
-    roomNameQR.textContent="";
     amountText.textContent="";
     qrImage.src="";
+    // không xoá tên phòng khi đã chọn
   }
 });
 
@@ -183,7 +183,7 @@ function fillQR(amount, roomName){
   updateQR(amount, roomName);
 }
 loadRooms();
-setInterval(loadRooms, 60000); // chỉ load lại dữ liệu, KHÔNG refresh trang
+setInterval(loadRooms, 60000);
 
 // Camera
 openCamera.addEventListener("click", async () => {
@@ -208,7 +208,6 @@ captureBtn.addEventListener("click", () => {
   const amountNumber = manualAmount.value || "0";
   const timeStr = new Date().toLocaleString('vi-VN');
 
-  // Vẽ nền mờ và chữ
   function drawLabel(text, x, y) {
     ctx.font = "26px Arial";
     ctx.textBaseline = "top";
