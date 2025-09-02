@@ -91,6 +91,7 @@
       input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
       const btn = document.getElementById("update-" + id);
       btn.classList.add("enabled");
+      btn.innerText = "Đang lưu...";
       btn.disabled = false;
     }
 
