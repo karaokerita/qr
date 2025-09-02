@@ -13,10 +13,11 @@
     th { background: #007bff; color: white; }
     input[type="text"] { width: 140px; padding: 5px; text-align: right; }
     button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
+    .open { background: #17a2b8; color: white; }
     .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
     .update.enabled { opacity: 1; cursor: pointer; }
-    .paid { background: #dc3545; color: white; }
-    .paid:disabled { background: #aaa; cursor: not-allowed; }
+    .paid { background: #dc3545; color: white; opacity: 0.5; cursor: not-allowed; }
+    .paid.enabled { opacity: 1; cursor: pointer; }
     .status-unpaid { color: red; font-weight: bold; }
     .status-paid { color: green; font-weight: bold; }
     .highlight { background: #d4edda !important; transition: background 2s ease; }
@@ -33,14 +34,14 @@
         <th>Số tiền</th>
         <th>Hành động</th>
         <th>Trạng thái</th>
-        <th>Thời gian thanh toán</th>
+        <th>Thời gian</th>
       </tr>
     </thead>
     <tbody id="roomTable"></tbody>
   </table>
 
   <script>
-    const API = " https://script.google.com/macros/s/AKfycbwur_6_mUlTTjYb9SWu6ZlEM_XeanC0UDUZG_QBjy4RrNKpywmaMjLOSMTatXBe2Tmt/exec "; // Thay bằng URL web app
+    const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
 
@@ -53,6 +54,8 @@
       data.forEach(room => {
         const roomId = encodeURIComponent(room.name);
         const paid = room.status === "Đã thanh toán";
+        const unpaid = room.status === "Chưa thanh toán";
+
         const tr = document.createElement("tr");
         tr.id = "row-" + roomId;
 
@@ -65,8 +68,9 @@
               onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
+            <button id="open-${roomId}" class="open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">Mở phòng</button>
             <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-            <button id="paid-${roomId}" class="paid" ${paid ? "disabled" : ""} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+            <button id="paid-${roomId}" class="paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">Đã thanh toán</button>
           </td>
           <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
           <td id="time-${roomId}">${room.refTime || ""}</td>
@@ -90,17 +94,23 @@
       btn.disabled = false;
     }
 
+    async function openRoom(id) {
+      const btn = document.getElementById("open-" + id);
+      btn.innerText = "Đang mở...";
+      btn.disabled = true;
+      await fetch(`${API}?action=openRoom&room=${id}`);
+      await loadRooms(id);
+      btn.innerText = "Mở phòng";
+    }
+
     async function updateAmount(id) {
       const btn = document.getElementById("update-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-
       const input = document.getElementById("amount-" + id);
       const amount = input.dataset.raw;
-
-      await fetch(`${API}?action=updateAmount&room=${encodeURIComponent(id)}&amount=${amount}`);
+      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
       await loadRooms(id);
-
       btn.innerText = "Cập nhật";
     }
 
@@ -108,14 +118,11 @@
       const btn = document.getElementById("paid-" + id);
       btn.innerText = "Đang lưu...";
       btn.disabled = true;
-
-      await fetch(`${API}?action=markPaid&room=${encodeURIComponent(id)}`);
+      await fetch(`${API}?action=markPaid&room=${id}`);
       await loadRooms(id);
-
       btn.innerText = "Đã thanh toán";
     }
 
-    // Hàm đồng hồ hiển thị ngày giờ hiện tại
     function updateClock() {
       const now = new Date();
       const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
