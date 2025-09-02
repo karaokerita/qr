@@ -234,7 +234,7 @@ downloadBtn.addEventListener("click", async () => {
       await navigator.share({
         files: [file],
         title: "Ảnh thanh toán",
-        text: `${roomNameQR.textContent}\nSố tiền: ${amountNumber}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
+        text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
       });
     } else {
       const link = document.createElement("a");
