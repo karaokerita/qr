@@ -183,7 +183,7 @@ function fillQR(amount, roomName){
   updateQR(amount, roomName);
 }
 loadRooms();
-setInterval(loadRooms, 15000); // chỉ load lại dữ liệu, KHÔNG refresh trang
+setInterval(loadRooms, 60000); // chỉ load lại dữ liệu, KHÔNG refresh trang
 
 // Camera
 openCamera.addEventListener("click", async () => {
