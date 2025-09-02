@@ -10,10 +10,11 @@
     h1 { text-align:center; color:#007bff; font-size:22px; margin-bottom:10px; }
     #currentTime { text-align:center; font-weight:bold; margin:-5px 0 10px 0; color:#444; }
     .amount-input { width:90%; font-size:22px; padding:6px; margin-bottom:8px; text-align:center; }
-    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; }
-    .amount-text { font-size:14px; color:green; margin-bottom:8px; }
-    .qr-box img { width:220px; height:220px; margin:0px 0; }
-    .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px 0; }
+    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; }
+    .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; }
+    .qr-box { display:flex; justify-content:center; margin:10px 0; }
+    .qr-box img { width:220px; height:220px; }
+    .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px auto; display:block; }
     table { width:100%; border-collapse: collapse; margin-top:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
     th, td { border:1px solid #ddd; padding:6px; text-align:center; font-size:14px; }
     th { background:#007bff; color:white; }
@@ -169,7 +170,7 @@
       updateQR(amount, roomName);
     }
     loadRooms();
-    setInterval(loadRooms, 15000);
+    setInterval(loadRooms, 15000); // chỉ load lại dữ liệu, KHÔNG refresh trang
 
     // Camera
     openCamera.addEventListener("click", async () => {
