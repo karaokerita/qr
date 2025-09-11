@@ -60,7 +60,9 @@
         tr.id = "row-" + roomId;
 
         tr.innerHTML = `
-          <td>${room.name}</td>
+          <td style="color:${unpaid ? 'red' : 'black'}; font-weight:${unpaid ? 'bold' : 'normal'}">
+            ${room.name}
+          </td>
           <td>
             <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
               data-raw="${room.amount || 0}"
