@@ -11,161 +11,111 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 24px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-        .header h1 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .header h1 svg { width: 28px; height: 28px; }
-        .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .date-input { padding: 8px 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.15); color: white; font-size: 14px; font-family: inherit; font-weight: 500; backdrop-filter: blur(10px); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px 24px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4); position: sticky; top: 0; z-index: 100; }
+        .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header h1 svg { width: 26px; height: 26px; }
+        .date-picker-wrapper { display: flex; align-items: center; gap: 8px; }
+        .date-picker-wrapper label { font-size: 13px; opacity: 0.9; font-weight: 500; }
+        .date-input { padding: 8px 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.15); color: white; font-size: 14px; font-family: inherit; font-weight: 600; }
         .date-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-        .config-bar {
-            background: #fff;
-            padding: 14px 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .config-bar-inner { max-width: 1400px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .config-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .config-label { font-size: 13px; color: #666; font-weight: 500; }
-        .config-select { padding: 6px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; cursor: pointer; }
-        .config-btn { padding: 6px 14px; border: none; border-radius: 8px; font-size: 13px; font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .btn-setup { background: #e8f5e9; color: #2e7d32; }
-        .btn-setup:hover { background: #c8e6c9; }
-        .btn-add-item { background: #e3f2fd; color: #1565c0; }
-        .btn-add-item:hover { background: #bbdefb; }
-        .btn-clear-all { background: #fce4ec; color: #c62828; }
-        .btn-clear-all:hover { background: #f8bbd0; }
+        .main-content { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
 
-        .main-content { max-width: 1400px; margin: 20px auto; padding: 0 24px; }
-
-        .stats-bar { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
-        .stat-card { background: #fff; border-radius: 14px; padding: 16px 20px; flex: 1; min-width: 160px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 4px solid; }
+        .stats-bar { display: flex; gap: 14px; margin-bottom: 18px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 14px 18px; flex: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid; display: flex; align-items: center; gap: 12px; }
         .stat-card.blue { border-color: #667eea; }
         .stat-card.green { border-color: #43a047; }
         .stat-card.orange { border-color: #ff9800; }
-        .stat-card.purple { border-color: #764ba2; }
-        .stat-value { font-size: 24px; font-weight: 700; color: #1a1a2e; }
-        .stat-label { font-size: 12px; color: #888; margin-top: 2px; font-weight: 500; }
+        .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .stat-card.blue .stat-icon { background: #eef2ff; }
+        .stat-card.green .stat-icon { background: #e8f5e9; }
+        .stat-card.orange .stat-icon { background: #fff3e0; }
+        .stat-info .stat-value { font-size: 22px; font-weight: 700; }
+        .stat-info .stat-label { font-size: 11px; color: #888; font-weight: 500; }
 
-        .table-container { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
-        .table-scroll { overflow-x: auto; max-height: 60vh; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .table-container { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 18px; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 400px; }
         thead { position: sticky; top: 0; z-index: 10; }
-        thead th { background: #f8f9ff; padding: 14px 12px; font-size: 13px; font-weight: 600; color: #4a4a6a; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e8e8f0; white-space: nowrap; }
-        thead th:first-child { position: sticky; left: 0; z-index: 11; background: #f8f9ff; min-width: 60px; }
-        thead th:nth-child(2) { position: sticky; left: 60px; z-index: 11; background: #f8f9ff; min-width: 180px; }
-        thead th.input-header { background: #eef2ff; color: #667eea; }
+        thead th { background: #f8f9ff; padding: 12px 10px; font-size: 12px; font-weight: 600; color: #4a4a6a; border-bottom: 2px solid #e8e8f0; white-space: nowrap; text-transform: uppercase; }
+        thead th:first-child { position: sticky; left: 0; z-index: 11; background: #f8f9ff; min-width: 140px; text-align: left; padding-left: 16px; }
+        thead th.revision-header { background: #eef2ff; color: #667eea; font-size: 11px; text-align: center; min-width: 80px; }
+        thead th.revision-header .rev-time { font-size: 10px; color: #888; font-weight: 500; display: block; margin-top: 2px; }
 
         tbody tr { transition: background 0.15s; }
-        tbody tr:hover { background: #f8f9ff; }
-        tbody tr:nth-child(even) { background: #fafbfc; }
+        tbody tr:hover { background: #fafbfc; }
+        tbody tr:nth-child(even) { background: #fcfcfd; }
         tbody tr:nth-child(even):hover { background: #f0f2ff; }
-        tbody td { padding: 8px 10px; border-bottom: 1px solid #f0f0f5; font-size: 14px; }
-        tbody td:first-child { position: sticky; left: 0; background: inherit; z-index: 5; font-weight: 600; color: #888; text-align: center; width: 60px; }
-        tbody td:nth-child(2) { position: sticky; left: 60px; background: inherit; z-index: 5; font-weight: 600; color: #333; }
+        tbody td { padding: 10px; border-bottom: 1px solid #f0f0f5; font-size: 14px; text-align: center; }
+        tbody td:first-child { position: sticky; left: 0; background: inherit; z-index: 5; font-weight: 600; color: #333; text-align: left; padding-left: 16px; white-space: nowrap; }
 
-        .qty-input { width: 100%; max-width: 120px; padding: 8px 10px; border: 2px solid #e8e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; font-weight: 500; text-align: center; transition: all 0.2s; background: #fafbfc; }
-        .qty-input:focus { outline: none; border-color: #667eea; background: #fff; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
-        .qty-input.has-value { border-color: #43a047; background: #e8f5e9; color: #2e7d32; font-weight: 700; }
-        .qty-input::placeholder { color: #ccc; }
+        .rev-val { font-weight: 600; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 6px; display: inline-block; min-width: 40px; }
+        .rev-empty { color: #ccc; font-style: italic; }
 
-        .existing-data { font-size: 12px; color: #888; background: #f0f0f5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; }
-        .existing-data span { color: #667eea; font-weight: 600; }
+        .input-row { background: #f8f9ff !important; }
+        .input-row td { padding: 8px 6px; border-bottom: 2px solid #667eea; }
+        .input-row td:first-child { font-weight: 700; color: #667eea; }
+        .qty-input { width: 100%; max-width: 80px; padding: 7px 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-family: inherit; font-weight: 500; text-align: center; transition: all 0.2s; background: #fff; }
+        .qty-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
+        .qty-input.filled { border-color: #43a047; background: #e8f5e9; font-weight: 700; color: #2e7d32; }
 
-        .footer-bar { position: sticky; bottom: 0; background: #fff; border-top: 2px solid #e8e8f0; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 50; }
-        .footer-left { display: flex; align-items: center; gap: 10px; }
-        .footer-right { display: flex; align-items: center; gap: 10px; }
-        .btn { padding: 10px 24px; border: none; border-radius: 10px; font-size: 14px; font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .action-bar { position: sticky; bottom: 0; background: #fff; border-top: 2px solid #e8e8f0; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 15px rgba(0,0,0,0.06); }
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-size: 14px; font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn:active { transform: scale(0.97); }
         .btn-preview { background: #fff3e0; color: #e65100; border: 2px solid #ffcc80; }
         .btn-preview:hover { background: #ffe0b2; }
         .btn-save { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
         .btn-save:hover { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); transform: translateY(-1px); }
         .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-load { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
-        .btn-load:hover { background: #c8e6c9; }
-        .btn-history { background: #f3e5f5; color: #7b1fa2; border: 2px solid #ce93d8; }
-        .btn-history:hover { background: #e1bee7; }
+        .btn-clear { background: #fce4ec; color: #c62828; }
+        .btn-clear:hover { background: #f8bbd0; }
+        .btn-load { background: #e3f2fd; color: #1565c0; border: 2px solid #90caf9; }
+        .btn-load:hover { background: #bbdefb; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.2s; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.active { display: flex; }
-        .modal { background: #fff; border-radius: 20px; width: 90%; max-width: 700px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s; display: flex; flex-direction: column; }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
-        .modal-header h2 { font-size: 18px; font-weight: 700; }
-        .modal-close { width: 36px; height: 36px; border: none; background: #f5f5f5; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal { background: #fff; border-radius: 18px; width: 92%; max-width: 650px; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.25); animation: slideUp 0.3s; display: flex; flex-direction: column; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { padding: 18px 22px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
+        .modal-header h2 { font-size: 17px; font-weight: 700; }
+        .modal-close { width: 34px; height: 34px; border: none; background: #f5f5f5; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .modal-close:hover { background: #e0e0e0; }
-        .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 14px 22px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
 
         .preview-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .preview-table th { background: #f8f9ff; padding: 10px; text-align: left; font-weight: 600; color: #4a4a6a; border-bottom: 2px solid #e8e8f0; }
-        .preview-table td { padding: 10px; border-bottom: 1px solid #f0f0f5; }
-        .preview-table tr:hover { background: #fafbfc; }
-        .preview-highlight { background: #e8f5e9; font-weight: 700; color: #2e7d32; }
+        .preview-table th { background: #f8f9ff; padding: 8px; text-align: left; font-weight: 600; color: #4a4a6a; border-bottom: 2px solid #e8e8f0; }
+        .preview-table td { padding: 8px; border-bottom: 1px solid #f0f0f5; }
+        .preview-highlight { font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; }
 
-        .toast { position: fixed; top: 20px; right: 20px; padding: 14px 22px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; z-index: 2000; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s; display: none; align-items: center; gap: 10px; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 13px 20px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 13px; z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.18); animation: slideIn 0.3s; display: none; align-items: center; gap: 8px; }
         .toast.show { display: flex; }
         .toast.success { background: linear-gradient(135deg, #43a047, #66bb6a); }
         .toast.error { background: linear-gradient(135deg, #e53935, #ef5350); }
         .toast.info { background: linear-gradient(135deg, #667eea, #764ba2); }
+        @keyframes slideIn { from { transform: translateX(80px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
-        .empty-state svg { width: 80px; height: 80px; margin-bottom: 16px; opacity: 0.3; }
-        .empty-state p { font-size: 16px; font-weight: 500; }
-
-        .history-row { padding: 12px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; }
-        .history-row-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .history-date { font-weight: 700; color: #667eea; }
-        .history-time { color: #888; font-size: 12px; }
-        .history-items { font-size: 13px; color: #555; line-height: 1.6; }
-        .history-item-tag { display: inline-block; background: #f0f2ff; padding: 2px 8px; border-radius: 4px; margin: 2px; font-weight: 500; }
-        .history-item-tag .val { color: #667eea; font-weight: 700; }
-
-        .setup-modal-content { line-height: 1.8; font-size: 14px; }
-        .setup-modal-content code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; color: #c62828; }
-        .setup-modal-content .step { margin-bottom: 16px; padding: 12px; background: #f8f9ff; border-radius: 10px; border-left: 4px solid #667eea; }
-        .setup-modal-content .step-title { font-weight: 700; color: #667eea; margin-bottom: 6px; }
-        .setup-modal-content textarea { width: 100%; min-height: 250px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical; background: #fafbfc; }
-        .setup-modal-content .input-group { margin: 10px 0; }
-        .setup-modal-content .input-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #333; }
-        .setup-modal-content .input-group input { width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; }
-        .setup-modal-content .input-group input:focus { outline: none; border-color: #667eea; }
-
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 2px 7px; border-radius: 5px; font-size: 10px; font-weight: 700; }
         .badge-new { background: #e8f5e9; color: #2e7d32; }
         .badge-existing { background: #fff3e0; color: #e65100; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-state { text-align: center; padding: 40px; color: #aaa; }
+        .no-data { text-align: center; padding: 30px; color: #999; font-size: 14px; }
 
         @media (max-width: 768px) {
             .header { padding: 14px 16px; }
-            .header h1 { font-size: 18px; }
+            .header h1 { font-size: 17px; }
             .main-content { padding: 0 12px; }
             .stats-bar { gap: 8px; }
-            .stat-card { padding: 12px 14px; min-width: 130px; }
-            .stat-value { font-size: 20px; }
-            .footer-bar { padding: 10px 12px; }
-            .btn { padding: 8px 14px; font-size: 13px; }
-            .config-bar { padding: 10px 16px; }
-            .modal { width: 95%; }
+            .stat-card { padding: 10px 12px; }
+            .stat-icon { width: 34px; height: 34px; font-size: 15px; }
+            .stat-value { font-size: 18px; }
+            .btn { padding: 8px 14px; font-size: 12px; }
+            .action-bar { padding: 10px 12px; gap: 8px; }
         }
     </style>
 </head>
@@ -174,70 +124,42 @@
 <div class="header">
     <div class="header-inner">
         <h1>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             Kiểm Kho Hàng Ngày
         </h1>
-        <div class="header-actions">
-            <label style="font-size:13px; opacity:0.9;">Ngày kiểm:</label>
+        <div class="date-picker-wrapper">
+            <label>Ngày kiểm:</label>
             <input type="date" id="checkDate" class="date-input">
         </div>
     </div>
 </div>
 
-<div class="config-bar">
-    <div class="config-bar-inner">
-        <div class="config-left">
-            <span class="config-label">Tùy chọn:</span>
-            <button class="config-btn btn-setup" onclick="openSetupModal()">⚙️ Cài đặt Google Sheet</button>
-            <button class="config-btn btn-add-item" onclick="addItem()">➕ Thêm mặt hàng</button>
-            <button class="config-btn btn-clear-all" onclick="clearAllInputs()">🗑️ Xóa nhập liệu</button>
-        </div>
-        <div>
-            <button class="config-btn btn-history" onclick="loadHistory()" style="background:#f3e5f5;color:#7b1fa2;">📋 Xem lịch sử</button>
-        </div>
-    </div>
-</div>
-
 <div class="main-content">
-    <div class="stats-bar" id="statsBar">
+    <div class="stats-bar">
         <div class="stat-card blue">
-            <div class="stat-value" id="statTotal">0</div>
-            <div class="stat-label">Tổng mặt hàng</div>
+            <div class="stat-icon">📦</div>
+            <div class="stat-info"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tổng mặt hàng</div></div>
         </div>
         <div class="stat-card green">
-            <div class="stat-value" id="statChecked">0</div>
-            <div class="stat-label">Đã kiểm</div>
+            <div class="stat-icon">✅</div>
+            <div class="stat-info"><div class="stat-value" id="statChecked">0</div><div class="stat-label">Đã kiểm</div></div>
         </div>
         <div class="stat-card orange">
-            <div class="stat-value" id="statRemaining">0</div>
-            <div class="stat-label">Chưa kiểm</div>
-        </div>
-        <div class="stat-card purple">
-            <div class="stat-value" id="statTotalQty">0</div>
-            <div class="stat-label">Tổng số lượng</div>
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Chưa kiểm</div></div>
         </div>
     </div>
 
     <div class="table-container">
-        <div class="table-scroll">
-            <table id="inventoryTable">
-                <thead>
-                    <tr id="tableHeader">
-                        <th>STT</th>
-                        <th>Tên hàng</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+        <div class="table-scroll" id="tableWrapper">
+            <div class="loading-state">Đang tải dữ liệu...</div>
         </div>
-        <div class="footer-bar">
-            <div class="footer-left">
-                <span style="font-size:13px;color:#888;" id="lastSaved">Chưa lưu dữ liệu</span>
-            </div>
-            <div class="footer-right">
+        <div class="action-bar">
+            <div style="display:flex;gap:8px;">
                 <button class="btn btn-preview" onclick="previewData()">👁️ Xem trước</button>
-                <button class="btn btn-save" id="saveBtn" onclick="saveData()" disabled>💾 Ghi dữ liệu</button>
+                <button class="btn btn-clear" onclick="clearInputs()">🗑️ Xóa</button>
             </div>
+            <button class="btn btn-save" id="saveBtn" onclick="saveData()" disabled>💾 Ghi dữ liệu</button>
         </div>
     </div>
 </div>
@@ -246,43 +168,13 @@
 <div class="modal-overlay" id="previewModal">
     <div class="modal">
         <div class="modal-header">
-            <h2>👁️ Xem trước dữ liệu sẽ ghi</h2>
+            <h2>👁️ Xem trước dữ liệu</h2>
             <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
         </div>
         <div class="modal-body" id="previewBody"></div>
         <div class="modal-footer">
             <button class="btn btn-preview" onclick="closeModal('previewModal')">Đóng</button>
-            <button class="btn btn-save" id="confirmSaveBtn" onclick="confirmSave()">💾 Xác nhận ghi</button>
-        </div>
-    </div>
-</div>
-
-<!-- History Modal -->
-<div class="modal-overlay" id="historyModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>📋 Lịch sử kiểm kho</h2>
-            <button class="modal-close" onclick="closeModal('historyModal')">✕</button>
-        </div>
-        <div class="modal-body" id="historyBody"></div>
-        <div class="modal-footer">
-            <button class="btn btn-preview" onclick="closeModal('historyModal')">Đóng</button>
-        </div>
-    </div>
-</div>
-
-<!-- Setup Modal -->
-<div class="modal-overlay" id="setupModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>⚙️ Cài đặt Google Sheet</h2>
-            <button class="modal-close" onclick="closeModal('setupModal')">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="setup-modal-content" id="setupContent"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-preview" onclick="closeModal('setupModal')">Đóng</button>
+            <button class="btn btn-save" onclick="confirmSave()">💾 Xác nhận ghi</button>
         </div>
     </div>
 </div>
@@ -291,186 +183,165 @@
 <div class="toast" id="toast"></div>
 
 <script>
-    // State
-    let items = JSON.parse(localStorage.getItem('inv_items') || '[]');
-    let existingData = JSON.parse(localStorage.getItem('inv_existing') || '{}');
-    let todayEntries = JSON.parse(localStorage.getItem('inv_today') || '{}');
-    let apiURL = localStorage.getItem('inv_api_url') || '';
-    let todayItems = {};
-
-    const defaultItems = [
-        'Hàng A', 'Hàng B', 'Hàng C', 'Hàng D', 'Hàng E',
-        'Hàng F', 'Hàng G', 'Hàng H', 'Hàng I', 'Hàng J'
-    ];
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzAUGBnML3jipoYf13fPj9ekP6d4fda0iERua13IQlZIj97m8PCm1DsnXLvXgsHLl__HQ/exec';
+    
+    let items = [];
+    let revisions = [];
+    let inputValues = {};
 
     function init() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('checkDate').value = today;
-
-        if (items.length === 0) {
-            items = defaultItems;
-            saveItems();
-        }
-
-        renderTable();
-        updateStats();
-        setupListeners();
-    }
-
-    function setupListeners() {
+        
         document.getElementById('checkDate').addEventListener('change', function() {
-            loadExistingForDate(this.value);
-            renderTable();
-            updateStats();
+            loadDataForDate(this.value);
         });
+
+        loadItems();
+        loadDataForDate(today);
     }
 
-    function saveItems() {
+    function loadItems() {
+        const cached = localStorage.getItem('inv_items');
+        if (cached) {
+            items = JSON.parse(cached);
+        } else {
+            items = [];
+        }
+    }
+
+    function saveItemsToLocal() {
         localStorage.setItem('inv_items', JSON.stringify(items));
     }
 
-    function getCheckDate() {
-        return document.getElementById('checkDate').value;
-    }
+    function loadDataForDate(dateStr) {
+        const wrapper = document.getElementById('tableWrapper');
+        wrapper.innerHTML = '<div class="loading-state">⏳ Đang tải dữ liệu...</div>';
 
-    function loadExistingForDate(dateStr) {
-        const key = 'inv_data_' + dateStr;
-        const cached = localStorage.getItem(key);
-        if (cached) {
-            existingData = JSON.parse(cached);
-        } else {
-            existingData = {};
-        }
-
-        if (apiURL) {
-            loadFromSheet(dateStr);
-        } else {
-            renderTable();
-            updateStats();
-        }
-    }
-
-    function loadFromSheet(dateStr) {
-        if (!apiURL) return;
-        fetch(apiURL, {
+        fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'load', date: dateStr })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.success && data.items) {
-                existingData = data.items;
-                localStorage.setItem('inv_data_' + dateStr, JSON.stringify(existingData));
-                renderTable();
-                updateStats();
+            if (data.success) {
+                // Extract items from headers if not cached
+                if (items.length === 0 && data.headers) {
+                    items = data.headers.filter(h => h !== 'Date' && h !== 'Time');
+                    saveItemsToLocal();
+                } else if (items.length === 0) {
+                    // Try to get items from any data row
+                    items = Object.keys(data.items || {}).filter(k => k !== 'Date' && k !== 'Time');
+                    saveItemsToLocal();
+                }
+
+                // Load all rows for this date
+                loadAllRevisions(dateStr, data.rows);
+            } else {
+                showToast('Lỗi tải dữ liệu: ' + (data.error || 'Unknown'), 'error');
+                wrapper.innerHTML = '<div class="no-data">Không tải được dữ liệu</div>';
             }
         })
-        .catch(() => {
-            console.warn('Failed to load from sheet');
+        .catch(err => {
+            console.error('Load error:', err);
+            wrapper.innerHTML = '<div class="no-data">⚠️ Lỗi kết nối. Kiểm tra lại URL API.</div>';
         });
     }
 
+    function loadAllRevisions(dateStr, rows) {
+        revisions = [];
+        
+        if (rows && rows.length > 0) {
+            // Each row is a revision for that date
+            rows.forEach((row, idx) => {
+                const rev = { index: idx + 1, time: row.time || '', items: {} };
+                items.forEach(item => {
+                    if (row.items && row.items[item] !== undefined && row.items[item] !== '') {
+                        rev.items[item] = row.items[item];
+                    }
+                });
+                revisions.push(rev);
+            });
+        }
+
+        inputValues = {};
+        renderTable();
+        updateStats();
+    }
+
     function renderTable() {
-        const headerRow = document.getElementById('tableHeader');
-        headerRow.innerHTML = '<th>STT</th><th>Tên hàng</th>';
+        const wrapper = document.getElementById('tableWrapper');
 
-        items.forEach((item, i) => {
-            const th = document.createElement('th');
-            th.className = 'input-header';
-            th.textContent = item;
-            headerRow.appendChild(th);
+        if (items.length === 0) {
+            wrapper.innerHTML = '<div class="no-data">Chưa có mặt hàng nào. Vui lòng thêm mặt hàng trong Google Sheet (cột B-Z hàng 1).</div>';
+            return;
+        }
+
+        let html = '<table>';
+        
+        // Header
+        html += '<thead><tr>';
+        html += '<th>Mặt hàng</th>';
+        
+        revisions.forEach(rev => {
+            html += `<th class="revision-header">Lần ${rev.index}<span class="rev-time">${rev.time || '—'}</span></th>`;
         });
+        
+        html += '<th class="revision-header">Nhập mới</th>';
+        html += '</tr></thead>';
 
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+        // Body
+        html += '<tbody>';
+        items.forEach((item, idx) => {
+            html += '<tr>';
+            html += `<td>${item}</td>`;
+            
+            revisions.forEach(rev => {
+                const val = rev.items[item];
+                html += `<td>${val !== undefined ? `<span class="rev-val">${val}</span>` : '<span class="rev-empty">—</span>'}</td>`;
+            });
+            
+            html += `<td class="input-row"><input type="number" class="qty-input" data-item="${item}" data-index="${idx}" placeholder="0" min="0"></td>`;
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
 
-        const dateStr = getCheckDate();
+        wrapper.innerHTML = html;
 
-        // Render main input row
-        const mainRow = document.createElement('tr');
-        mainRow.innerHTML = `<td style="text-align:center">—</td><td>Nhập số lượng</td>`;
-
-        items.forEach((item, i) => {
-            const td = document.createElement('td');
-            const existingVal = existingData[item] || '';
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.className = 'qty-input' + (existingVal ? ' has-value' : '');
-            input.placeholder = existingVal !== '' ? existingVal : '0';
-            input.dataset.item = item;
-            input.dataset.index = i;
-            if (existingVal !== '') input.value = existingVal;
-
+        // Add event listeners
+        document.querySelectorAll('.qty-input').forEach(input => {
             input.addEventListener('input', function() {
                 const val = this.value;
-                todayItems[item] = val;
-                this.classList.toggle('has-value', val !== '');
+                inputValues[this.dataset.item] = val;
+                this.classList.toggle('filled', val !== '');
                 updateStats();
                 updateSaveBtn();
             });
-
-            td.appendChild(input);
-            if (existingVal !== '') {
-                const badge = document.createElement('div');
-                badge.className = 'existing-data';
-                badge.innerHTML = 'Có sẵn: <span>' + existingVal + '</span>';
-                td.appendChild(badge);
-            }
-            mainRow.appendChild(td);
         });
-
-        tbody.appendChild(mainRow);
-
-        // Render today's previous entries
-        const todayKey = 'inv_today_' + dateStr;
-        const prevEntries = JSON.parse(localStorage.getItem(todayKey) || '[]');
-
-        if (prevEntries.length > 0) {
-            prevEntries.forEach((entry, idx) => {
-                const row = document.createElement('tr');
-                row.style.opacity = '0.7';
-                row.innerHTML = `<td style="text-align:center;color:#888">${idx + 1}</td><td style="color:#888;font-style:italic">Lần ${idx + 1} - ${entry.time}</td>`;
-
-                items.forEach(item => {
-                    const td = document.createElement('td');
-                    const val = entry.items[item] || '';
-                    td.innerHTML = val !== '' ? `<span class="preview-highlight">${val}</span>` : '<span style="color:#ccc">—</span>';
-                    row.appendChild(td);
-                });
-
-                tbody.appendChild(row);
-            });
-        }
     }
 
     function updateStats() {
         const total = items.length;
         let checked = 0;
-        let totalQty = 0;
-
         items.forEach(item => {
-            const input = document.querySelector(`.qty-input[data-item="${item}"]`);
-            if (input && input.value !== '') {
+            if (inputValues[item] !== '' && inputValues[item] !== undefined) {
                 checked++;
-                totalQty += parseInt(input.value) || 0;
             }
         });
 
         document.getElementById('statTotal').textContent = total;
         document.getElementById('statChecked').textContent = checked;
         document.getElementById('statRemaining').textContent = total - checked;
-        document.getElementById('statTotalQty').textContent = totalQty;
     }
 
     function updateSaveBtn() {
         const btn = document.getElementById('saveBtn');
-        const hasAny = Object.values(todayItems).some(v => v !== '' && v !== undefined);
+        const hasAny = Object.values(inputValues).some(v => v !== '' && v !== undefined);
         btn.disabled = !hasAny;
     }
 
     function previewData() {
-        const dateStr = getCheckDate();
+        const dateStr = document.getElementById('checkDate').value;
         const entries = {};
         let count = 0;
 
@@ -487,51 +358,41 @@
             return;
         }
 
-        const body = document.getElementById('previewBody');
         let html = `
-            <div style="margin-bottom:16px;padding:12px;background:#e8f5e9;border-radius:10px;">
-                <strong>📅 Ngày kiểm:</strong> ${formatDate(dateStr)}<br>
-                <strong>📦 Số mặt hàng đã nhập:</strong> ${count}/${items.length}
+            <div style="margin-bottom:14px;padding:12px;background:#e8f5e9;border-radius:10px;">
+                <strong>📅 Ngày:</strong> ${formatDate(dateStr)} | <strong>📦 Nhập:</strong> ${count}/${items.length} mặt hàng
             </div>
             <table class="preview-table">
-                <thead><tr><th>Tên hàng</th><th>Số lượng</th><th>Trạng thái</th></tr></thead>
+                <thead><tr><th>Mặt hàng</th><th>Số lượng</th></tr></thead>
                 <tbody>
         `;
 
         items.forEach(item => {
             if (entries[item] !== undefined) {
-                const existing = existingData[item];
-                const status = existing !== undefined ? '<span class="badge badge-existing">Có sẵn: ' + existing + '</span>' : '<span class="badge badge-new">Mới</span>';
-                html += `<tr><td>${item}</td><td class="preview-highlight">${entries[item]}</td><td>${status}</td></tr>`;
+                html += `<tr><td>${item}</td><td><span class="preview-highlight">${entries[item]}</span></td></tr>`;
             }
         });
 
         html += '</tbody></table>';
 
-        const todayKey = 'inv_today_' + dateStr;
-        const prevEntries = JSON.parse(localStorage.getItem(todayKey) || '[]');
-        if (prevEntries.length > 0) {
-            html += `<div style="margin-top:16px;"><strong>📝 Các lần nhập trước trong ngày:</strong></div>`;
-            prevEntries.forEach((entry, idx) => {
-                html += `<div class="history-row" style="margin-top:8px;">
-                    <div class="history-row-header">
-                        <span class="history-date">Lần ${idx + 1}</span>
-                        <span class="history-time">${entry.time}</span>
-                    </div>
-                    <div class="history-items">`;
-                Object.entries(entry.items).forEach(([k, v]) => {
-                    if (v) html += `<span class="history-item-tag">${k}: <span class="val">${v}</span></span>`;
+        if (revisions.length > 0) {
+            html += `<div style="margin-top:16px;"><strong>📝 Lịch sử trong ngày:</strong></div>`;
+            revisions.forEach(rev => {
+                html += `<div style="margin-top:8px;padding:8px;background:#fafbfc;border-radius:6px;">`;
+                html += `<div style="font-size:11px;color:#888;margin-bottom:4px;">Lần ${rev.index} - ${rev.time}</div>`;
+                Object.entries(rev.items).forEach(([k, v]) => {
+                    html += `<span style="display:inline-block;background:#f0f2ff;padding:2px 6px;border-radius:4px;margin:2px;font-size:12px;">${k}: <strong>${v}</strong></span>`;
                 });
-                html += '</div></div>';
+                html += '</div>';
             });
         }
 
-        body.innerHTML = html;
+        document.getElementById('previewBody').innerHTML = html;
         openModal('previewModal');
     }
 
     function saveData() {
-        const dateStr = getCheckDate();
+        const dateStr = document.getElementById('checkDate').value;
         const entries = {};
         let count = 0;
 
@@ -548,255 +409,56 @@
             return;
         }
 
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner"></span> Đang ghi...';
+
         const now = new Date();
         const timeStr = now.toLocaleTimeString('vi-VN');
 
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="loading-spinner"></span> Đang ghi...';
-
-        // Save locally
-        const todayKey = 'inv_today_' + dateStr;
-        const prevEntries = JSON.parse(localStorage.getItem(todayKey) || '[]');
-        prevEntries.push({ time: timeStr, items: { ...entries } });
-        localStorage.setItem(todayKey, JSON.stringify(prevEntries));
-        
-        Object.assign(existingData, entries);
-        localStorage.setItem('inv_data_' + dateStr, JSON.stringify(existingData));
-
-        // Send to sheet
-        if (apiURL) {
-            fetch(apiURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'save',
-                    date: dateStr,
-                    time: timeStr,
-                    items: entries
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('✅ Đã ghi lên Google Sheet thành công!', 'success');
-                } else {
-                    showToast('⚠️ Lỗi Sheet: ' + (data.error || ''), 'error');
-                }
-            })
-            .catch(err => {
-                showToast('⚠️ Không kết nối được Google Sheet. Dữ liệu đã lưu cục bộ.', 'error');
-            })
-            .finally(() => {
-                finishSave(dateStr, timeStr);
-            });
-        } else {
-            setTimeout(() => {
-                finishSave(dateStr, timeStr);
-                showToast('✅ Đã lưu cục bộ (Chưa kết nối Sheet)', 'info');
-            }, 500);
-        }
-    }
-
-    function finishSave(dateStr, timeStr) {
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '💾 Ghi dữ liệu';
-        document.getElementById('lastSaved').textContent = 'Đã lưu lúc ' + timeStr;
-        
-        items.forEach(item => {
-            const input = document.querySelector(`.qty-input[data-item="${item}"]`);
-            if (input) {
-                input.value = '';
-                input.classList.remove('has-value');
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'save', date: dateStr, time: timeStr, items: entries })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Ghi dữ liệu thành công!', 'success');
+                loadDataForDate(dateStr);
+            } else {
+                showToast('⚠️ Lỗi: ' + (data.error || ''), 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '💾 Ghi dữ liệu';
             }
+        })
+        .catch(err => {
+            showToast('⚠️ Lỗi kết nối', 'error');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Ghi dữ liệu';
         });
-        todayItems = {};
-        closeModal('previewModal');
-        renderTable();
-        updateStats();
     }
 
     function confirmSave() {
+        closeModal('previewModal');
         saveData();
     }
 
-    function addItem() {
-        const name = prompt('Nhập tên mặt hàng mới:');
-        if (name && name.trim()) {
-            items.push(name.trim());
-            saveItems();
-            renderTable();
-            updateStats();
-            showToast('✅ Đã thêm mặt hàng: ' + name.trim(), 'success');
-        }
-    }
-
-    function clearAllInputs() {
-        if (confirm('Bạn có chắc muốn xóa tất cả số lượng đã nhập?')) {
-            items.forEach(item => {
-                const input = document.querySelector(`.qty-input[data-item="${item}"]`);
-                if (input) {
-                    input.value = '';
-                    input.classList.remove('has-value');
-                }
+    function clearInputs() {
+        if (confirm('Xóa tất cả số lượng đã nhập?')) {
+            document.querySelectorAll('.qty-input').forEach(input => {
+                input.value = '';
+                input.classList.remove('filled');
             });
-            todayItems = {};
+            inputValues = {};
             updateStats();
             updateSaveBtn();
             showToast('🗑️ Đã xóa nhập liệu', 'info');
         }
     }
 
-    function loadHistory() {
-        const dateStr = getCheckDate();
-        const todayKey = 'inv_today_' + dateStr;
-        const entries = JSON.parse(localStorage.getItem(todayKey) || '[]');
-
-        const body = document.getElementById('historyBody');
-
-        if (entries.length === 0) {
-            body.innerHTML = `
-                <div class="empty-state">
-                    <p>Chưa có lịch sử kiểm kho nào trong ngày ${formatDate(dateStr)}</p>
-                </div>
-            `;
-        } else {
-            let html = `<div style="margin-bottom:12px;font-weight:600;color:#667eea;">Lịch sử ngày ${formatDate(dateStr)} (${entries.length} lần kiểm)</div>`;
-
-            entries.forEach((entry, idx) => {
-                html += `<div class="history-row">
-                    <div class="history-row-header">
-                        <span class="history-date">Lần ${idx + 1}</span>
-                        <span class="history-time">${entry.time}</span>
-                    </div>
-                    <div class="history-items">`;
-
-                Object.entries(entry.items).forEach(([k, v]) => {
-                    if (v) html += `<span class="history-item-tag">${k}: <span class="val">${v}</span></span>`;
-                });
-
-                html += '</div></div>';
-            });
-
-            body.innerHTML = html;
-        }
-
-        openModal('historyModal');
-    }
-
-    function openSetupModal() {
-        const content = document.getElementById('setupContent');
-        const scriptCode = `function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var result = {};
-
-    if (data.action === 'save') {
-      var newRow = sheet.getLastRow() + 1;
-      var dateCol = headers.indexOf('Date') + 1;
-      var timeCol = headers.indexOf('Time') + 1;
-      
-      if (dateCol === 0) { dateCol = 1; sheet.getRange(1, dateCol).setValue('Date'); }
-      if (timeCol === 0) { timeCol = 2; sheet.getRange(1, timeCol).setValue('Time'); }
-
-      sheet.getRange(newRow, dateCol).setValue(data.date);
-      sheet.getRange(newRow, timeCol).setValue(data.time);
-
-      for (var item in data.items) {
-        var idx = headers.indexOf(item) + 1;
-        if (idx === 0) {
-          idx = headers.length + 1;
-          sheet.getRange(1, idx).setValue(item);
-          headers.push(item);
-        }
-        sheet.getRange(newRow, idx).setValue(Number(data.items[item]));
-      }
-      result = { success: true };
-    }
-    
-    if (data.action === 'load') {
-      var loadedItems = {};
-      var lastRow = sheet.getLastRow();
-      var dateCol = headers.indexOf('Date') + 1;
-      var dateStr = data.date;
-      
-      for (var r = lastRow; r >= 2; r--) {
-        var cellVal = sheet.getRange(r, dateCol).getValue();
-        var rowDate = (cellVal instanceof Date) ? Utilities.formatDate(cellVal, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(cellVal).trim();
-        if (rowDate === dateStr) {
-           for (var i = 0; i < headers.length; i++) {
-             if (headers[i] !== 'Date' && headers[i] !== 'Time') {
-               var v = sheet.getRange(r, i+1).getValue();
-               if (v !== '') loadedItems[headers[i]] = v;
-             }
-           }
-           break;
-        }
-      }
-      result = { success: true, items: loadedItems };
-    }
-
-    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-  } catch(e) {
-    return ContentService.createTextOutput(JSON.stringify({success: false, error: e.toString()})).setMimeType(ContentService.MimeType.JSON);
-  } finally { lock.releaseLock(); }
-}`;
-        
-        content.innerHTML = `
-            <div class="step">
-                <div class="step-title">Bước 1: Mở Apps Script</div>
-                <p>Mở Google Sheet của bạn, vào menu <code>Extensions → Apps Script</code>.</p>
-            </div>
-            <div class="step">
-                <div class="step-title">Bước 2: Dán code này vào</div>
-                <p>Xóa code cũ và dán code sau vào file <code>Code.gs</code>:</p>
-                <textarea id="scriptCode" readonly>${scriptCode}</textarea>
-                <button class="btn btn-preview" style="margin-top:8px;" onclick="copyScript()">📋 Sao chép code</button>
-                <p style="margin-top:8px;font-size:12px;color:#666;">Nhấn <code>Save</code> (biểu tượng đĩa mềm).</p>
-            </div>
-            <div class="step">
-                <div class="step-title">Bước 3: Deploy Web App</div>
-                <p>Nhấn nút <code>Deploy → New deployment</code>, chọn type <code>Web app</code>.</p>
-                <ul style="margin-left:20px;font-size:13px;">
-                    <li>Execute as: <strong>Me</strong></li>
-                    <li>Who has access: <strong>Anyone</strong> (Quan trọng!)</li>
-                </ul>
-                <p>Nhấn <code>Deploy</code>, cấp quyền nếu được hỏi, rồi copy URL Web App.</p>
-            </div>
-            <div class="input-group">
-                <label>Dán URL Web App vào đây:</label>
-                <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" value="${apiURL}">
-            </div>
-        `;
-
-        openModal('setupModal');
-
-        setTimeout(() => {
-            const input = document.getElementById('apiUrlInput');
-            if (input) {
-                input.addEventListener('change', function() {
-                    apiURL = this.value.trim();
-                    localStorage.setItem('inv_api_url', apiURL);
-                    if (apiURL) showToast('✅ Đã lưu URL Google Sheet!', 'success');
-                });
-            }
-        }, 100);
-    }
-
-    function copyScript() {
-        const textarea = document.getElementById('scriptCode');
-        textarea.select();
-        document.execCommand('copy');
-        showToast('📋 Đã sao chép code!', 'info');
-    }
-
     function formatDate(dateStr) {
         const parts = dateStr.split('-');
-        return parts[2] + '/' + parts[1] + '/' + parts[0];
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
     function openModal(id) {
@@ -811,16 +473,12 @@
         const toast = document.getElementById('toast');
         toast.className = 'toast show ' + type;
         toast.textContent = msg;
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
+        setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
+            if (e.target === this) closeModal(this.id);
         });
     });
 
