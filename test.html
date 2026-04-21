@@ -16,6 +16,7 @@ table{width:100%;border-collapse:collapse;background:#fff;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 .qty-input{width:70px;padding:5px;text-align:center;}
 .btn{padding:6px 12px;margin:5px;cursor:pointer;}
+.loading{padding:20px;text-align:center;color:#888;}
 </style>
 </head>
 
@@ -30,7 +31,7 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 </div>
 
 <div class="main">
-<div id="tableWrapper">Loading...</div>
+<div id="tableWrapper" class="loading">⏳ Đang tải...</div>
 <button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
@@ -47,11 +48,9 @@ function getNowVN(){
     const offset = now.getTimezoneOffset();
     return new Date(now.getTime() - offset*60000);
 }
-
 function getTodayVN(){
     return getNowVN().toISOString().split('T')[0];
 }
-
 function getTimeVN(){
     return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
 }
@@ -65,41 +64,60 @@ function init(){
 
 // ===== LOAD =====
 function loadData(date){
+    document.getElementById('tableWrapper').innerHTML = "⏳ Đang tải...";
+
     fetch(API_URL,{
         method:'POST',
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'load',date:date})
     })
     .then(r=>r.json())
     .then(data=>{
+        if(!data.success){
+            throw new Error(data.error || "API lỗi");
+        }
+
         items = data.headers || [];
         revisions = data.revisions || [];
 
-        // 👉 lấy giá trị cuối
+        // ===== LẤY GIÁ TRỊ CUỐI (QUAN TRỌNG) =====
         lastValues = {};
-        revisions.forEach(r=>{
-            Object.keys(r.items).forEach(k=>{
-                if(r.items[k] !== "" && r.items[k] != null){
-                    lastValues[k] = r.items[k];
-                }
-            });
-        });
+        if(revisions.length > 0){
+            let last = revisions[revisions.length - 1]; // dòng cuối
+            lastValues = last.items || {};
+        }
 
-        renderTable(lastValues);
+        renderTable();
+    })
+    .catch(err=>{
+        console.error(err);
+        document.getElementById('tableWrapper').innerHTML =
+            "<div class='loading'>❌ Lỗi tải dữ liệu</div>";
     });
 }
 
-// ===== SEARCH BUTTON =====
+// ===== TRA CỨU =====
 function searchDate(){
     let date = document.getElementById('checkDate').value;
+    if(!date){
+        alert("Chọn ngày");
+        return;
+    }
     loadData(date);
 }
 
 // ===== RENDER =====
-function renderTable(values){
+function renderTable(){
+    if(items.length === 0){
+        document.getElementById('tableWrapper').innerHTML =
+            "<div class='loading'>Không có dữ liệu</div>";
+        return;
+    }
+
     let html = "<table><thead><tr><th>Mặt hàng</th><th>Số lượng</th><th>Nhập</th></tr></thead><tbody>";
 
     items.forEach(item=>{
-        let val = values[item] || "";
+        let val = lastValues[item] || "";
 
         html += `
         <tr>
@@ -128,29 +146,34 @@ function saveData(){
         return;
     }
 
-    let today = getTodayVN();
-    let time = getTimeVN();
-
     fetch(API_URL,{
         method:'POST',
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
             action:'save',
-            date: today,   // ❗ LUÔN NGÀY HIỆN TẠI
-            time: time,
-            items: entries
+            date:getTodayVN(),
+            time:getTimeVN(),
+            items:entries
         })
     })
     .then(r=>r.json())
-    .then(()=>{
+    .then(data=>{
+        if(!data.success){
+            throw new Error(data.error);
+        }
+
         // update UI ngay
         Object.keys(entries).forEach(item=>{
             document.getElementById("val-"+item).innerText = entries[item];
         });
 
-        // reset input
         document.querySelectorAll('.qty-input').forEach(i=>i.value="");
 
-        alert("Đã ghi!");
+        alert("✅ Đã ghi!");
+    })
+    .catch(err=>{
+        alert("❌ Lỗi ghi dữ liệu");
+        console.error(err);
     });
 }
 
