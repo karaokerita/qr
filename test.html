@@ -14,13 +14,15 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;}
 .main{padding:20px;}
 table{width:100%;border-collapse:collapse;background:#fff;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+
 .qty-input{width:80px;padding:6px;text-align:center;}
+
 .diff{font-weight:600;}
-.diff.pos{color:#2e7d32;}
-.diff.neg{color:#c62828;}
+.diff.pos{color:#2e7d32;}   /* thừa */
+.diff.neg{color:#c62828;}   /* thiếu */
 .diff.zero{color:#555;}
+
 .btn{padding:6px 12px;margin:5px;cursor:pointer;}
-.btn-save{background:#43a047;color:#fff;}
 </style>
 </head>
 
@@ -31,12 +33,12 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 
 <input type="date" id="checkDate">
 <button class="btn" onclick="searchDate()">🔍 Tra cứu</button>
-<button class="btn btn-save" onclick="saveData()">💾 Ghi dữ liệu</button>
 
 </div>
 
 <div class="main">
 <div id="tableWrapper">⏳ Đang tải...</div>
+<button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
 <script>
@@ -85,7 +87,7 @@ function loadData(date){
         items = data.headers || [];
         let revisions = data.revisions || [];
 
-        // 👉 LẤY GIÁ TRỊ CUỐI
+        // ===== LẤY GIÁ TRỊ CUỐI =====
         lastValues = {};
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
@@ -124,6 +126,7 @@ function renderTable(){
             <th>Tồn hệ thống</th>
             <th>Tồn trên máy</th>
             <th>Thừa / Thiếu</th>
+            <th>Nhập</th>
         </tr>
     </thead>
     <tbody>
@@ -135,7 +138,8 @@ function renderTable(){
         html += `
         <tr>
             <td>${item}</td>
-            <td id="sys-${escapeId(item)}">${sys}</td>
+
+            <td id="val-${escapeId(item)}">${sys}</td>
 
             <td>
                 <input type="number"
@@ -145,6 +149,12 @@ function renderTable(){
             </td>
 
             <td id="diff-${escapeId(item)}" class="diff zero">0</td>
+
+            <td>
+                <input type="number"
+                    class="qty-input"
+                    data-item="${escapeAttr(item)}">
+            </td>
         </tr>`;
     });
 
@@ -176,29 +186,27 @@ function calcDiff(input){
     }
 }
 
-// ===== SAVE (CHỈ GHI TỒN HỆ THỐNG) =====
+// ===== SAVE =====
 function saveData(){
-
-    if(items.length === 0){
-        alert("Không có dữ liệu để ghi");
-        return;
-    }
-
     let entries = {};
 
-    // 👉 CHỈ LẤY CỘT TỒN HỆ THỐNG
-    items.forEach(item=>{
-        let val = lastValues[item];
-        if(val !== undefined){
-            entries[item] = val;
+    document.querySelectorAll('tbody tr').forEach(row=>{
+        let input = row.querySelector('td:last-child input'); // cột "Nhập"
+        if(input && input.value !== ""){
+            entries[input.dataset.item] = input.value;
         }
     });
+
+    if(Object.keys(entries).length === 0){
+        alert("Chưa nhập");
+        return;
+    }
 
     fetch(API_URL,{
         method:'POST',
         body:JSON.stringify({
             action:'save',
-            date:getTodayVN(),   // luôn ngày hiện tại
+            date:getTodayVN(),
             time:getTimeVN(),
             items:entries
         })
@@ -210,10 +218,16 @@ function saveData(){
             return;
         }
 
-        alert("✅ Đã ghi tồn hệ thống!");
-    })
-    .catch(()=>{
-        alert("❌ Lỗi kết nối API");
+        // update tồn hệ thống ngay
+        Object.keys(entries).forEach(item=>{
+            lastValues[item] = Number(entries[item]);
+            let el = document.getElementById("val-"+escapeId(item));
+            if(el) el.innerText = entries[item];
+        });
+
+        document.querySelectorAll('td:last-child input').forEach(i=>i.value="");
+
+        alert("✅ Đã ghi!");
     });
 }
 
