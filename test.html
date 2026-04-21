@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kiểm Kho Hàng Ngày</title>
+<title>Kiểm Kho</title>
 
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
 
@@ -16,7 +16,6 @@ table{width:100%;border-collapse:collapse;background:#fff;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 .qty-input{width:70px;padding:5px;text-align:center;}
 .btn{padding:6px 12px;margin:5px;cursor:pointer;}
-.loading{padding:20px;text-align:center;color:#888;}
 </style>
 </head>
 
@@ -31,7 +30,7 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 </div>
 
 <div class="main">
-<div id="tableWrapper" class="loading">⏳ Đang tải...</div>
+<div id="tableWrapper">⏳ Đang tải...</div>
 <button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
@@ -39,7 +38,6 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
 
 let items = [];
-let revisions = [];
 let lastValues = {};
 
 // ===== TIME VN =====
@@ -48,9 +46,11 @@ function getNowVN(){
     const offset = now.getTimezoneOffset();
     return new Date(now.getTime() - offset*60000);
 }
+
 function getTodayVN(){
     return getNowVN().toISOString().split('T')[0];
 }
+
 function getTimeVN(){
     return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
 }
@@ -59,6 +59,7 @@ function getTimeVN(){
 function init(){
     const today = getTodayVN();
     document.getElementById('checkDate').value = today;
+
     loadData(today);
 }
 
@@ -68,53 +69,51 @@ function loadData(date){
 
     fetch(API_URL,{
         method:'POST',
-        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'load',date:date})
     })
     .then(r=>r.json())
     .then(data=>{
         if(!data.success){
-            throw new Error(data.error || "API lỗi");
+            document.getElementById('tableWrapper').innerHTML = "❌ Lỗi API";
+            return;
         }
 
         items = data.headers || [];
-        revisions = data.revisions || [];
+        let revisions = data.revisions || [];
 
-        // ===== LẤY GIÁ TRỊ CUỐI (QUAN TRỌNG) =====
+        // ===== LẤY GIÁ TRỊ CUỐI CHUẨN =====
         lastValues = {};
-        if(revisions.length > 0){
-            let last = revisions[revisions.length - 1]; // dòng cuối
-            lastValues = last.items || {};
-        }
+
+        revisions.forEach(r=>{
+            Object.keys(r.items).forEach(k=>{
+                let v = r.items[k];
+                if(v !== "" && v !== null && v !== undefined){
+                    lastValues[k] = v; // chỉ ghi nếu có dữ liệu
+                }
+            });
+        });
 
         renderTable();
     })
-    .catch(err=>{
-        console.error(err);
-        document.getElementById('tableWrapper').innerHTML =
-            "<div class='loading'>❌ Lỗi tải dữ liệu</div>";
+    .catch(()=>{
+        document.getElementById('tableWrapper').innerHTML = "❌ Lỗi kết nối API";
     });
 }
 
-// ===== TRA CỨU =====
+// ===== SEARCH =====
 function searchDate(){
     let date = document.getElementById('checkDate').value;
-    if(!date){
-        alert("Chọn ngày");
-        return;
-    }
     loadData(date);
 }
 
 // ===== RENDER =====
 function renderTable(){
     if(items.length === 0){
-        document.getElementById('tableWrapper').innerHTML =
-            "<div class='loading'>Không có dữ liệu</div>";
+        document.getElementById('tableWrapper').innerHTML = "⚠️ Không có dữ liệu";
         return;
     }
 
-    let html = "<table><thead><tr><th>Mặt hàng</th><th>Số lượng</th><th>Nhập</th></tr></thead><tbody>";
+    let html = "<table><thead><tr><th>Mặt hàng</th><th>Tồn hiện tại</th><th>Nhập</th></tr></thead><tbody>";
 
     items.forEach(item=>{
         let val = lastValues[item] || "";
@@ -122,12 +121,13 @@ function renderTable(){
         html += `
         <tr>
             <td>${item}</td>
-            <td id="val-${item}">${val || '-'}</td>
-            <td><input type="number" class="qty-input" data-item="${item}"></td>
+            <td id="val-${escapeId(item)}">${val || '-'}</td>
+            <td><input type="number" class="qty-input" data-item="${escapeAttr(item)}"></td>
         </tr>`;
     });
 
     html += "</tbody></table>";
+
     document.getElementById('tableWrapper').innerHTML = html;
 }
 
@@ -148,7 +148,6 @@ function saveData(){
 
     fetch(API_URL,{
         method:'POST',
-        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
             action:'save',
             date:getTodayVN(),
@@ -159,24 +158,32 @@ function saveData(){
     .then(r=>r.json())
     .then(data=>{
         if(!data.success){
-            throw new Error(data.error);
+            alert("❌ Lỗi ghi dữ liệu");
+            return;
         }
 
-        // update UI ngay
+        // cập nhật ngay UI
         Object.keys(entries).forEach(item=>{
-            document.getElementById("val-"+item).innerText = entries[item];
+            let el = document.getElementById("val-"+escapeId(item));
+            if(el) el.innerText = entries[item];
         });
 
         document.querySelectorAll('.qty-input').forEach(i=>i.value="");
 
         alert("✅ Đã ghi!");
-    })
-    .catch(err=>{
-        alert("❌ Lỗi ghi dữ liệu");
-        console.error(err);
     });
 }
 
+// ===== ESCAPE =====
+function escapeId(str){
+    return str.replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+function escapeAttr(str){
+    return str.replace(/"/g,'&quot;');
+}
+
+// ===== RUN =====
 init();
 </script>
 
