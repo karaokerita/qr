@@ -1,540 +1,191 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm Kho Hàng Ngày</title>
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/500.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/600.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/700.css" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 18px 24px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            position: sticky; top: 0; z-index: 100;
-        }
-        .header-inner {
-            max-width: 1400px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 12px;
-        }
-        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .header h1 svg { width: 26px; height: 26px; }
-        
-        .date-picker-wrapper { display: flex; align-items: center; gap: 8px; }
-        .date-picker-wrapper label { font-size: 13px; opacity: 0.9; font-weight: 500; }
-        .date-input {
-            padding: 8px 14px; border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 10px; background: rgba(255,255,255,0.15);
-            color: white; font-size: 14px; font-family: inherit; font-weight: 600;
-        }
-        .date-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm Kho</title>
 
-        .main-content { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
 
-        .stats-bar { display: flex; gap: 14px; margin-bottom: 18px; }
-        .stat-card {
-            background: #fff; border-radius: 12px; padding: 14px 18px;
-            flex: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            border-left: 4px solid; display: flex; align-items: center; gap: 12px;
-        }
-        .stat-card.blue { border-color: #667eea; }
-        .stat-card.green { border-color: #43a047; }
-        .stat-card.orange { border-color: #ff9800; }
-        .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .stat-card.blue .stat-icon { background: #eef2ff; }
-        .stat-card.green .stat-icon { background: #e8f5e9; }
-        .stat-card.orange .stat-icon { background: #fff3e0; }
-        .stat-info .stat-value { font-size: 22px; font-weight: 700; }
-        .stat-info .stat-label { font-size: 11px; color: #888; font-weight: 500; }
-
-        .table-container { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 18px; }
-        .table-scroll { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        thead { position: sticky; top: 0; z-index: 10; }
-        thead th {
-            background: #f8f9ff; padding: 12px 10px;
-            font-size: 12px; font-weight: 600; color: #4a4a6a;
-            border-bottom: 2px solid #e8e8f0; white-space: nowrap; text-align: center;
-        }
-        thead th:first-child {
-            position: sticky; left: 0; z-index: 11; background: #f8f9ff;
-            min-width: 140px; text-align: left; padding-left: 16px;
-        }
-        thead th.rev-hdr { background: #eef2ff; color: #667eea; min-width: 110px; }
-        thead th.rev-hdr .rdate { font-weight: 700; color: #667eea; display: block; font-size: 12px; }
-        thead th.rev-hdr .rtime { font-size: 10px; color: #888; font-weight: 500; display: block; margin-top: 2px; }
-        thead th.rev-hdr .rlbl { font-size: 10px; color: #aaa; display: block; margin-top: 1px; }
-        thead th.input-hdr { background: #e8f5e9; color: #2e7d32; min-width: 110px; }
-        thead th.input-hdr .rlbl { font-size: 11px; color: #43a047; font-weight: 600; }
-
-        tbody tr { transition: background 0.15s; }
-        tbody tr:hover { background: #fafbfc; }
-        tbody tr:nth-child(even) { background: #fcfcfd; }
-        tbody tr:nth-child(even):hover { background: #f0f2ff; }
-        tbody td { padding: 10px; border-bottom: 1px solid #f0f0f5; font-size: 14px; text-align: center; }
-        tbody td:first-child {
-            position: sticky; left: 0; background: inherit; z-index: 5;
-            font-weight: 600; color: #333; text-align: left;
-            padding-left: 16px; white-space: nowrap;
-        }
-        .rev-val { font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 6px; display: inline-block; min-width: 40px; }
-        .rev-empty { color: #ccc; font-style: italic; font-size: 13px; }
-
-        .input-row td { padding: 6px 6px; border-bottom: 2px solid #43a047; background: #f1f8e9 !important; }
-        .input-row td:first-child { font-weight: 700; color: #2e7d32; background: #f1f8e9 !important; }
-        .qty-input {
-            width: 100%; max-width: 80px; padding: 7px 8px;
-            border: 2px solid #c8e6c9; border-radius: 8px;
-            font-size: 13px; font-family: inherit; font-weight: 500;
-            text-align: center; transition: all 0.2s; background: #fff;
-        }
-        .qty-input:focus { outline: none; border-color: #43a047; box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.15); }
-        .qty-input.filled { border-color: #43a047; background: #e8f5e9; font-weight: 700; color: #2e7d32; }
-
-        .action-bar {
-            position: sticky; bottom: 0; background: #fff;
-            border-top: 2px solid #e8e8f0; padding: 14px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.06); z-index: 50;
-        }
-        .btn {
-            padding: 10px 22px; border: none; border-radius: 10px;
-            font-size: 14px; font-family: inherit; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
-        }
-        .btn:active { transform: scale(0.97); }
-        .btn-preview { background: #fff3e0; color: #e65100; border: 2px solid #ffcc80; }
-        .btn-preview:hover { background: #ffe0b2; }
-        .btn-save {
-            background: linear-gradient(135deg, #43a047, #66bb6a); color: white;
-            box-shadow: 0 4px 15px rgba(67, 160, 71, 0.4);
-        }
-        .btn-save:hover { box-shadow: 0 6px 20px rgba(67, 160, 71, 0.5); transform: translateY(-1px); }
-        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-clear { background: #fce4ec; color: #c62828; }
-        .btn-clear:hover { background: #f8bbd0; }
-
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            align-items: center; justify-content: center; backdrop-filter: blur(4px);
-        }
-        .modal-overlay.active { display: flex; }
-        .modal {
-            background: #fff; border-radius: 18px; width: 92%; max-width: 650px;
-            max-height: 80vh; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-            animation: slideUp 0.3s; display: flex; flex-direction: column;
-        }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header { padding: 18px 22px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
-        .modal-header h2 { font-size: 17px; font-weight: 700; }
-        .modal-close { width: 34px; height: 34px; border: none; background: #f5f5f5; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .modal-close:hover { background: #e0e0e0; }
-        .modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
-        .modal-footer { padding: 14px 22px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
-
-        .preview-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .preview-table th { background: #f8f9ff; padding: 8px; text-align: left; font-weight: 600; color: #4a4a6a; border-bottom: 2px solid #e8e8f0; }
-        .preview-table td { padding: 8px; border-bottom: 1px solid #f0f0f5; }
-        .preview-highlight { font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; }
-
-        .toast {
-            position: fixed; top: 20px; right: 20px; padding: 13px 20px;
-            border-radius: 10px; color: #fff; font-weight: 600; font-size: 13px;
-            z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.18);
-            animation: slideIn 0.3s; display: none; align-items: center; gap: 8px;
-        }
-        .toast.show { display: flex; }
-        .toast.success { background: linear-gradient(135deg, #43a047, #66bb6a); }
-        .toast.error { background: linear-gradient(135deg, #e53935, #ef5350); }
-        .toast.info { background: linear-gradient(135deg, #667eea, #764ba2); }
-        @keyframes slideIn { from { transform: translateX(80px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loading-state { text-align: center; padding: 50px; color: #aaa; }
-        .no-data { text-align: center; padding: 40px; color: #999; font-size: 14px; background: #fff; border-radius: 16px; margin: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-
-        @media (max-width: 768px) {
-            .header { padding: 14px 16px; }
-            .header h1 { font-size: 17px; }
-            .main-content { padding: 0 12px; }
-            .stats-bar { gap: 8px; }
-            .stat-card { padding: 10px 12px; }
-            .stat-icon { width: 34px; height: 34px; font-size: 15px; }
-            .stat-value { font-size: 18px; }
-            .btn { padding: 8px 14px; font-size: 12px; }
-            .action-bar { padding: 10px 12px; gap: 8px; }
-        }
-    </style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;}
+.header{background:#667eea;color:#fff;padding:16px;}
+.main{padding:20px;}
+table{width:100%;border-collapse:collapse;background:#fff;}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+.qty-input{width:70px;padding:5px;text-align:center;}
+.btn{padding:6px 12px;margin:5px;cursor:pointer;}
+</style>
 </head>
+
 <body>
 
 <div class="header">
-    <div class="header-inner">
-        <h1>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-            Kiểm Kho Hàng Ngày
-        </h1>
-        <div class="date-picker-wrapper">
-            <label>📅 Ngày kiểm:</label>
-            <input type="date" id="checkDate" class="date-input">
-        </div>
-    </div>
+<h2>📦 Kiểm Kho</h2>
+
+<input type="date" id="checkDate">
+<button class="btn" onclick="searchDate()">🔍 Tra cứu</button>
+
 </div>
 
-<div class="main-content">
-    <div class="stats-bar">
-        <div class="stat-card blue">
-            <div class="stat-icon">📦</div>
-            <div class="stat-info"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tổng mặt hàng</div></div>
-        </div>
-        <div class="stat-card green">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info"><div class="stat-value" id="statChecked">0</div><div class="stat-label">Đã kiểm</div></div>
-        </div>
-        <div class="stat-card orange">
-            <div class="stat-icon">⏳</div>
-            <div class="stat-info"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Chưa kiểm</div></div>
-        </div>
-    </div>
-
-    <div class="table-container">
-        <div class="table-scroll" id="tableWrapper">
-            <div class="loading-state">⏳ Đang tải dữ liệu...</div>
-        </div>
-        <div class="action-bar">
-            <div style="display:flex;gap:8px;">
-                <button class="btn btn-preview" onclick="previewData()">👁️ Xem trước</button>
-                <button class="btn btn-clear" onclick="clearInputs()">🗑️ Xóa</button>
-            </div>
-            <button class="btn btn-save" id="saveBtn" onclick="saveData()" disabled>💾 Ghi dữ liệu</button>
-        </div>
-    </div>
+<div class="main">
+<div id="tableWrapper">⏳ Đang tải...</div>
+<button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
-
-<!-- Preview Modal -->
-<div class="modal-overlay" id="previewModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>👁️ Xem trước dữ liệu sẽ ghi</h2>
-            <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
-        </div>
-        <div class="modal-body" id="previewBody"></div>
-        <div class="modal-footer">
-            <button class="btn btn-preview" onclick="closeModal('previewModal')">Đóng</button>
-            <button class="btn btn-save" onclick="confirmSave()">💾 Xác nhận ghi</button>
-        </div>
-    </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzAUGBnML3jipoYf13fPj9ekP6d4fda0iERua13IQlZIj97m8PCm1DsnXLvXgsHLl__HQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
 
-    let items = [];
-    let revisions = [];
-    let inputValues = {};
+let items = [];
+let lastValues = {};
 
-    function init() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('checkDate').value = today;
+// ===== TIME VN =====
+function getNowVN(){
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() - offset*60000);
+}
 
-        document.getElementById('checkDate').addEventListener('change', function () {
-            loadDataForDate(this.value);
+function getTodayVN(){
+    return getNowVN().toISOString().split('T')[0];
+}
+
+function getTimeVN(){
+    return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
+}
+
+// ===== INIT =====
+function init(){
+    const today = getTodayVN();
+    document.getElementById('checkDate').value = today;
+
+    loadData(today);
+}
+
+// ===== LOAD =====
+function loadData(date){
+    document.getElementById('tableWrapper').innerHTML = "⏳ Đang tải...";
+
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({action:'load',date:date})
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.success){
+            document.getElementById('tableWrapper').innerHTML = "❌ Lỗi API";
+            return;
+        }
+
+        items = data.headers || [];
+        let revisions = data.revisions || [];
+
+        // ===== LẤY GIÁ TRỊ CUỐI CHUẨN =====
+        lastValues = {};
+
+        revisions.forEach(r=>{
+            Object.keys(r.items).forEach(k=>{
+                let v = r.items[k];
+                if(v !== "" && v !== null && v !== undefined){
+                    lastValues[k] = v; // chỉ ghi nếu có dữ liệu
+                }
+            });
         });
 
-        loadDataForDate(today);
+        renderTable();
+    })
+    .catch(()=>{
+        document.getElementById('tableWrapper').innerHTML = "❌ Lỗi kết nối API";
+    });
+}
+
+// ===== SEARCH =====
+function searchDate(){
+    let date = document.getElementById('checkDate').value;
+    loadData(date);
+}
+
+// ===== RENDER =====
+function renderTable(){
+    if(items.length === 0){
+        document.getElementById('tableWrapper').innerHTML = "⚠️ Không có dữ liệu";
+        return;
     }
 
-    function loadDataForDate(dateStr) {
-        const wrapper = document.getElementById('tableWrapper');
-        wrapper.innerHTML = '<div class="loading-state">⏳ Đang tải dữ liệu...</div>';
-        inputValues = {};
+    let html = "<table><thead><tr><th>Mặt hàng</th><th>Tồn hiện tại</th><th>Nhập</th></tr></thead><tbody>";
 
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'load', date: dateStr })
+    items.forEach(item=>{
+        let val = lastValues[item] || "";
+
+        html += `
+        <tr>
+            <td>${item}</td>
+            <td id="val-${escapeId(item)}">${val || '-'}</td>
+            <td><input type="number" class="qty-input" data-item="${escapeAttr(item)}"></td>
+        </tr>`;
+    });
+
+    html += "</tbody></table>";
+
+    document.getElementById('tableWrapper').innerHTML = html;
+}
+
+// ===== SAVE =====
+function saveData(){
+    let entries = {};
+
+    document.querySelectorAll('.qty-input').forEach(i=>{
+        if(i.value !== ""){
+            entries[i.dataset.item] = i.value;
+        }
+    });
+
+    if(Object.keys(entries).length === 0){
+        alert("Chưa nhập");
+        return;
+    }
+
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({
+            action:'save',
+            date:getTodayVN(),
+            time:getTimeVN(),
+            items:entries
         })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (data.success) {
-                    items = data.headers || [];
-                    revisions = data.revisions || [];
-
-                    if (items.length === 0) {
-                        wrapper.innerHTML = '<div class="no-data">⚠️ Không tìm thấy mặt hàng nào có dữ liệu. Vui lòng kiểm tra Google Sheet (cột C-Z).</div>';
-                        document.getElementById('statTotal').textContent = '0';
-                        document.getElementById('statChecked').textContent = '0';
-                        document.getElementById('statRemaining').textContent = '0';
-                        updateSaveBtn();
-                        return;
-                    }
-
-                    renderTable();
-                    updateStats();
-                } else {
-                    showToast('Lỗi: ' + (data.error || 'Không xác định'), 'error');
-                    wrapper.innerHTML = '<div class="no-data">⚠️ Lỗi tải dữ liệu</div>';
-                }
-            })
-            .catch(function (err) {
-                console.error('Load error:', err);
-                wrapper.innerHTML = '<div class="no-data">⚠️ Lỗi kết nối API. Kiểm tra lại URL.</div>';
-            });
-    }
-
-    function renderTable() {
-        var wrapper = document.getElementById('tableWrapper');
-
-        if (items.length === 0) {
-            wrapper.innerHTML = '<div class="no-data">Không có dữ liệu cho ngày này.</div>';
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.success){
+            alert("❌ Lỗi ghi dữ liệu");
             return;
         }
 
-        var html = '<table>';
-
-        // Header
-        html += '<thead><tr>';
-        html += '<th>Mặt hàng</th>';
-
-        revisions.forEach(function (rev) {
-            var dateDisplay = rev.date ? formatDate(rev.date) : '';
-            html += '<th class="rev-hdr">';
-            html += '<span class="rdate">' + dateDisplay + '</span>';
-            html += '<span class="rtime">Lần ' + rev.index + ' - ' + (rev.time || '—') + '</span>';
-            html += '</th>';
+        // cập nhật ngay UI
+        Object.keys(entries).forEach(item=>{
+            let el = document.getElementById("val-"+escapeId(item));
+            if(el) el.innerText = entries[item];
         });
 
-        html += '<th class="input-hdr"><span class="rdate">Nhập mới</span><span class="rlbl">Hôm nay</span></th>';
-        html += '</tr></thead>';
+        document.querySelectorAll('.qty-input').forEach(i=>i.value="");
 
-        // Body
-        html += '<tbody>';
-        items.forEach(function (item, idx) {
-            html += '<tr>';
-            html += '<td>' + escapeHtml(item) + '</td>';
+        alert("✅ Đã ghi!");
+    });
+}
 
-            revisions.forEach(function (rev) {
-                var val = rev.items[item];
-                if (val !== undefined && val !== '' && val !== null) {
-                    html += '<td><span class="rev-val">' + escapeHtml(String(val)) + '</span></td>';
-                } else {
-                    html += '<td><span class="rev-empty">—</span></td>';
-                }
-            });
+// ===== ESCAPE =====
+function escapeId(str){
+    return str.replace(/[^a-zA-Z0-9]/g,'_');
+}
 
-            html += '<td class="input-row"><input type="number" class="qty-input" data-item="' + escapeHtml(item) + '" data-index="' + idx + '" placeholder="0" min="0"></td>';
-            html += '</tr>';
-        });
-        html += '</tbody></table>';
+function escapeAttr(str){
+    return str.replace(/"/g,'&quot;');
+}
 
-        wrapper.innerHTML = html;
-
-        var inputs = document.querySelectorAll('.qty-input');
-        for (var i = 0; i < inputs.length; i++) {
-            inputs[i].addEventListener('input', function () {
-                var val = this.value;
-                inputValues[this.getAttribute('data-item')] = val;
-                this.classList.toggle('filled', val !== '');
-                updateStats();
-                updateSaveBtn();
-            });
-        }
-    }
-
-    function updateStats() {
-        var total = items.length;
-        var checked = 0;
-        items.forEach(function (item) {
-            if (inputValues[item] !== '' && inputValues[item] !== undefined) {
-                checked++;
-            }
-        });
-
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statChecked').textContent = checked;
-        document.getElementById('statRemaining').textContent = total - checked;
-    }
-
-    function updateSaveBtn() {
-        var btn = document.getElementById('saveBtn');
-        var hasAny = Object.values(inputValues).some(function (v) { return v !== '' && v !== undefined; });
-        btn.disabled = !hasAny;
-    }
-
-    function previewData() {
-        var dateStr = document.getElementById('checkDate').value;
-        var entries = {};
-        var count = 0;
-
-        items.forEach(function (item) {
-            var input = document.querySelector('.qty-input[data-item="' + escapeAttr(item) + '"]');
-            if (input && input.value !== '') {
-                entries[item] = input.value;
-                count++;
-            }
-        });
-
-        if (count === 0) {
-            showToast('Chưa có mặt hàng nào được nhập!', 'error');
-            return;
-        }
-
-        var html = '';
-        html += '<div style="margin-bottom:14px;padding:12px;background:#e8f5e9;border-radius:10px;">';
-        html += '<strong>📅 Ngày:</strong> ' + formatDate(dateStr) + ' | <strong>📦 Nhập:</strong> ' + count + '/' + items.length + ' mặt hàng';
-        html += '</div>';
-
-        html += '<table class="preview-table">';
-        html += '<thead><tr><th>Mặt hàng</th><th>Số lượng</th></tr></thead>';
-        html += '<tbody>';
-
-        items.forEach(function (item) {
-            if (entries[item] !== undefined) {
-                html += '<tr><td>' + escapeHtml(item) + '</td><td><span class="preview-highlight">' + escapeHtml(entries[item]) + '</span></td></tr>';
-            }
-        });
-
-        html += '</tbody></table>';
-
-        if (revisions.length > 0) {
-            html += '<div style="margin-top:16px;font-weight:600;">📝 Lịch sử trong ngày (' + revisions.length + ' lần):</div>';
-            revisions.forEach(function (rev) {
-                html += '<div style="margin-top:8px;padding:10px;background:#fafbfc;border-radius:6px;">';
-                html += '<div style="font-size:11px;color:#888;margin-bottom:6px;"><strong>Lần ' + rev.index + '</strong> - ' + formatDate(rev.date) + ' ' + (rev.time || '') + '</div>';
-                Object.keys(rev.items).forEach(function (k) {
-                    var v = rev.items[k];
-                    if (v !== undefined && v !== '') {
-                        html += '<span style="display:inline-block;background:#f0f2ff;padding:2px 6px;border-radius:4px;margin:2px;font-size:12px;">' + escapeHtml(k) + ': <strong>' + escapeHtml(String(v)) + '</strong></span>';
-                    }
-                });
-                html += '</div>';
-            });
-        }
-
-        document.getElementById('previewBody').innerHTML = html;
-        openModal('previewModal');
-    }
-
-    function saveData() {
-        var dateStr = document.getElementById('checkDate').value;
-        var entries = {};
-        var count = 0;
-
-        items.forEach(function (item) {
-            var input = document.querySelector('.qty-input[data-item="' + escapeAttr(item) + '"]');
-            if (input && input.value !== '') {
-                entries[item] = input.value;
-                count++;
-            }
-        });
-
-        if (count === 0) {
-            showToast('Chưa có mặt hàng nào được nhập!', 'error');
-            return;
-        }
-
-        var saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="spinner"></span> Đang ghi...';
-
-        var now = new Date();
-        var timeStr = now.toLocaleTimeString('vi-VN');
-
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'save', date: dateStr, time: timeStr, items: entries })
-        })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (data.success) {
-                    showToast('✅ Ghi dữ liệu thành công!', 'success');
-                    loadDataForDate(dateStr);
-                } else {
-                    showToast('⚠️ Lỗi: ' + (data.error || ''), 'error');
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = '💾 Ghi dữ liệu';
-                }
-            })
-            .catch(function (err) {
-                showToast('⚠️ Lỗi kết nối API', 'error');
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '💾 Ghi dữ liệu';
-            });
-    }
-
-    function confirmSave() {
-        closeModal('previewModal');
-        saveData();
-    }
-
-    function clearInputs() {
-        if (confirm('Xóa tất cả số lượng đã nhập?')) {
-            var inputs = document.querySelectorAll('.qty-input');
-            for (var i = 0; i < inputs.length; i++) {
-                inputs[i].value = '';
-                inputs[i].classList.remove('filled');
-            }
-            inputValues = {};
-            updateStats();
-            updateSaveBtn();
-            showToast('🗑️ Đã xóa nhập liệu', 'info');
-        }
-    }
-
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        var parts = dateStr.split('-');
-        return parts[2] + '/' + parts[1] + '/' + parts[0];
-    }
-
-    function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-
-    function escapeAttr(str) {
-        return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function openModal(id) {
-        document.getElementById(id).classList.add('active');
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
-    }
-
-    function showToast(msg, type) {
-        var toast = document.getElementById('toast');
-        toast.className = 'toast show ' + type;
-        toast.textContent = msg;
-        setTimeout(function () { toast.classList.remove('show'); }, 3000);
-    }
-
-    var overlays = document.querySelectorAll('.modal-overlay');
-    for (var i = 0; i < overlays.length; i++) {
-        overlays[i].addEventListener('click', function (e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
-    }
-
-    init();
+// ===== RUN =====
+init();
 </script>
+
 </body>
 </html>
-
