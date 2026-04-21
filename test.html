@@ -23,12 +23,15 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 
 <div class="header">
 <h2>📦 Kiểm Kho</h2>
+
 <input type="date" id="checkDate">
+<button class="btn" onclick="searchDate()">🔍 Tra cứu</button>
+
 </div>
 
 <div class="main">
 <div id="tableWrapper">Loading...</div>
-<button class="btn" onclick="saveData()">Ghi</button>
+<button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
 <script>
@@ -36,25 +39,27 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxl9zNBkeRdNb0uRRzd78Y_
 
 let items = [];
 let revisions = [];
-let lastValues = {}; // 👉 GIÁ TRỊ CUỐI
+let lastValues = {};
 
 // ===== TIME VN =====
-function getTodayVN(){
+function getNowVN(){
     const now = new Date();
     const offset = now.getTimezoneOffset();
-    const vn = new Date(now.getTime() - offset*60000);
-    return vn.toISOString().split('T')[0];
+    return new Date(now.getTime() - offset*60000);
+}
+
+function getTodayVN(){
+    return getNowVN().toISOString().split('T')[0];
+}
+
+function getTimeVN(){
+    return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
 }
 
 // ===== INIT =====
 function init(){
     const today = getTodayVN();
     document.getElementById('checkDate').value = today;
-
-    document.getElementById('checkDate').addEventListener('change', function(){
-        loadData(this.value);
-    });
-
     loadData(today);
 }
 
@@ -69,7 +74,7 @@ function loadData(date){
         items = data.headers || [];
         revisions = data.revisions || [];
 
-        // 👉 LẤY GIÁ TRỊ CUỐI
+        // 👉 lấy giá trị cuối
         lastValues = {};
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
@@ -79,18 +84,22 @@ function loadData(date){
             });
         });
 
-        renderTable(date);
+        renderTable(lastValues);
     });
 }
 
-// ===== RENDER =====
-function renderTable(date){
-    const today = getTodayVN();
+// ===== SEARCH BUTTON =====
+function searchDate(){
+    let date = document.getElementById('checkDate').value;
+    loadData(date);
+}
 
+// ===== RENDER =====
+function renderTable(values){
     let html = "<table><thead><tr><th>Mặt hàng</th><th>Số lượng</th><th>Nhập</th></tr></thead><tbody>";
 
     items.forEach(item=>{
-        let val = (date === today) ? (lastValues[item] || "") : "";
+        let val = values[item] || "";
 
         html += `
         <tr>
@@ -106,7 +115,6 @@ function renderTable(date){
 
 // ===== SAVE =====
 function saveData(){
-    let date = document.getElementById('checkDate').value;
     let entries = {};
 
     document.querySelectorAll('.qty-input').forEach(i=>{
@@ -120,18 +128,21 @@ function saveData(){
         return;
     }
 
+    let today = getTodayVN();
+    let time = getTimeVN();
+
     fetch(API_URL,{
         method:'POST',
         body:JSON.stringify({
             action:'save',
-            date:date,
-            time:new Date().toLocaleTimeString('vi-VN',{hour12:false}),
-            items:entries
+            date: today,   // ❗ LUÔN NGÀY HIỆN TẠI
+            time: time,
+            items: entries
         })
     })
     .then(r=>r.json())
     .then(()=>{
-        // 👉 UPDATE NGAY UI KHÔNG RELOAD
+        // update UI ngay
         Object.keys(entries).forEach(item=>{
             document.getElementById("val-"+item).innerText = entries[item];
         });
