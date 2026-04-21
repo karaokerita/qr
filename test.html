@@ -6,69 +6,29 @@
 <title>Kiểm Kho Hàng Ngày</title>
 
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/500.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/600.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/700.css" rel="stylesheet">
 
 <style>
-/* GIỮ NGUYÊN TOÀN BỘ CSS CỦA BẠN */
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh;}
-.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:18px 24px;box-shadow:0 4px 20px rgba(102,126,234,0.4);position:sticky;top:0;z-index:100;}
-.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;}
-.header h1 svg{width:26px;height:26px;}
-.date-picker-wrapper{display:flex;align-items:center;gap:8px;}
-.date-input{padding:8px 14px;border:2px solid rgba(255,255,255,0.3);border-radius:10px;background:rgba(255,255,255,0.15);color:white;font-size:14px;font-weight:600;}
-.main-content{max-width:1400px;margin:20px auto;padding:0 20px;}
-.stats-bar{display:flex;gap:14px;margin-bottom:18px;}
-.stat-card{background:#fff;border-radius:12px;padding:14px 18px;flex:1;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid;display:flex;align-items:center;gap:12px;}
-.stat-card.blue{border-color:#667eea;}
-.stat-card.green{border-color:#43a047;}
-.stat-card.orange{border-color:#ff9800;}
-.stat-info .stat-value{font-size:22px;font-weight:700;}
-.table-container{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);overflow:hidden;}
-.table-scroll{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{background:#f8f9ff;padding:12px;font-size:12px;font-weight:600;}
-tbody td{padding:10px;text-align:center;}
-.qty-input{width:80px;padding:6px;border:1px solid #ccc;border-radius:6px;text-align:center;}
-.action-bar{padding:10px;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-between;}
-.btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;}
-.btn-save{background:#43a047;color:white;}
-.btn-preview{background:#ff9800;color:white;}
-.btn-clear{background:#e53935;color:white;}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;}
+.header{background:#667eea;color:#fff;padding:16px;}
+.main{padding:20px;}
+table{width:100%;border-collapse:collapse;background:#fff;}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+.qty-input{width:70px;padding:5px;text-align:center;}
+.btn{padding:6px 12px;margin:5px;cursor:pointer;}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-<div class="header-inner">
-<h1>📦 Kiểm Kho Hàng Ngày</h1>
-<input type="date" id="checkDate" class="date-input">
-</div>
+<h2>📦 Kiểm Kho</h2>
+<input type="date" id="checkDate">
 </div>
 
-<div class="main-content">
-<div class="stats-bar">
-<div class="stat-card blue"><div><div id="statTotal">0</div><div>Tổng</div></div></div>
-<div class="stat-card green"><div><div id="statChecked">0</div><div>Đã nhập</div></div></div>
-<div class="stat-card orange"><div><div id="statRemaining">0</div><div>Còn lại</div></div></div>
-</div>
-
-<div class="table-container">
-<div class="table-scroll" id="tableWrapper">Đang tải...</div>
-
-<div class="action-bar">
-<div>
-<button class="btn btn-preview" onclick="previewData()">Xem</button>
-<button class="btn btn-clear" onclick="clearInputs()">Xóa</button>
-</div>
-<button class="btn btn-save" id="saveBtn" onclick="saveData()" disabled>Ghi</button>
-</div>
-
-</div>
+<div class="main">
+<div id="tableWrapper">Loading...</div>
+<button class="btn" onclick="saveData()">Ghi</button>
 </div>
 
 <script>
@@ -76,18 +36,14 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxl9zNBkeRdNb0uRRzd78Y_
 
 let items = [];
 let revisions = [];
-let inputValues = {};
+let lastValues = {}; // 👉 GIÁ TRỊ CUỐI
 
-// ===== FIX TIME VIỆT NAM =====
+// ===== TIME VN =====
 function getTodayVN(){
     const now = new Date();
     const offset = now.getTimezoneOffset();
     const vn = new Date(now.getTime() - offset*60000);
     return vn.toISOString().split('T')[0];
-}
-
-function getTimeVN(){
-    return new Date().toLocaleTimeString('vi-VN',{hour12:false});
 }
 
 // ===== INIT =====
@@ -96,112 +52,95 @@ function init(){
     document.getElementById('checkDate').value = today;
 
     document.getElementById('checkDate').addEventListener('change', function(){
-        loadDataForDate(this.value);
+        loadData(this.value);
     });
 
-    loadDataForDate(today);
+    loadData(today);
 }
 
 // ===== LOAD =====
-function loadDataForDate(dateStr){
-    document.getElementById('tableWrapper').innerHTML="Đang tải...";
-
+function loadData(date){
     fetch(API_URL,{
         method:'POST',
-        body:JSON.stringify({action:'load',date:dateStr})
+        body:JSON.stringify({action:'load',date:date})
     })
     .then(r=>r.json())
     .then(data=>{
         items = data.headers || [];
         revisions = data.revisions || [];
-        renderTable();
-        updateStats();
+
+        // 👉 LẤY GIÁ TRỊ CUỐI
+        lastValues = {};
+        revisions.forEach(r=>{
+            Object.keys(r.items).forEach(k=>{
+                if(r.items[k] !== "" && r.items[k] != null){
+                    lastValues[k] = r.items[k];
+                }
+            });
+        });
+
+        renderTable(date);
     });
 }
 
 // ===== RENDER =====
-function renderTable(){
-    let html="<table><thead><tr><th>Mặt hàng</th>";
+function renderTable(date){
+    const today = getTodayVN();
 
-    revisions.forEach(r=>{
-        html+=`<th>Lần ${r.index}<br>${r.time||''}</th>`;
-    });
-
-    html+="<th>Nhập</th></tr></thead><tbody>";
+    let html = "<table><thead><tr><th>Mặt hàng</th><th>Số lượng</th><th>Nhập</th></tr></thead><tbody>";
 
     items.forEach(item=>{
-        html+=`<tr><td>${item}</td>`;
+        let val = (date === today) ? (lastValues[item] || "") : "";
 
-        revisions.forEach(r=>{
-            html+=`<td>${r.items[item]||'-'}</td>`;
-        });
-
-        html+=`<td><input type="number" class="qty-input" data-item="${item}"></td></tr>`;
+        html += `
+        <tr>
+            <td>${item}</td>
+            <td id="val-${item}">${val || '-'}</td>
+            <td><input type="number" class="qty-input" data-item="${item}"></td>
+        </tr>`;
     });
 
-    html+="</tbody></table>";
-    document.getElementById('tableWrapper').innerHTML=html;
-
-    document.querySelectorAll('.qty-input').forEach(i=>{
-        i.addEventListener('input',()=>{
-            inputValues[i.dataset.item]=i.value;
-            updateStats();
-            updateSaveBtn();
-        });
-    });
-}
-
-// ===== STATS =====
-function updateStats(){
-    let total = items.length;
-    let checked = Object.values(inputValues).filter(v=>v!=="").length;
-
-    document.getElementById('statTotal').innerText=total;
-    document.getElementById('statChecked').innerText=checked;
-    document.getElementById('statRemaining').innerText=total-checked;
-}
-
-function updateSaveBtn(){
-    document.getElementById('saveBtn').disabled =
-        !Object.values(inputValues).some(v=>v!=="");
+    html += "</tbody></table>";
+    document.getElementById('tableWrapper').innerHTML = html;
 }
 
 // ===== SAVE =====
 function saveData(){
     let date = document.getElementById('checkDate').value;
-    let entries={};
+    let entries = {};
 
     document.querySelectorAll('.qty-input').forEach(i=>{
-        if(i.value!=="") entries[i.dataset.item]=i.value;
+        if(i.value !== ""){
+            entries[i.dataset.item] = i.value;
+        }
     });
+
+    if(Object.keys(entries).length === 0){
+        alert("Chưa nhập");
+        return;
+    }
 
     fetch(API_URL,{
         method:'POST',
         body:JSON.stringify({
             action:'save',
             date:date,
-            time:getTimeVN(),
+            time:new Date().toLocaleTimeString('vi-VN',{hour12:false}),
             items:entries
         })
     })
     .then(r=>r.json())
     .then(()=>{
-        alert("Đã lưu!");
-        loadDataForDate(date);
+        // 👉 UPDATE NGAY UI KHÔNG RELOAD
+        Object.keys(entries).forEach(item=>{
+            document.getElementById("val-"+item).innerText = entries[item];
+        });
+
+        // reset input
+        document.querySelectorAll('.qty-input').forEach(i=>i.value="");
+
+        alert("Đã ghi!");
     });
-}
-
-// ===== CLEAR =====
-function clearInputs(){
-    inputValues={};
-    document.querySelectorAll('.qty-input').forEach(i=>i.value="");
-    updateStats();
-    updateSaveBtn();
-}
-
-// ===== PREVIEW =====
-function previewData(){
-    console.log(inputValues);
 }
 
 init();
