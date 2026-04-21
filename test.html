@@ -1,275 +1,211 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Nhân viên Karaoke</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; background: url('background.jpg') no-repeat center center fixed; background-size: cover; margin:0; padding:10px; }
-    .container { max-width:480px; margin:auto; padding:15px; background: rgba(255,255,255,0.85); border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
-    h1 { text-align:center; color:#007bff; font-size:22px; margin-bottom:10px; }
-    #currentTime { text-align:center; font-weight:bold; margin:-5px 0 10px 0; color:#444; }
-    .amount-input { width:90%; font-size:22px; padding:6px; margin-bottom:8px; text-align:center; }
-    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; }
-    .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; }
-    .qr-box { display:flex; justify-content:center; margin:10px 0; }
-    .qr-box img { width:220px; height:220px; }
-    .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px auto; display:block; }
-    table { width:100%; border-collapse: collapse; margin-top:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    th, td { border:1px solid #ddd; padding:6px; text-align:center; font-size:14px; }
-    th { background:#007bff; color:white; }
-    .bg-unpaid { background:#f8f9fa; }
-    .status-unpaid { color:red; font-weight:bold; }
-    .status-paid { color:green; font-weight:bold; }
-    .btn { padding:5px 8px; border:none; border-radius:4px; cursor:pointer; margin:2px; font-size:13px; }
-    .btn-pay { background:#28a745; color:white; }
-    .btn-qr { background:#007bff; color:white; }
-    .btn:disabled { background:#aaa; cursor:not-allowed; }
-    #cameraModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    video { width:100%; height:100%; object-fit:cover; }
-    canvas { display:none; position:absolute; top:0; left:0; width:100%; height:100%; }
-    .modal-buttons { position:absolute; bottom:20px; display:flex; justify-content:center; width:100%; gap:10px; }
-    .modal-buttons button { font-size:16px; padding:8px 12px; }
-    .btn-save { background:#28a745; color:white; border:none; border-radius:6px; }
-    .btn-close { background:#666; color:white; border:none; border-radius:6px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm Kho Hàng Ngày</title>
 
-    /* Nút Tính giờ đi làm */
-    .btn-worktime {
-      display:block;
-      width:100%;
-      text-align:center;
-      background:#007bff;
-      color:white;
-      font-size:18px;
-      font-weight:bold;
-      padding:10px 0;
-      margin-top:15px;
-      border:none;
-      border-radius:8px;
-      text-decoration:none;
-      transition:0.2s;
-    }
-    .btn-worktime:hover {
-      background:#0056b3;
-    }
-  </style>
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/500.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/600.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/700.css" rel="stylesheet">
+
+<style>
+/* GIỮ NGUYÊN TOÀN BỘ CSS CỦA BẠN */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh;}
+.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:18px 24px;box-shadow:0 4px 20px rgba(102,126,234,0.4);position:sticky;top:0;z-index:100;}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.header h1 svg{width:26px;height:26px;}
+.date-picker-wrapper{display:flex;align-items:center;gap:8px;}
+.date-input{padding:8px 14px;border:2px solid rgba(255,255,255,0.3);border-radius:10px;background:rgba(255,255,255,0.15);color:white;font-size:14px;font-weight:600;}
+.main-content{max-width:1400px;margin:20px auto;padding:0 20px;}
+.stats-bar{display:flex;gap:14px;margin-bottom:18px;}
+.stat-card{background:#fff;border-radius:12px;padding:14px 18px;flex:1;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid;display:flex;align-items:center;gap:12px;}
+.stat-card.blue{border-color:#667eea;}
+.stat-card.green{border-color:#43a047;}
+.stat-card.orange{border-color:#ff9800;}
+.stat-info .stat-value{font-size:22px;font-weight:700;}
+.table-container{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);overflow:hidden;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#f8f9ff;padding:12px;font-size:12px;font-weight:600;}
+tbody td{padding:10px;text-align:center;}
+.qty-input{width:80px;padding:6px;border:1px solid #ccc;border-radius:6px;text-align:center;}
+.action-bar{padding:10px;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-between;}
+.btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;}
+.btn-save{background:#43a047;color:white;}
+.btn-preview{background:#ff9800;color:white;}
+.btn-clear{background:#e53935;color:white;}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>QUÉT MÃ THANH TOÁN<br>KARAOKE RITA</h1>
-    <p id="currentTime"></p>
-    <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
-    <div class="room-name-qr" id="roomNameQR"></div>
-    <div class="amount-text" id="amountText"></div>
-    <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
-    <button id="openCamera" class="btn-camera">Chụp ảnh thanh toán</button>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Phòng</th>
-          <th>Số tiền</th>
-          <th>Trạng thái</th>
-          <th>Thời gian</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="roomTable"></tbody>
-    </table>
+<div class="header">
+<div class="header-inner">
+<h1>📦 Kiểm Kho Hàng Ngày</h1>
+<input type="date" id="checkDate" class="date-input">
+</div>
+</div>
 
-    <!-- 🔹 Nút Tính giờ đi làm -->
-    <a href="https://karaokerita.github.io/checkout/" class="btn-worktime" target="_blank">🕒 Tính giờ đi làm</a>
-  </div>
+<div class="main-content">
+<div class="stats-bar">
+<div class="stat-card blue"><div><div id="statTotal">0</div><div>Tổng</div></div></div>
+<div class="stat-card green"><div><div id="statChecked">0</div><div>Đã nhập</div></div></div>
+<div class="stat-card orange"><div><div id="statRemaining">0</div><div>Còn lại</div></div></div>
+</div>
 
-  <!-- Modal Camera -->
-  <div id="cameraModal">
-    <div class="modal-content">
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas"></canvas>
-      <div class="modal-buttons">
-        <button id="captureBtn" class="btn-camera">Chụp</button>
-        <button id="downloadBtn" class="btn-save" style="display:none;">Chia sẻ / Lưu ảnh</button>
-        <button id="closeModal" class="btn-close">Đóng</button>
-      </div>
-    </div>
-  </div>
+<div class="table-container">
+<div class="table-scroll" id="tableWrapper">Đang tải...</div>
+
+<div class="action-bar">
+<div>
+<button class="btn btn-preview" onclick="previewData()">Xem</button>
+<button class="btn btn-clear" onclick="clearInputs()">Xóa</button>
+</div>
+<button class="btn btn-save" id="saveBtn" onclick="saveData()" disabled>Ghi</button>
+</div>
+
+</div>
+</div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
-const manualAmount = document.getElementById("manualAmount");
-const qrImage = document.getElementById("qrImage");
-const amountText = document.getElementById("amountText");
-const roomNameQR = document.getElementById("roomNameQR");
-const openCamera = document.getElementById("openCamera");
-const cameraModal = document.getElementById("cameraModal");
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const captureBtn = document.getElementById("captureBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const closeModal = document.getElementById("closeModal");
-let stream;
+const API_URL = 'https://script.google.com/macros/s/AKfycbxl9zNBkeRdNb0uRRzd78Y_9Oa8DW1J6S5Fo_8WndZ0ooL8T6JbmSxiVYixuK6OK7_8VQ/exec';
 
-// Hiển thị đồng hồ
-function updateClock() {
-  const now = new Date();
-  const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-  const time = now.toLocaleTimeString("vi-VN",{hour12:false});
-  const date = now.toLocaleDateString("vi-VN");
-  document.getElementById("currentTime").innerText = `${time} - ${days[now.getDay()]}, ${date}`;
+let items = [];
+let revisions = [];
+let inputValues = {};
+
+// ===== FIX TIME VIỆT NAM =====
+function getTodayVN(){
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const vn = new Date(now.getTime() - offset*60000);
+    return vn.toISOString().split('T')[0];
 }
-setInterval(updateClock,1000);
-updateClock();
 
-// Chuyển số thành chữ
-function readTriple(num){
-  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-  let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
-  let s="";
-  if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
-  if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-  else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-  else if(t===0&&o>0&&h===0){ s+=units[o]; }
-  else if(o>0){ s+=" "+units[o]; }
-  return s.trim();
+function getTimeVN(){
+    return new Date().toLocaleTimeString('vi-VN',{hour12:false});
 }
-function numberToWords(n){
-  if(!n||n===0) return "không đồng";
-  const scales=["","nghìn","triệu","tỷ"];
-  let parts=[], scaleIdx=0;
-  while(n>0){
-    let chunk=n%1000;
-    if(chunk>0){
-      let words=readTriple(chunk);
-      if(scales[scaleIdx]) words+=" "+scales[scaleIdx];
-      parts.unshift(words);
-    }
-    n=Math.floor(n/1000);
-    scaleIdx++;
-  }
-  return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
+
+// ===== INIT =====
+function init(){
+    const today = getTodayVN();
+    document.getElementById('checkDate').value = today;
+
+    document.getElementById('checkDate').addEventListener('change', function(){
+        loadDataForDate(this.value);
+    });
+
+    loadDataForDate(today);
 }
-function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
-// QR
-function updateQR(val, roomName=""){
-  if(roomName) roomNameQR.textContent = roomName;
-  const url=`https://img.vietqr.io/image/VCB-1038398686-qr_only.png?amount=${val}&addInfo=Thank+You+${roomNameQR.textContent}&accountName=HKD+RITA`;
-  qrImage.src=url;
-  amountText.textContent = numberToWords(Number(val));
+// ===== LOAD =====
+function loadDataForDate(dateStr){
+    document.getElementById('tableWrapper').innerHTML="Đang tải...";
+
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({action:'load',date:dateStr})
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        items = data.headers || [];
+        revisions = data.revisions || [];
+        renderTable();
+        updateStats();
+    });
 }
-manualAmount.addEventListener("input", function(){
-  let val=this.value.replace(/\D/g,"");
-  if(val){
-    this.value=formatNumber(val);
-    updateQR(val);
-  } else {
-    this.value="";
-    amountText.textContent="";
-    qrImage.src="";
-  }
-});
 
-// Load danh sách phòng
-async function loadRooms(){
-  manualAmount.value="";
-  qrImage.src="";
-  amountText.textContent="";
-  roomNameQR.textContent="";
-  const res = await fetch(API+"?action=getRooms");
-  const data = await res.json();
-  const table = document.getElementById("roomTable");
-  table.innerHTML = "";
-  data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
-  data.forEach(room=>{
-    const tr=document.createElement("tr");
-    if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
-    tr.innerHTML=`
-      <td>${room.name}</td>
-      <td>${formatNumber(room.amount)}</td>
-      <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
-      <td>${room.refTime || ''}</td>
-      <td>
-        <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
-        <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
-      </td>`;
-    table.appendChild(tr);
-  });
+// ===== RENDER =====
+function renderTable(){
+    let html="<table><thead><tr><th>Mặt hàng</th>";
+
+    revisions.forEach(r=>{
+        html+=`<th>Lần ${r.index}<br>${r.time||''}</th>`;
+    });
+
+    html+="<th>Nhập</th></tr></thead><tbody>";
+
+    items.forEach(item=>{
+        html+=`<tr><td>${item}</td>`;
+
+        revisions.forEach(r=>{
+            html+=`<td>${r.items[item]||'-'}</td>`;
+        });
+
+        html+=`<td><input type="number" class="qty-input" data-item="${item}"></td></tr>`;
+    });
+
+    html+="</tbody></table>";
+    document.getElementById('tableWrapper').innerHTML=html;
+
+    document.querySelectorAll('.qty-input').forEach(i=>{
+        i.addEventListener('input',()=>{
+            inputValues[i.dataset.item]=i.value;
+            updateStats();
+            updateSaveBtn();
+        });
+    });
 }
-async function markPaid(roomName){
-  await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
-  loadRooms();
+
+// ===== STATS =====
+function updateStats(){
+    let total = items.length;
+    let checked = Object.values(inputValues).filter(v=>v!=="").length;
+
+    document.getElementById('statTotal').innerText=total;
+    document.getElementById('statChecked').innerText=checked;
+    document.getElementById('statRemaining').innerText=total-checked;
 }
-function fillQR(amount, roomName){
-  manualAmount.value=formatNumber(amount);
-  updateQR(amount, roomName);
+
+function updateSaveBtn(){
+    document.getElementById('saveBtn').disabled =
+        !Object.values(inputValues).some(v=>v!=="");
 }
-loadRooms();
-setInterval(loadRooms, 180000);
 
-// Camera
-openCamera.addEventListener("click", async () => {
-  cameraModal.style.display = "flex";
-  canvas.style.display = "none";
-  downloadBtn.style.display = "none";
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }, audio:false });
-  } catch(e) {
-    stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-  }
-  video.srcObject = stream;
-});
+// ===== SAVE =====
+function saveData(){
+    let date = document.getElementById('checkDate').value;
+    let entries={};
 
-captureBtn.addEventListener("click", () => {
-  const ctx = canvas.getContext("2d");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    document.querySelectorAll('.qty-input').forEach(i=>{
+        if(i.value!=="") entries[i.dataset.item]=i.value;
+    });
 
-  const roomName = roomNameQR.textContent || " ";
-  const amountNumber = manualAmount.value || "0";
-  const timeStr = new Date().toLocaleString('vi-VN');
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({
+            action:'save',
+            date:date,
+            time:getTimeVN(),
+            items:entries
+        })
+    })
+    .then(r=>r.json())
+    .then(()=>{
+        alert("Đã lưu!");
+        loadDataForDate(date);
+    });
+}
 
-  function drawLabel(text, x, y) {
-    ctx.font = "20px Arial";
-    ctx.textBaseline = "top";
-    const padding = 10;
-    const textWidth = ctx.measureText(text).width;
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 28);
-    ctx.fillStyle = "lightgreen";
-    ctx.fillText(text, x, y);
-  }
-  drawLabel(`${roomName}`, 20, 20);
-  drawLabel(`Số tiền: ${amountNumber}`, 20, 55);
-  drawLabel(`Thời gian: ${timeStr}`, 20, 90);
+// ===== CLEAR =====
+function clearInputs(){
+    inputValues={};
+    document.querySelectorAll('.qty-input').forEach(i=>i.value="");
+    updateStats();
+    updateSaveBtn();
+}
 
-  canvas.style.display = "block";
-  downloadBtn.style.display = "inline-block";
-});
+// ===== PREVIEW =====
+function previewData(){
+    console.log(inputValues);
+}
 
-downloadBtn.addEventListener("click", async () => {
-  canvas.toBlob(async (blob) => {
-    const file = new File([blob], `ThanhToan_${Date.now()}.png`, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: "Ảnh thanh toán",
-        text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
-      });
-    } else {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `ThanhToan_${Date.now()}.png`;
-      link.click();
-    }
-  }, "image/png");
-});
-
-closeModal.addEventListener("click", () => {
-  cameraModal.style.display = "none";
-  if(stream){ stream.getTracks().forEach(track => track.stop()); }
-});
+init();
 </script>
+
 </body>
 </html>
