@@ -14,7 +14,11 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;}
 .main{padding:20px;}
 table{width:100%;border-collapse:collapse;background:#fff;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-.qty-input{width:70px;padding:5px;text-align:center;}
+.qty-input{width:80px;padding:6px;text-align:center;}
+.diff{font-weight:600;}
+.diff.pos{color:#2e7d32;}   /* thừa */
+.diff.neg{color:#c62828;}   /* thiếu */
+.diff.zero{color:#555;}
 .btn{padding:6px 12px;margin:5px;cursor:pointer;}
 </style>
 </head>
@@ -31,7 +35,6 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 
 <div class="main">
 <div id="tableWrapper">⏳ Đang tải...</div>
-<button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
 <script>
@@ -51,15 +54,10 @@ function getTodayVN(){
     return getNowVN().toISOString().split('T')[0];
 }
 
-function getTimeVN(){
-    return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
-}
-
 // ===== INIT =====
 function init(){
     const today = getTodayVN();
     document.getElementById('checkDate').value = today;
-
     loadData(today);
 }
 
@@ -81,14 +79,13 @@ function loadData(date){
         items = data.headers || [];
         let revisions = data.revisions || [];
 
-        // ===== LẤY GIÁ TRỊ CUỐI CHUẨN =====
+        // ===== LẤY GIÁ TRỊ CUỐI =====
         lastValues = {};
-
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
                 let v = r.items[k];
                 if(v !== "" && v !== null && v !== undefined){
-                    lastValues[k] = v; // chỉ ghi nếu có dữ liệu
+                    lastValues[k] = Number(v);
                 }
             });
         });
@@ -113,16 +110,35 @@ function renderTable(){
         return;
     }
 
-    let html = "<table><thead><tr><th>Mặt hàng</th><th>Tồn hiện tại</th><th>Nhập</th></tr></thead><tbody>";
+    let html = `
+    <table>
+    <thead>
+        <tr>
+            <th>Mặt hàng</th>
+            <th>Tồn hệ thống</th>
+            <th>Tồn trên máy</th>
+            <th>Thừa / Thiếu</th>
+        </tr>
+    </thead>
+    <tbody>
+    `;
 
     items.forEach(item=>{
-        let val = lastValues[item] || "";
+        let sys = lastValues[item] || 0;
 
         html += `
         <tr>
             <td>${item}</td>
-            <td id="val-${escapeId(item)}">${val || '-'}</td>
-            <td><input type="number" class="qty-input" data-item="${escapeAttr(item)}"></td>
+            <td id="sys-${escapeId(item)}">${sys}</td>
+
+            <td>
+                <input type="number"
+                    class="qty-input"
+                    data-item="${escapeAttr(item)}"
+                    oninput="calcDiff(this)">
+            </td>
+
+            <td id="diff-${escapeId(item)}" class="diff zero">0</td>
         </tr>`;
     });
 
@@ -131,47 +147,27 @@ function renderTable(){
     document.getElementById('tableWrapper').innerHTML = html;
 }
 
-// ===== SAVE =====
-function saveData(){
-    let entries = {};
+// ===== TÍNH THỪA / THIẾU =====
+function calcDiff(input){
+    const item = input.dataset.item;
+    const machineVal = Number(input.value || 0);
+    const sysVal = Number(lastValues[item] || 0);
 
-    document.querySelectorAll('.qty-input').forEach(i=>{
-        if(i.value !== ""){
-            entries[i.dataset.item] = i.value;
-        }
-    });
+    const diff = sysVal - machineVal;
 
-    if(Object.keys(entries).length === 0){
-        alert("Chưa nhập");
-        return;
+    const el = document.getElementById("diff-"+escapeId(item));
+
+    el.innerText = diff;
+
+    el.classList.remove("pos","neg","zero");
+
+    if(diff > 0){
+        el.classList.add("pos"); // thừa
+    }else if(diff < 0){
+        el.classList.add("neg"); // thiếu
+    }else{
+        el.classList.add("zero");
     }
-
-    fetch(API_URL,{
-        method:'POST',
-        body:JSON.stringify({
-            action:'save',
-            date:getTodayVN(),
-            time:getTimeVN(),
-            items:entries
-        })
-    })
-    .then(r=>r.json())
-    .then(data=>{
-        if(!data.success){
-            alert("❌ Lỗi ghi dữ liệu");
-            return;
-        }
-
-        // cập nhật ngay UI
-        Object.keys(entries).forEach(item=>{
-            let el = document.getElementById("val-"+escapeId(item));
-            if(el) el.innerText = entries[item];
-        });
-
-        document.querySelectorAll('.qty-input').forEach(i=>i.value="");
-
-        alert("✅ Đã ghi!");
-    });
 }
 
 // ===== ESCAPE =====
