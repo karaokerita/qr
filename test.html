@@ -16,10 +16,11 @@ table{width:100%;border-collapse:collapse;background:#fff;}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 .qty-input{width:80px;padding:6px;text-align:center;}
 .diff{font-weight:600;}
-.diff.pos{color:#2e7d32;}   /* thừa */
-.diff.neg{color:#c62828;}   /* thiếu */
+.diff.pos{color:#2e7d32;}
+.diff.neg{color:#c62828;}
 .diff.zero{color:#555;}
 .btn{padding:6px 12px;margin:5px;cursor:pointer;}
+.btn-save{background:#43a047;color:#fff;}
 </style>
 </head>
 
@@ -30,6 +31,7 @@ th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 
 <input type="date" id="checkDate">
 <button class="btn" onclick="searchDate()">🔍 Tra cứu</button>
+<button class="btn btn-save" onclick="saveData()">💾 Ghi dữ liệu</button>
 
 </div>
 
@@ -52,6 +54,10 @@ function getNowVN(){
 
 function getTodayVN(){
     return getNowVN().toISOString().split('T')[0];
+}
+
+function getTimeVN(){
+    return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
 }
 
 // ===== INIT =====
@@ -79,7 +85,7 @@ function loadData(date){
         items = data.headers || [];
         let revisions = data.revisions || [];
 
-        // ===== LẤY GIÁ TRỊ CUỐI =====
+        // 👉 LẤY GIÁ TRỊ CUỐI
         lastValues = {};
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
@@ -162,12 +168,53 @@ function calcDiff(input){
     el.classList.remove("pos","neg","zero");
 
     if(diff > 0){
-        el.classList.add("pos"); // thừa
+        el.classList.add("pos");
     }else if(diff < 0){
-        el.classList.add("neg"); // thiếu
+        el.classList.add("neg");
     }else{
         el.classList.add("zero");
     }
+}
+
+// ===== SAVE (CHỈ GHI TỒN HỆ THỐNG) =====
+function saveData(){
+
+    if(items.length === 0){
+        alert("Không có dữ liệu để ghi");
+        return;
+    }
+
+    let entries = {};
+
+    // 👉 CHỈ LẤY CỘT TỒN HỆ THỐNG
+    items.forEach(item=>{
+        let val = lastValues[item];
+        if(val !== undefined){
+            entries[item] = val;
+        }
+    });
+
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({
+            action:'save',
+            date:getTodayVN(),   // luôn ngày hiện tại
+            time:getTimeVN(),
+            items:entries
+        })
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.success){
+            alert("❌ Lỗi ghi dữ liệu");
+            return;
+        }
+
+        alert("✅ Đã ghi tồn hệ thống!");
+    })
+    .catch(()=>{
+        alert("❌ Lỗi kết nối API");
+    });
 }
 
 // ===== ESCAPE =====
