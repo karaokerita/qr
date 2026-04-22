@@ -1,619 +1,712 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Thu ngân Karaoke</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/800.css" />
-  <style>
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --success: #10b981;
-      --success-dark: #059669;
-      --danger: #ef4444;
-      --danger-dark: #dc2626;
-      --warning: #f59e0b;
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --text: #1e293b;
-      --text-secondary: #64748b;
-      --border: #e2e8f0;
-      --shadow: 0 4px 24px rgba(0,0,0,0.08);
-      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-      --radius: 14px;
-    }
+<meta charset="UTF-8">
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<!-- FIX MOBILE + CHỐNG ZOOM -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      color: var(--text);
-      padding: 0;
-    }
+<title>Kiểm Kho</title>
 
-    .app-header {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-      color: white;
-      text-align: center;
-      padding: 32px 20px 28px;
-      position: relative;
-      overflow: hidden;
-    }
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/500.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/800.css" rel="stylesheet">
 
-    .app-header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-      animation: pulse-bg 6s ease-in-out infinite;
-    }
+<style>
+:root{
+  --primary:#6366f1;
+  --primary-dark:#4f46e5;
+  --primary-light:#a5b4fc;
+  --accent:#f59e0b;
+  --success:#10b981;
+  --danger:#ef4444;
+  --danger-soft:#fee2e2;
+  --danger-text:#991b1b;
+  --bg:#eef2f7;
+  --card:#fff;
+  --text:#1e293b;
+  --text-secondary:#64748b;
+  --border:#e2e8f0;
+  --radius:14px;
+}
 
-    @keyframes pulse-bg {
-      0%, 100% { transform: scale(1); opacity: 0.5; }
-      50% { transform: scale(1.1); opacity: 1; }
-    }
+*{margin:0;padding:0;box-sizing:border-box;}
 
-    .app-header h1 {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      position: relative;
-      z-index: 1;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    }
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
 
-    .app-header h1 span {
-      display: block;
-      font-size: 15px;
-      font-weight: 600;
-      opacity: 0.9;
-      margin-top: 4px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
+/* HEADER */
+.header{
+    background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a78bfa 100%);
+    color:#fff;
+    padding:20px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:100;
+    box-shadow:0 4px 20px rgba(99,102,241,0.3);
+}
 
-    #currentTime {
-      text-align: center;
-      font-weight: 600;
-      font-size: 14px;
-      margin-top: 6px;
-      color: rgba(255,255,255,0.9);
-      position: relative;
-      z-index: 1;
-      background: rgba(255,255,255,0.15);
-      display: inline-block;
-      padding: 6px 18px;
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-    }
+.header::before{
+    content:'';
+    position:absolute;
+    top:-50%;left:-50%;
+    width:200%;height:200%;
+    background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 60%);
+    pointer-events:none;
+}
 
-    .clock-wrapper {
-      text-align: center;
-      margin-top: 12px;
-    }
+.header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:relative;
+    z-index:1;
+}
 
-    .container {
-      max-width: 1100px;
-      margin: 24px auto;
-      padding: 0 16px;
-    }
+.header h2{
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-0.5px;
+}
 
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
+#checkDate{
+    padding:8px 14px;
+    border-radius:10px;
+    border:2px solid rgba(255,255,255,0.3);
+    background:rgba(255,255,255,0.15);
+    color:#fff;
+    font-size:16px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    backdrop-filter:blur(4px);
+    cursor:pointer;
+}
+#checkDate::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
 
-    .table-wrapper {
-      overflow-x: auto;
-    }
+.header-stats{
+    display:flex;
+    gap:8px;
+    position:relative;
+    z-index:1;
+    font-size:12px;
+    font-weight:600;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+.stat-badge{
+    padding:4px 10px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.2);
+    backdrop-filter:blur(4px);
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
 
-    thead th {
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      color: var(--text-secondary);
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      padding: 16px 14px;
-      border-bottom: 2px solid var(--border);
-      white-space: nowrap;
-      text-align: center;
-    }
+/* MAIN */
+.main{
+    padding:16px 10px 100px;
+}
 
-    tbody tr {
-      transition: all 0.3s ease;
-      border-bottom: 1px solid var(--border);
-    }
+/* CARD */
+.card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:0 4px 24px rgba(0,0,0,0.08);
+    overflow:hidden;
+    border:1px solid var(--border);
+}
 
-    tbody tr:last-child {
-      border-bottom: none;
-    }
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+}
 
-    tbody tr:hover {
-      background: #f8fafc;
-    }
+thead{
+    background:linear-gradient(135deg,#f8fafc,#f1f5f9);
+    position:sticky;
+    top:0;
+}
 
-    tbody td {
-      padding: 14px;
-      text-align: center;
-      vertical-align: middle;
-      font-size: 14px;
-      white-space: nowrap;
-    }
+th{
+    padding:12px 8px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    color:var(--text-secondary);
+    border-bottom:2px solid var(--border);
+    text-align:center;
+}
 
-    .room-name {
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--text);
-    }
+th:nth-child(1){width:28%;}
+th:nth-child(2){width:18%;}
+th:nth-child(3){width:16%;}
+th:nth-child(4){width:16%;}
+th:nth-child(5){width:22%;}
 
-    .room-name.unpaid {
-      color: var(--danger);
-    }
+td{
+    padding:10px 6px;
+    font-size:13px;
+    text-align:center;
+    border-bottom:1px solid #f1f5f9;
+    word-break:break-word;
+    transition:background 0.2s;
+}
 
-    .room-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
+tr:hover td{
+    background:#f8fafc;
+}
 
-    .amount-input {
-      width: 140px;
-      padding: 10px 12px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      text-align: right;
-      color: var(--text);
-      background: #f8fafc;
-      transition: all 0.2s ease;
-    }
+.item-name{
+    font-weight:600;
+    color:var(--text);
+    display:block;
+}
+.item-name.missing{
+    color:var(--danger);
+    position:relative;
+    padding-left:8px;
+}
+.item-name.missing::before{
+    content:'⚠️';
+    position:absolute;
+    left:-4px;
+    font-size:11px;
+}
 
-    .amount-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: white;
-      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
-    }
+/* INPUT */
+.qty-input{
+    width:100%;
+    padding:10px 6px;
+    font-size:16px;
+    text-align:center;
+    border-radius:10px;
+    border:2px solid var(--border);
+    background:#f8fafc;
+    color:var(--text);
+    font-weight:600;
+    font-family:'Inter',sans-serif;
+    transition:all 0.2s;
+}
+.qty-input:focus{
+    outline:none;
+    border-color:var(--primary);
+    background:#fff;
+    box-shadow:0 0 0 4px rgba(99,102,241,0.1);
+}
 
-    .btn {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      position: relative;
-      overflow: hidden;
-    }
+/* DIFF */
+.diff{
+    font-weight:700;
+    font-size:14px;
+    padding:4px 10px;
+    border-radius:8px;
+    display:inline-block;
+}
+.diff.pos{background:#d1fae5;color:#065f46;}
+.diff.neg{background:var(--danger-soft);color:var(--danger-text);}
+.diff.zero{background:#f1f5f9;color:var(--text-secondary);}
 
-    .btn:active {
-      transform: scale(0.96);
-    }
+/* VALUE CELL */
+.val-cell{
+    font-weight:600;
+    color:var(--text);
+}
+.val-cell.outofstock{
+    color:var(--danger);
+    font-weight:700;
+}
 
-    .btn-open {
-      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-      color: white;
-      box-shadow: 0 2px 8px rgba(14,165,233,0.3);
-    }
+/* BUTTON */
+.btn-save{
+    position:fixed;
+    bottom:20px;
+    left:12px;
+    right:12px;
+    padding:16px;
+    font-size:16px;
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:700;
+    font-family:'Inter',sans-serif;
+    letter-spacing:0.5px;
+    box-shadow:0 8px 30px rgba(99,102,241,0.35);
+    transition:all 0.3s;
+    z-index:99;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+.btn-save:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 40px rgba(99,102,241,0.45);
+}
+.btn-save:active{
+    transform:translateY(0);
+}
 
-    .btn-open:hover:not(:disabled) {
-      background: linear-gradient(135deg, #0284c7, #0ea5e9);
-      box-shadow: 0 4px 12px rgba(14,165,233,0.4);
-    }
+/* LOADING */
+.loading{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+}
+.loading-box{
+    background:#fff;
+    padding:24px 36px;
+    border-radius:16px;
+    font-weight:600;
+    box-shadow:0 10px 40px rgba(0,0,0,0.15);
+    text-align:center;
+}
+.spinner{
+    width:40px;height:40px;
+    border:4px solid var(--border);
+    border-top-color:var(--primary);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-    .btn-open:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+/* LEGEND */
+.legend{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    padding:10px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--text-secondary);
+    border-bottom:1px solid var(--border);
+}
+.legend span{
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
 
-    .btn-update {
-      background: linear-gradient(135deg, var(--success), #34d399);
-      color: white;
-      box-shadow: 0 2px 8px rgba(16,185,129,0.3);
-    }
+/* EMPTY */
+.empty{
+    text-align:center;
+    padding:48px 20px;
+    color:var(--text-secondary);
+}
+.empty .icon{font-size:48px;margin-bottom:8px;opacity:0.5;}
+.empty p{font-size:14px;}
 
-    .btn-update:hover:not(:disabled) {
-      background: linear-gradient(135deg, var(--success-dark), var(--success));
-      box-shadow: 0 4px 12px rgba(16,185,129,0.4);
-    }
+/* MISSING ITEMS SUMMARY */
+.missing-summary{
+    background:linear-gradient(135deg,#fee2e2,#fecaca);
+    padding:12px 14px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--danger-text);
+    border-radius:0 0 var(--radius) var(--radius);
+    display:none;
+}
+.missing-summary.active{
+    display:block;
+    border-top:1px solid #fca5a5;
+}
 
-    .btn-update:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .btn-update.enabled {
-      opacity: 1;
-      cursor: pointer;
-      animation: pulse-green 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
-      50% { box-shadow: 0 2px 16px rgba(16,185,129,0.5); }
-    }
-
-    .btn-paid {
-      background: linear-gradient(135deg, var(--danger), #f87171);
-      color: white;
-      box-shadow: 0 2px 8px rgba(239,68,68,0.3);
-    }
-
-    .btn-paid:hover:not(:disabled) {
-      background: linear-gradient(135deg, var(--danger-dark), var(--danger));
-      box-shadow: 0 4px 12px rgba(239,68,68,0.4);
-    }
-
-    .btn-paid:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .btn-paid.enabled {
-      opacity: 1;
-      cursor: pointer;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
-
-    .status-paid {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .status-unpaid {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .time-text {
-      font-size: 13px;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-
-    .highlight {
-      animation: row-highlight 2s ease;
-    }
-
-    @keyframes row-highlight {
-      0% { background: #dbeafe; }
-      100% { background: transparent; }
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* Kiểm Kho Button */
-    .check-inventory-btn {
-      display: block;
-      width: 100%;
-      max-width: 400px;
-      margin: 28px auto 32px;
-      padding: 16px 32px;
-      background: linear-gradient(135deg, #f59e0b, #fbbf24);
-      color: #78350f;
-      border: none;
-      border-radius: 14px;
-      font-size: 18px;
-      font-weight: 800;
-      font-family: 'Inter', sans-serif;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      letter-spacing: 1px;
-      box-shadow: 0 4px 16px rgba(245,158,11,0.35);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .check-inventory-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(245,158,11,0.45);
-    }
-
-    .check-inventory-btn:active {
-      transform: translateY(0);
-    }
-
-    .check-inventory-btn .icon {
-      margin-right: 8px;
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(2px);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .loading-overlay.active {
-      display: flex;
-    }
-
-    .spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 48px 20px;
-      color: var(--text-secondary);
-    }
-
-    .empty-state svg {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-      opacity: 0.4;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .app-header h1 { font-size: 22px; }
-      .app-header h1 span { font-size: 12px; }
-      .container { padding: 0 10px; margin: 16px auto; }
-      tbody td { padding: 10px 8px; }
-      .amount-input { width: 110px; padding: 8px 10px; font-size: 14px; }
-      .btn { padding: 7px 10px; font-size: 12px; }
-      .btn-group { gap: 4px; }
-      .room-name { font-size: 13px; }
-    }
-
-    /* Fade in animation */
-    .fade-in {
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Auto refresh indicator */
-    .refresh-bar {
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), #a78bfa);
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 999;
-      animation: refresh-bar 15s linear infinite;
-      border-radius: 0 2px 2px 0;
-    }
-
-    @keyframes refresh-bar {
-      from { width: 0; }
-      to { width: 100%; }
-    }
-  </style>
+/* ANIMATION */
+.fade-in{animation:fadeIn 0.4s ease;}
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+}
+</style>
 </head>
+
 <body>
 
-  <div class="refresh-bar" id="refreshBar"></div>
-  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
-
-  <header class="app-header">
-    <h1>
-      THU NGÂN
-      <span>Karaoke Rita</span>
-    </h1>
-    <div class="clock-wrapper">
-      <div id="currentTime"></div>
+<div class="header">
+    <div class="header-top">
+        <h2>📦 Kiểm Kho</h2>
+        <input type="date" id="checkDate">
     </div>
-  </header>
-
-  <div class="container">
-    <div class="card fade-in">
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Phòng</th>
-              <th>Số tiền</th>
-              <th>Hành động</th>
-              <th>Trạng thái</th>
-              <th>Thời gian</th>
-            </tr>
-          </thead>
-          <tbody id="roomTable"></tbody>
-        </table>
-      </div>
+    <div class="header-stats" id="headerStats">
+        <span class="stat-badge" id="statTotal">📋 Tổng: -</span>
+        <span class="stat-badge" id="statSaved">✅ Đã kiểm: -</span>
+        <span class="stat-badge" id="statMissing">⚠️ Chưa kiểm: -</span>
     </div>
+</div>
 
-    <a class="check-inventory-btn" href="https://karaokerita.github.io/qr/kho.html">
-      <span class="icon">📦</span> KIỂM KHO
-    </a>
-  </div>
-
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
-
-    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
-
-    async function loadRooms(highlight=null) {
-      const res = await fetch(API + "?action=getRooms");
-      const data = await res.json();
-      const table = document.getElementById("roomTable");
-      table.innerHTML = "";
-
-      if (!data || data.length === 0) {
-        table.innerHTML = `
-          <tr>
-            <td colspan="5">
-              <div class="empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-                  <polyline points="17 21 17 13 7 13 7 21"/>
-                  <polyline points="7 3 7 8 15 8"/>
-                </svg>
-                <p>Chưa có phòng hoạt động</p>
-              </div>
-            </td>
-          </tr>`;
-        return;
-      }
-
-      data.forEach(room => {
-        const roomId = encodeURIComponent(room.name);
-        const paid = room.status === "Đã thanh toán";
-        const unpaid = room.status === "Chưa thanh toán";
-
-        const tr = document.createElement("tr");
-        tr.id = "row-" + roomId;
-
-        tr.innerHTML = `
-          <td>
-            <span class="room-name ${unpaid ? 'unpaid' : ''}">${room.name}</span>
-          </td>
-          <td>
-            <input type="text" class="amount-input" id="amount-${roomId}" value="${formatNumber(room.amount)}"
-              data-raw="${room.amount || 0}"
-              oninput="onAmountChange('${roomId}')"
-              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
-          </td>
-          <td>
-            <div class="btn-group">
-              <button id="open-${roomId}" class="btn btn-open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">
-                🔓 Mở phòng
-              </button>
-              <button id="update-${roomId}" class="btn btn-update" disabled onclick="updateAmount('${roomId}')">
-                💾 Cập nhật
-              </button>
-              <button id="paid-${roomId}" class="btn btn-paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">
-                ✅ Đã thanh toán
-              </button>
+<div class="main">
+    <div class="card">
+        <div class="legend">
+            <span>🟢 Tồn máy > 0</span>
+            <span>🔴 Tồn máy < 0</span>
+            <span>⚫ Không đổi</span>
+        </div>
+        <div id="tableWrapper" class="fade-in">
+            <div class="empty">
+                <div class="icon">⏳</div>
+                <p>Đang tải dữ liệu...</p>
             </div>
-          </td>
-          <td>
-            <span class="status-badge ${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</span>
-          </td>
-          <td class="time-text">${room.refTime || ""}</td>
-        `;
+        </div>
+        <div class="missing-summary" id="missingSummary"></div>
+    </div>
+</div>
 
-        table.appendChild(tr);
-        if (highlight === roomId) {
-          tr.classList.add("highlight");
-          setTimeout(()=>tr.classList.remove("highlight"),2000);
+<button class="btn-save" onclick="saveData()">💾 LƯU DỮ LIỆU</button>
+
+<div class="loading" id="loading">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <div>⏳ Đang lưu dữ liệu...</div>
+    </div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
+
+let items = [];
+let lastValues = {};
+let rawValues = {};   // Lưu giá trị thô (bao gồm "hết hàng")
+let checkedItems = {}; // Danh sách các mặt hàng đã kiểm hôm nay (true/false)
+
+// ===== TIME VN =====
+function getNowVN(){
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() - offset*60000);
+}
+
+function getTodayVN(){
+    return getNowVN().toISOString().split('T')[0];
+}
+
+function getTimeVN(){
+    return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
+}
+
+// ===== INIT =====
+function init(){
+    const today = getTodayVN();
+    const dateInput = document.getElementById('checkDate');
+
+    dateInput.value = today;
+
+    dateInput.addEventListener('change', function(){
+        loadData(this.value);
+    });
+
+    // Fetch today's data first, then load selected date
+    loadTodayData(today).then(()=>{
+        loadData(today);
+    });
+}
+
+// Load today's saved data to know which items have data
+async function loadTodayData(date){
+    try{
+        const res = await fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'load',date:date})
+        });
+        const data = await res.json();
+        if(data.success && data.revisions){
+            data.revisions.forEach(r=>{
+                Object.keys(r.items).forEach(k=>{
+                    let v = r.items[k];
+                    if(v !== "" && v !== null && v !== undefined){
+                        // Ghi nhận là đã kiểm (kể cả khi là "hết hàng" / 0)
+                        checkedItems[k] = true;
+                        rawValues[k] = v;
+                        // Chuyển "hết hàng" về 0 để tính toán
+                        lastValues[k] = (v === "hết hàng") ? 0 : Number(v);
+                    }
+                });
+            });
         }
-      });
+    }catch(e){
+        console.warn('Failed to load today data:', e);
+    }
+}
+
+// ===== LOAD =====
+function loadData(date){
+    document.getElementById('tableWrapper').innerHTML = `
+        <div class="empty">
+            <div class="icon">⏳</div>
+            <p>Đang tải dữ liệu...</p>
+        </div>`;
+
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({action:'load',date:date})
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(!data.success){
+            document.getElementById('tableWrapper').innerHTML = `
+                <div class="empty">
+                    <div class="icon">❌</div>
+                    <p>Lỗi API</p>
+                </div>`;
+            return;
+        }
+
+        items = data.headers || [];
+        let revisions = data.revisions || [];
+
+        // Reset cho ngày được chọn
+        lastValues = {};
+        rawValues = {};
+        
+        revisions.forEach(r=>{
+            Object.keys(r.items).forEach(k=>{
+                let v = r.items[k];
+                if(v !== "" && v !== null && v !== undefined){
+                    checkedItems[k] = true;
+                    rawValues[k] = v;
+                    lastValues[k] = (v === "hết hàng") ? 0 : Number(v);
+                }
+            });
+        });
+
+        renderTable();
+        updateStats();
+    })
+    .catch(()=>{
+        document.getElementById('tableWrapper').innerHTML = `
+            <div class="empty">
+                <div class="icon">❌</div>
+                <p>Lỗi kết nối API</p>
+            </div>`;
+    });
+}
+
+// ===== RENDER =====
+function renderTable(){
+    if(items.length === 0){
+        document.getElementById('tableWrapper').innerHTML = `
+            <div class="empty">
+                <div class="icon">⚠️</div>
+                <p>Không có dữ liệu</p>
+            </div>`;
+        document.getElementById('missingSummary').classList.remove('active');
+        return;
     }
 
-    function onAmountChange(id) {
-      const input = document.getElementById("amount-" + id);
-      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
-      input.dataset.raw = raw;
-      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
-      const btn = document.getElementById("update-" + id);
-      btn.classList.add("enabled");
-      btn.disabled = false;
+    let missingItems = [];
+
+    let html = `
+    <table>
+    <thead>
+        <tr>
+            <th>Mặt hàng</th>
+            <th>SL kiểm</th>
+            <th>Tồn theo ngày</th>
+            <th>Tồn trên máy</th>
+            <th>Thừa / Thiếu</th>
+        </tr>
+    </thead>
+    <tbody>`;
+
+    items.forEach(item=>{
+        let sys = lastValues[item] !== undefined ? lastValues[item] : 0;
+        
+        // Kiểm tra mặt hàng đã có dữ liệu hôm nay chưa
+        const hasData = checkedItems.hasOwnProperty(item) && checkedItems[item] === true;
+        const isMissing = !hasData && Object.keys(checkedItems).length > 0;
+
+        if(isMissing){
+            missingItems.push(item);
+        }
+
+        // Hiển thị "hết hàng" nếu rawValue là "hết hàng"
+        let displayVal = rawValues.hasOwnProperty(item) ? rawValues[item] : sys;
+
+        html += `
+        <tr>
+            <td>
+                <span class="item-name ${isMissing ? 'missing' : ''}">${item}</span>
+            </td>
+
+            <td>
+                <input type="number"
+                    class="qty-input"
+                    data-item="${escapeAttr(item)}">
+            </td>
+
+            <td id="val-${escapeId(item)}" class="val-cell ${displayVal === 'hết hàng' ? 'outofstock' : ''}">${displayVal}</td>
+
+            <td>
+                <input type="number"
+                    class="qty-input"
+                    data-item="${escapeAttr(item)}"
+                    oninput="calcDiff(this)">
+            </td>
+
+            <td id="diff-${escapeId(item)}" class="diff zero">0</td>
+        </tr>`;
+    });
+
+    html += "</tbody></table>";
+
+    document.getElementById('tableWrapper').innerHTML = html;
+
+    // Show missing summary
+    const missingEl = document.getElementById('missingSummary');
+    if(missingItems.length > 0){
+        missingEl.innerHTML = `⚠️ <strong>${missingItems.length}</strong> mặt hàng chưa kiểm hôm nay: ${missingItems.join(', ')}`;
+        missingEl.classList.add('active');
+    }else{
+        missingEl.classList.remove('active');
+    }
+}
+
+// ===== UPDATE STATS =====
+function updateStats(){
+    const total = items.length;
+    let checkedCount = 0;
+    let missingCount = 0;
+
+    if(items.length > 0){
+        items.forEach(item=>{
+            if(checkedItems.hasOwnProperty(item) && checkedItems[item] === true){
+                checkedCount++;
+            }else{
+                if(Object.keys(checkedItems).length > 0){
+                    missingCount++;
+                }
+            }
+        });
     }
 
-    async function openRoom(id) {
-      const btn = document.getElementById("open-" + id);
-      btn.innerText = "⏳ Đang mở...";
-      btn.disabled = true;
-      await fetch(`${API}?action=openRoom&room=${id}`);
-      await loadRooms(id);
+    document.getElementById('statTotal').textContent = `📋 Tổng: ${total}`;
+    document.getElementById('statSaved').textContent = `✅ Đã kiểm: ${checkedCount}`;
+    document.getElementById('statMissing').textContent = `⚠️ Chưa kiểm: ${missingCount}`;
+}
+
+// ===== TÍNH =====
+function calcDiff(input){
+    const item = input.dataset.item;
+    const machineVal = Number(input.value || 0);
+    const sysVal = Number(lastValues[item] || 0);
+
+    const diff = sysVal - machineVal;
+
+    const el = document.getElementById("diff-"+escapeId(item));
+
+    el.innerText = diff;
+
+    el.classList.remove("pos","neg","zero");
+
+    if(diff > 0){
+        el.classList.add("pos");
+    }else if(diff < 0){
+        el.classList.add("neg");
+    }else{
+        el.classList.add("zero");
+    }
+}
+
+// ===== SAVE =====
+function saveData(){
+    let entries = {};
+    let hasAnyEntry = false;
+
+    document.querySelectorAll('tbody tr').forEach(row=>{
+        let input = row.children[1].querySelector('input');
+        if(input && input.value !== ""){
+            hasAnyEntry = true;
+            // Nếu nhập 0 thì lưu "hết hàng"
+            entries[input.dataset.item] = (input.value === "0" || input.value === 0) ? "hết hàng" : input.value;
+        }
+    });
+
+    if(!hasAnyEntry){
+        alert("⚠️ Chưa nhập số lượng nào!");
+        return;
     }
 
-    async function updateAmount(id) {
-      const btn = document.getElementById("update-" + id);
-      btn.innerText = "⏳ Đang lưu...";
-      btn.disabled = true;
-      const input = document.getElementById("amount-" + id);
-      const amount = input.dataset.raw;
-      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
-      await loadRooms(id);
-    }
+    document.getElementById('loading').style.display = 'flex';
 
-    async function markPaid(id) {
-      const btn = document.getElementById("paid-" + id);
-      btn.innerText = "⏳ Đang lưu...";
-      btn.disabled = true;
-      await fetch(`${API}?action=markPaid&room=${id}`);
-      await loadRooms(id);
-    }
+    fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({
+            action:'save',
+            date:getTodayVN(),
+            time:getTimeVN(),
+            items:entries
+        })
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        document.getElementById('loading').style.display = 'none';
 
-    function updateClock() {
-      const now = new Date();
-      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
-      const date = now.toLocaleDateString("vi-VN");
-      const dayName = days[now.getDay()];
-      document.getElementById("currentTime").innerText = `${time} • ${dayName}, ${date}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+        if(!data.success){
+            alert("❌ Lỗi ghi dữ liệu");
+            return;
+        }
 
-    loadRooms();
-    setInterval(loadRooms, 15000);
+        // Cập nhật local state
+        Object.keys(entries).forEach(item=>{
+            let val = entries[item];
+            lastValues[item] = (val === "hết hàng") ? 0 : Number(val);
+            rawValues[item] = val;
+            checkedItems[item] = true; // Đánh dấu là đã kiểm
+            let el = document.getElementById("val-"+escapeId(item));
+            if(el){
+                el.innerText = val;
+                el.classList.toggle('outofstock', val === 'hết hàng');
+            }
+        });
 
-    // Reset refresh bar animation periodically
-    setInterval(() => {
-      const bar = document.getElementById('refreshBar');
-      bar.style.animation = 'none';
-      bar.offsetHeight; // trigger reflow
-      bar.style.animation = 'refresh-bar 15s linear infinite';
-    }, 15000);
-  </script>
+        // Xóa input đã nhập
+        document.querySelectorAll('tbody tr').forEach(row=>{
+            row.children[1].querySelector('input').value="";
+        });
+
+        // Re-render to update red highlighting
+        renderTable();
+        updateStats();
+
+        alert("✅ Đã ghi dữ liệu thành công!");
+    })
+    .catch(()=>{
+        document.getElementById('loading').style.display = 'none';
+        alert("❌ Lỗi kết nối");
+    });
+}
+
+// ===== ESCAPE =====
+function escapeId(str){
+    return str.replace(/[^a-zA-Z0-9]/g,'_');
+}
+function escapeAttr(str){
+    return str.replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+
 </body>
 </html>
 
