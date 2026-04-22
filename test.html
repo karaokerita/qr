@@ -2,127 +2,93 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-
-<!-- FIX MOBILE + CHỐNG ZOOM -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
 <title>Kiểm Kho</title>
-
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/500.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/800.css" rel="stylesheet">
-
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
 <style>
-:root{
-  --primary:#6366f1;
-  --primary-dark:#4f46e5;
-  --primary-light:#a5b4fc;
-  --accent:#f59e0b;
-  --success:#10b981;
-  --danger:#ef4444;
-  --danger-soft:#fee2e2;
-  --danger-text:#991b1b;
-  --bg:#eef2f7;
-  --card:#fff;
-  --text:#1e293b;
-  --text-secondary:#64748b;
-  --border:#e2e8f0;
-  --radius:14px;
-}
-
 *{margin:0;padding:0;box-sizing:border-box;}
-
 body{
     font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    min-height:100vh;
+    background:#eef2f7;
+    padding-bottom:24px;
 }
 
 /* HEADER */
 .header{
-    background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a78bfa 100%);
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
     color:#fff;
-    padding:20px 16px;
+    padding:14px 16px;
     display:flex;
-    flex-direction:column;
-    gap:12px;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 4px 15px rgba(102,126,234,0.35);
     position:sticky;
     top:0;
     z-index:100;
-    box-shadow:0 4px 20px rgba(99,102,241,0.3);
 }
-
-.header::before{
-    content:'';
-    position:absolute;
-    top:-50%;left:-50%;
-    width:200%;height:200%;
-    background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 60%);
-    pointer-events:none;
-}
-
-.header-top{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:relative;
-    z-index:1;
-}
-
 .header h2{
-    font-size:20px;
-    font-weight:800;
-    letter-spacing:-0.5px;
+    font-size:17px;
+    white-space:nowrap;
 }
-
-#checkDate{
-    padding:8px 14px;
+.header input[type="date"]{
+    padding:8px 12px;
     border-radius:10px;
-    border:2px solid rgba(255,255,255,0.3);
-    background:rgba(255,255,255,0.15);
-    color:#fff;
+    border:none;
     font-size:16px;
-    font-family:'Inter',sans-serif;
-    font-weight:600;
+    background:rgba(255,255,255,0.2);
+    color:#fff;
     backdrop-filter:blur(4px);
+    font-family:'Inter',sans-serif;
+}
+.header input[type="date"]::-webkit-calendar-picker-indicator{
+    filter:invert(1);
     cursor:pointer;
 }
-#checkDate::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
 
-.header-stats{
+/* STATS BAR */
+.stats-bar{
     display:flex;
     gap:8px;
-    position:relative;
-    z-index:1;
-    font-size:12px;
-    font-weight:600;
+    padding:12px 14px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
 }
-
-.stat-badge{
-    padding:4px 10px;
-    border-radius:20px;
-    background:rgba(255,255,255,0.2);
-    backdrop-filter:blur(4px);
-    display:flex;
-    align-items:center;
-    gap:4px;
+.stat-card{
+    flex:1;
+    min-width:100px;
+    background:#fff;
+    border-radius:12px;
+    padding:10px 12px;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    transition:transform 0.2s;
 }
+.stat-card:active{transform:scale(0.97);}
+.stat-num{
+    font-size:22px;
+    font-weight:700;
+    line-height:1.2;
+}
+.stat-label{
+    font-size:11px;
+    color:#888;
+    margin-top:2px;
+}
+.stat-total .stat-num{color:#667eea;}
+.stat-checked .stat-num{color:#2e7d32;}
+.stat-unchecked .stat-num{color:#e53935;}
 
 /* MAIN */
-.main{
-    padding:16px 10px 100px;
-}
+.main{padding:0 10px;}
 
 /* CARD */
 .card{
-    background:var(--card);
-    border-radius:var(--radius);
-    box-shadow:0 4px 24px rgba(0,0,0,0.08);
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.07);
     overflow:hidden;
-    border:1px solid var(--border);
+    margin-bottom:14px;
 }
 
 /* TABLE */
@@ -131,133 +97,172 @@ table{
     border-collapse:collapse;
     table-layout:fixed;
 }
-
 thead{
-    background:linear-gradient(135deg,#f8fafc,#f1f5f9);
+    background:linear-gradient(180deg,#f7f9fc,#f0f3f8);
     position:sticky;
     top:0;
+    z-index:10;
 }
-
+th,td{
+    padding:9px 6px;
+    font-size:12.5px;
+    text-align:center;
+    border-bottom:1px solid #eee;
+}
 th{
-    padding:12px 8px;
-    font-size:11px;
     font-weight:700;
+    color:#555;
+    font-size:11.5px;
     text-transform:uppercase;
-    letter-spacing:0.6px;
-    color:var(--text-secondary);
-    border-bottom:2px solid var(--border);
-    text-align:center;
+    letter-spacing:0.3px;
+}
+td{word-break:break-word;vertical-align:middle;}
+td:first-child{text-align:left;padding-left:10px;font-weight:500;}
+
+/* ROW STATES */
+.row-unchecked{
+    background:rgba(255,226,226,0.7) !important;
+    animation:rowPulse 2s ease-in-out infinite;
+}
+.row-unchecked td{border-bottom-color:#ffcdd2;}
+.row-checked{background:#fff;}
+
+@keyframes rowPulse{
+    0%,100%{background:rgba(255,226,226,0.7);}
+    50%{background:rgba(255,205,205,0.9);}
 }
 
-th:nth-child(1){width:28%;}
-th:nth-child(2){width:18%;}
-th:nth-child(3){width:16%;}
-th:nth-child(4){width:16%;}
-th:nth-child(5){width:22%;}
-
-td{
-    padding:10px 6px;
-    font-size:13px;
-    text-align:center;
-    border-bottom:1px solid #f1f5f9;
-    word-break:break-word;
-    transition:background 0.2s;
-}
-
-tr:hover td{
-    background:#f8fafc;
-}
-
-.item-name{
+/* BADGE */
+.badge-unchecked{
+    display:inline-block;
+    background:#e53935;
+    color:#fff;
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:20px;
+    margin-left:4px;
     font-weight:600;
-    color:var(--text);
-    display:block;
+    animation:badgeBlink 1.5s ease-in-out infinite;
 }
-.item-name.missing{
-    color:var(--danger);
-    position:relative;
-    padding-left:8px;
-}
-.item-name.missing::before{
-    content:'⚠️';
-    position:absolute;
-    left:-4px;
-    font-size:11px;
+@keyframes badgeBlink{
+    0%,100%{opacity:1;}
+    50%{opacity:0.6;}
 }
 
 /* INPUT */
 .qty-input{
     width:100%;
-    padding:10px 6px;
+    padding:8px 4px;
     font-size:16px;
     text-align:center;
-    border-radius:10px;
-    border:2px solid var(--border);
-    background:#f8fafc;
-    color:var(--text);
-    font-weight:600;
+    border-radius:8px;
+    border:1.5px solid #e0e0e0;
+    background:#fafafa;
+    transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
     font-family:'Inter',sans-serif;
-    transition:all 0.2s;
 }
 .qty-input:focus{
-    outline:none;
-    border-color:var(--primary);
+    border-color:#667eea;
+    box-shadow:0 0 0 3px rgba(102,126,234,0.15);
     background:#fff;
-    box-shadow:0 0 0 4px rgba(99,102,241,0.1);
+    outline:none;
+}
+.qty-input.entered{
+    border-color:#2e7d32;
+    background:#e8f5e9;
+    color:#2e7d32;
+    font-weight:600;
 }
 
 /* DIFF */
-.diff{
-    font-weight:700;
-    font-size:14px;
-    padding:4px 10px;
-    border-radius:8px;
-    display:inline-block;
-}
-.diff.pos{background:#d1fae5;color:#065f46;}
-.diff.neg{background:var(--danger-soft);color:var(--danger-text);}
-.diff.zero{background:#f1f5f9;color:var(--text-secondary);}
+.diff{font-weight:700;font-size:13px;}
+.diff.pos{color:#2e7d32;}
+.diff.neg{color:#c62828;}
+.diff.zero{color:#78909c;}
 
-/* VALUE CELL */
-.val-cell{
+/* UNCHECKED LIST */
+.unchecked-section{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.07);
+    margin:0 10px 14px;
+    overflow:hidden;
+}
+.unchecked-header{
+    background:linear-gradient(135deg,#e53935,#ef5350);
+    color:#fff;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    user-select:none;
+}
+.unchecked-header h3{font-size:14px;font-weight:600;}
+.unchecked-count{
+    background:rgba(255,255,255,0.3);
+    border-radius:20px;
+    padding:3px 10px;
+    font-size:12px;
     font-weight:600;
-    color:var(--text);
 }
-.val-cell.outofstock{
-    color:var(--danger);
-    font-weight:700;
+.unchecked-list{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.4s ease;
 }
+.unchecked-list.open{max-height:1000px;}
+.unchecked-item{
+    display:flex;
+    align-items:center;
+    padding:10px 16px;
+    border-bottom:1px solid #fce4ec;
+    gap:10px;
+    transition:background 0.15s;
+}
+.unchecked-item:last-child{border-bottom:none;}
+.unchecked-item:active{background:#fce4ec;}
+.unchecked-icon{
+    width:28px;height:28px;
+    background:#ffcdd2;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    color:#e53935;
+    font-size:14px;
+}
+.unchecked-name{font-size:13px;color:#333;flex:1;}
+
+/* HIDDEN STATE */
+.section-hidden{display:none !important;}
 
 /* BUTTON */
-.btn-save{
-    position:fixed;
-    bottom:20px;
-    left:12px;
-    right:12px;
-    padding:16px;
+.btn{
+    width:calc(100% - 20px);
+    margin:0 10px 16px;
+    padding:14px;
     font-size:16px;
-    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    background:linear-gradient(135deg,#667eea,#764ba2);
     color:#fff;
     border:none;
-    border-radius:14px;
+    border-radius:12px;
     cursor:pointer;
     font-weight:700;
     font-family:'Inter',sans-serif;
-    letter-spacing:0.5px;
-    box-shadow:0 8px 30px rgba(99,102,241,0.35);
-    transition:all 0.3s;
-    z-index:99;
+    box-shadow:0 4px 15px rgba(102,126,234,0.35);
+    transition:transform 0.15s,box-shadow 0.15s;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:8px;
 }
-.btn-save:hover{
-    transform:translateY(-2px);
-    box-shadow:0 12px 40px rgba(99,102,241,0.45);
+.btn:active{
+    transform:scale(0.98);
+    box-shadow:0 2px 8px rgba(102,126,234,0.3);
 }
-.btn-save:active{
-    transform:translateY(0);
+.btn:disabled{
+    opacity:0.5;
+    pointer-events:none;
 }
 
 /* LOADING */
@@ -265,188 +270,244 @@ tr:hover td{
     position:fixed;
     top:0;left:0;
     width:100%;height:100%;
-    background:rgba(0,0,0,0.4);
-    backdrop-filter:blur(4px);
+    background:rgba(0,0,0,0.45);
     display:none;
     align-items:center;
     justify-content:center;
     z-index:999;
+    backdrop-filter:blur(4px);
 }
 .loading-box{
     background:#fff;
     padding:24px 36px;
     border-radius:16px;
     font-weight:600;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
     box-shadow:0 10px 40px rgba(0,0,0,0.15);
-    text-align:center;
+    animation:popIn 0.3s ease;
+}
+@keyframes popIn{
+    0%{transform:scale(0.8);opacity:0;}
+    100%{transform:scale(1);opacity:1;}
 }
 .spinner{
-    width:40px;height:40px;
-    border:4px solid var(--border);
-    border-top-color:var(--primary);
+    width:32px;height:32px;
+    border:3px solid #e0e0e0;
+    border-top-color:#667eea;
     border-radius:50%;
     animation:spin 0.8s linear infinite;
-    margin:0 auto 12px;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* LEGEND */
-.legend{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-    flex-wrap:wrap;
-    padding:10px;
-    font-size:11px;
+/* TOAST */
+.toast{
+    position:fixed;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%) translateY(100px);
+    background:#333;
+    color:#fff;
+    padding:12px 24px;
+    border-radius:12px;
+    font-size:14px;
     font-weight:600;
-    color:var(--text-secondary);
-    border-bottom:1px solid var(--border);
+    z-index:1000;
+    transition:transform 0.3s ease;
+    white-space:nowrap;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
 }
-.legend span{
-    display:flex;
-    align-items:center;
-    gap:4px;
-}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{background:linear-gradient(135deg,#43a047,#66bb6a);}
+.toast.error{background:linear-gradient(135deg,#e53935,#ef5350);}
 
 /* EMPTY */
-.empty{
+.empty-state{
     text-align:center;
-    padding:48px 20px;
-    color:var(--text-secondary);
+    padding:40px 20px;
+    color:#999;
 }
-.empty .icon{font-size:48px;margin-bottom:8px;opacity:0.5;}
-.empty p{font-size:14px;}
-
-/* MISSING ITEMS SUMMARY */
-.missing-summary{
-    background:linear-gradient(135deg,#fee2e2,#fecaca);
-    padding:12px 14px;
-    font-size:12px;
-    font-weight:600;
-    color:var(--danger-text);
-    border-radius:0 0 var(--radius) var(--radius);
-    display:none;
-}
-.missing-summary.active{
-    display:block;
-    border-top:1px solid #fca5a5;
-}
-
-/* ANIMATION */
-.fade-in{animation:fadeIn 0.4s ease;}
-@keyframes fadeIn{
-    from{opacity:0;transform:translateY(8px);}
-    to{opacity:1;transform:translateY(0);}
-}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
 </style>
 </head>
-
 <body>
 
+<!-- HEADER -->
 <div class="header">
-    <div class="header-top">
-        <h2>📦 Kiểm Kho</h2>
-        <input type="date" id="checkDate">
+    <h2>📦 Kiểm Kho</h2>
+    <input type="date" id="checkDate">
+</div>
+
+<!-- STATS -->
+<div class="stats-bar" id="statsBar">
+    <div class="stat-card stat-total">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">Tổng mặt hàng</div>
     </div>
-    <div class="header-stats" id="headerStats">
-        <span class="stat-badge" id="statTotal">📋 Tổng: -</span>
-        <span class="stat-badge" id="statSaved">✅ Đã kiểm: -</span>
-        <span class="stat-badge" id="statMissing">⚠️ Chưa kiểm: -</span>
+    <div class="stat-card stat-checked">
+        <div class="stat-num" id="statChecked">0</div>
+        <div class="stat-label">Đã kiểm</div>
+    </div>
+    <div class="stat-card stat-unchecked">
+        <div class="stat-num" id="statUnchecked">0</div>
+        <div class="stat-label">Chưa kiểm</div>
     </div>
 </div>
 
+<!-- TABLE -->
 <div class="main">
     <div class="card">
-            <div id="tableWrapper" class="fade-in">
-            <div class="empty">
+        <div id="tableWrapper">
+            <div class="empty-state">
                 <div class="icon">⏳</div>
                 <p>Đang tải dữ liệu...</p>
             </div>
         </div>
-        <div class="missing-summary" id="missingSummary"></div>
     </div>
 </div>
 
-<button class="btn-save" onclick="saveData()">💾 LƯU DỮ LIỆU</button>
+<!-- UNCHECKED LIST -->
+<div class="unchecked-section section-hidden" id="uncheckedSection">
+    <div class="unchecked-header" onclick="toggleUncheckedList()">
+        <h3>⚠️ Danh sách chưa kiểm</h3>
+        <span class="unchecked-count" id="uncheckedCount">0</span>
+    </div>
+    <div class="unchecked-list" id="uncheckedList"></div>
+</div>
 
+<!-- SAVE BUTTON -->
+<button class="btn" onclick="saveData()">
+    <span>💾</span>
+    <span>LƯU DỮ LIỆU</span>
+</button>
+
+<!-- LOADING -->
 <div class="loading" id="loading">
     <div class="loading-box">
         <div class="spinner"></div>
-        <div>⏳ Đang lưu dữ liệu...</div>
+        <div>Đang lưu dữ liệu...</div>
     </div>
 </div>
 
-<script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-let items = [];
-let lastValues = {};
-let rawValues = {};   // Lưu giá trị thô (bao gồm "hết hàng")
-let checkedItems = {}; // Danh sách các mặt hàng đã kiểm hôm nay (true/false)
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
+
+let invItems=[];
+let lastValues={};
+let checkedItems={};
+let uncheckedListOpen=false;
 
 // ===== TIME VN =====
 function getNowVN(){
-    const now = new Date();
-    const offset = now.getTimezoneOffset();
-    return new Date(now.getTime() - offset*60000);
+    const now=new Date();
+    const offset=now.getTimezoneOffset();
+    return new Date(now.getTime()-offset*60000);
 }
-
 function getTodayVN(){
     return getNowVN().toISOString().split('T')[0];
 }
-
 function getTimeVN(){
     return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});
 }
 
-// ===== INIT =====
-function init(){
-    const today = getTodayVN();
-    const dateInput = document.getElementById('checkDate');
+// ===== TOAST =====
+function showToast(msg,type){
+    const t=document.getElementById('toast');
+    t.textContent=msg;
+    t.className='toast '+type;
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>t.classList.remove('show'),2500);
+}
 
-    dateInput.value = today;
+// ===== TOGGLE UNCHECKED LIST =====
+function toggleUncheckedList(){
+    const el=document.getElementById('uncheckedList');
+    uncheckedListOpen=!uncheckedListOpen;
+    el.classList.toggle('open',uncheckedListOpen);
+}
 
-    dateInput.addEventListener('change', function(){
-        loadData(this.value);
+// ===== UPDATE STATS =====
+function updateStats(){
+    const total=invItems.length;
+    const checkedCount=Object.keys(checkedItems).filter(k=>invItems.includes(k)).length;
+    const uncheckedCount=total-checkedCount;
+
+    document.getElementById('statTotal').textContent=total;
+    document.getElementById('statChecked').textContent=checkedCount;
+    document.getElementById('statUnchecked').textContent=uncheckedCount;
+
+    const section=document.getElementById('uncheckedSection');
+    const countEl=document.getElementById('uncheckedCount');
+    countEl.textContent=uncheckedCount+' mục';
+
+    if(checkedCount>0 && uncheckedCount>0){
+        section.classList.remove('section-hidden');
+    }else{
+        section.classList.add('section-hidden');
+    }
+}
+
+// ===== UPDATE UNCHECKED LIST =====
+function renderUncheckedList(){
+    const list=document.getElementById('uncheckedList');
+    let html='';
+    invItems.forEach(itemName=>{
+        if(!checkedItems[itemName]){
+            html+=`
+            <div class="unchecked-item">
+                <div class="unchecked-icon">✕</div>
+                <div class="unchecked-name">${itemName}</div>
+            </div>`;
+        }
     });
+    list.innerHTML=html;
+}
 
-    // Fetch today's data first, then load selected date
-    loadTodayData(today).then(()=>{
-        loadData(today);
+// ===== HIGHLIGHT ROWS =====
+function highlightRows(){
+    const hasChecked=Object.keys(checkedItems).length>0;
+    document.querySelectorAll('tbody tr').forEach(row=>{
+        const input=row.children[1].querySelector('input');
+        const itemName=input?input.dataset.item:'';
+        row.classList.remove('row-checked','row-unchecked');
+        if(hasChecked && !checkedItems[itemName]){
+            row.classList.add('row-unchecked');
+            const td=row.children[0];
+            if(!td.querySelector('.badge-unchecked')){
+                const badge=document.createElement('span');
+                badge.className='badge-unchecked';
+                badge.textContent='CHƯA KIỂM';
+                td.appendChild(badge);
+            }
+        }else{
+            const badge=td.querySelector('.badge-unchecked');
+            if(badge) badge.remove();
+        }
     });
 }
 
-// Load today's saved data to know which items have data
-async function loadTodayData(date){
-    try{
-        const res = await fetch(API_URL,{
-            method:'POST',
-            body:JSON.stringify({action:'load',date:date})
-        });
-        const data = await res.json();
-        if(data.success && data.revisions){
-            data.revisions.forEach(r=>{
-                Object.keys(r.items).forEach(k=>{
-                    let v = r.items[k];
-                    if(v !== "" && v !== null && v !== undefined){
-                        // Ghi nhận là đã kiểm (kể cả khi là "hết hàng" / 0)
-                        checkedItems[k] = true;
-                        rawValues[k] = v;
-                        // Chuyển "hết hàng" về 0 để tính toán
-                        lastValues[k] = (v === "hết hàng") ? 0 : Number(v);
-                    }
-                });
-            });
-        }
-    }catch(e){
-        console.warn('Failed to load today data:', e);
-    }
+// ===== INIT =====
+function init(){
+    const today=getTodayVN();
+    const dateInput=document.getElementById('checkDate');
+    dateInput.value=today;
+    dateInput.addEventListener('change',function(){
+        checkedItems={};
+        loadData(this.value);
+    });
+    loadData(today);
 }
 
 // ===== LOAD =====
 function loadData(date){
-    document.getElementById('tableWrapper').innerHTML = `
-        <div class="empty">
+    document.getElementById('tableWrapper').innerHTML=`
+        <div class="empty-state">
             <div class="icon">⏳</div>
             <p>Đang tải dữ liệu...</p>
         </div>`;
@@ -458,38 +519,31 @@ function loadData(date){
     .then(r=>r.json())
     .then(data=>{
         if(!data.success){
-            document.getElementById('tableWrapper').innerHTML = `
-                <div class="empty">
+            document.getElementById('tableWrapper').innerHTML=`
+                <div class="empty-state">
                     <div class="icon">❌</div>
                     <p>Lỗi API</p>
                 </div>`;
             return;
         }
-
-        items = data.headers || [];
-        let revisions = data.revisions || [];
-
-        // Reset cho ngày được chọn
-        lastValues = {};
-        rawValues = {};
-        
+        invItems=data.headers||[];
+        let revisions=data.revisions||[];
+        lastValues={};
+        checkedItems={};
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
-                let v = r.items[k];
-                if(v !== "" && v !== null && v !== undefined){
-                    checkedItems[k] = true;
-                    rawValues[k] = v;
-                    lastValues[k] = (v === "hết hàng") ? 0 : Number(v);
+                let v=r.items[k];
+                if(v!==""&&v!==null&&v!==undefined){
+                    lastValues[k]=Number(v);
+                    checkedItems[k]=true;
                 }
             });
         });
-
         renderTable();
-        updateStats();
     })
     .catch(()=>{
-        document.getElementById('tableWrapper').innerHTML = `
-            <div class="empty">
+        document.getElementById('tableWrapper').innerHTML=`
+            <div class="empty-state">
                 <div class="icon">❌</div>
                 <p>Lỗi kết nối API</p>
             </div>`;
@@ -498,151 +552,112 @@ function loadData(date){
 
 // ===== RENDER =====
 function renderTable(){
-    if(items.length === 0){
-        document.getElementById('tableWrapper').innerHTML = `
-            <div class="empty">
+    if(invItems.length===0){
+        document.getElementById('tableWrapper').innerHTML=`
+            <div class="empty-state">
                 <div class="icon">⚠️</div>
                 <p>Không có dữ liệu</p>
             </div>`;
-        document.getElementById('missingSummary').classList.remove('active');
+        updateStats();
         return;
     }
 
-    let missingItems = [];
-
-    let html = `
+    let html=`
     <table>
     <thead>
         <tr>
-            <th>Mặt hàng</th>
-            <th>SL kiểm</th>
-            <th>Tồn theo ngày</th>
-            <th>Tồn trên máy</th>
-            <th>Thừa / Thiếu</th>
+            <th style="width:28%">Mặt hàng</th>
+            <th style="width:16%">SL kiểm</th>
+            <th style="width:18%">Tồn theo ngày</th>
+            <th style="width:18%">Tồn trên máy</th>
+            <th style="width:20%">Thừa / Thiếu</th>
         </tr>
     </thead>
     <tbody>`;
 
-    items.forEach(item=>{
-        let sys = lastValues[item] !== undefined ? lastValues[item] : 0;
-        
-        // Kiểm tra mặt hàng đã có dữ liệu hôm nay chưa
-        const hasData = checkedItems.hasOwnProperty(item) && checkedItems[item] === true;
-        const isMissing = !hasData && Object.keys(checkedItems).length > 0;
-
-        if(isMissing){
-            missingItems.push(item);
+    invItems.forEach(item=>{
+        let sys=lastValues[item]||0;
+        let isAlreadyChecked=checkedItems[item]===true;
+        let rowClass=isAlreadyChecked?'row-checked':'row-unchecked';
+        let badgeHTML='';
+        const hasAnyChecked=Object.keys(checkedItems).length>0;
+        if(hasAnyChecked&&!isAlreadyChecked){
+            badgeHTML=`<span class="badge-unchecked">CHƯA KIỂM</span>`;
         }
 
-        // Hiển thị "hết hàng" nếu rawValue là "hết hàng"
-        let displayVal = rawValues.hasOwnProperty(item) ? rawValues[item] : sys;
-
-        html += `
-        <tr>
-            <td>
-                <span class="item-name ${isMissing ? 'missing' : ''}">${item}</span>
-            </td>
-
+        html+=`
+        <tr class="${rowClass}" data-item="${escapeAttr(item)}">
+            <td>${item} ${badgeHTML}</td>
             <td>
                 <input type="number"
-                    class="qty-input"
-                    data-item="${escapeAttr(item)}">
+                    class="qty-input${isAlreadyChecked?' entered':''}"
+                    data-item="${escapeAttr(item)}"
+                    value="${isAlreadyChecked?lastValues[item]:''}"
+                    oninput="onQtyInput(this)">
             </td>
-
-            <td id="val-${escapeId(item)}" class="val-cell ${displayVal === 'hết hàng' ? 'outofstock' : ''}">${displayVal}</td>
-
+            <td id="val-${escapeId(item)}">${sys}</td>
             <td>
                 <input type="number"
                     class="qty-input"
                     data-item="${escapeAttr(item)}"
                     oninput="calcDiff(this)">
             </td>
-
-            <td id="diff-${escapeId(item)}" class="diff zero">0</td>
+            <td id="diff-${escapeId(item)}" class="diff zero">${isAlreadyChecked?(sys-lastValues[item]):0}</td>
         </tr>`;
     });
 
-    html += "</tbody></table>";
+    html+="</tbody></table>";
+    document.getElementById('tableWrapper').innerHTML=html;
 
-    document.getElementById('tableWrapper').innerHTML = html;
+    updateStats();
+    renderUncheckedList();
+}
 
-    // Show missing summary
-    const missingEl = document.getElementById('missingSummary');
-    if(missingItems.length > 0){
-        missingEl.innerHTML = `⚠️ <strong>${missingItems.length}</strong> mặt hàng chưa kiểm hôm nay: ${missingItems.join(', ')}`;
-        missingEl.classList.add('active');
+// ===== INPUT HANDLER =====
+function onQtyInput(input){
+    const item=input.dataset.item;
+    if(input.value!==''&&!isNaN(Number(input.value))){
+        checkedItems[item]=true;
+        input.classList.add('entered');
     }else{
-        missingEl.classList.remove('active');
+        delete checkedItems[item];
+        input.classList.remove('entered');
     }
+    highlightRows();
+    updateStats();
+    renderUncheckedList();
+    calcDiff(input);
 }
 
-// ===== UPDATE STATS =====
-function updateStats(){
-    const total = items.length;
-    let checkedCount = 0;
-    let missingCount = 0;
-
-    if(items.length > 0){
-        items.forEach(item=>{
-            if(checkedItems.hasOwnProperty(item) && checkedItems[item] === true){
-                checkedCount++;
-            }else{
-                if(Object.keys(checkedItems).length > 0){
-                    missingCount++;
-                }
-            }
-        });
-    }
-
-    document.getElementById('statTotal').textContent = `📋 Tổng: ${total}`;
-    document.getElementById('statSaved').textContent = `✅ Đã kiểm: ${checkedCount}`;
-    document.getElementById('statMissing').textContent = `⚠️ Chưa kiểm: ${missingCount}`;
-}
-
-// ===== TÍNH =====
+// ===== CALC DIFF =====
 function calcDiff(input){
-    const item = input.dataset.item;
-    const machineVal = Number(input.value || 0);
-    const sysVal = Number(lastValues[item] || 0);
-
-    const diff = sysVal - machineVal;
-
-    const el = document.getElementById("diff-"+escapeId(item));
-
-    el.innerText = diff;
-
+    const item=input.dataset.item;
+    const machineVal=Number(input.value||0);
+    const sysVal=Number(lastValues[item]||0);
+    const diff=sysVal-machineVal;
+    const el=document.getElementById("diff-"+escapeId(item));
+    if(!el)return;
+    el.innerText=diff;
     el.classList.remove("pos","neg","zero");
-
-    if(diff > 0){
-        el.classList.add("pos");
-    }else if(diff < 0){
-        el.classList.add("neg");
-    }else{
-        el.classList.add("zero");
-    }
+    if(diff>0)el.classList.add("pos");
+    else if(diff<0)el.classList.add("neg");
+    else el.classList.add("zero");
 }
 
 // ===== SAVE =====
 function saveData(){
-    let entries = {};
-    let hasAnyEntry = false;
-
+    let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
-        let input = row.children[1].querySelector('input');
-        if(input && input.value !== ""){
-            hasAnyEntry = true;
-            // Nếu nhập 0 thì lưu "hết hàng"
-            entries[input.dataset.item] = (input.value === "0" || input.value === 0) ? "hết hàng" : input.value;
+        let input=row.children[1].querySelector('input');
+        if(input&&input.value!==''){
+            entries[input.dataset.item]=input.value;
         }
     });
-
-    if(!hasAnyEntry){
-        alert("⚠️ Chưa nhập số lượng nào!");
+    if(Object.keys(entries).length===0){
+        showToast("⚠️ Chưa nhập mặt hàng nào","error");
         return;
     }
-
-    document.getElementById('loading').style.display = 'flex';
-
+    document.getElementById('loading').style.display='flex';
     fetch(API_URL,{
         method:'POST',
         body:JSON.stringify({
@@ -654,54 +669,42 @@ function saveData(){
     })
     .then(r=>r.json())
     .then(data=>{
-        document.getElementById('loading').style.display = 'none';
-
+        document.getElementById('loading').style.display='none';
         if(!data.success){
-            alert("❌ Lỗi ghi dữ liệu");
+            showToast("❌ Lỗi ghi dữ liệu","error");
             return;
         }
-
-        // Cập nhật local state
         Object.keys(entries).forEach(item=>{
-            let val = entries[item];
-            lastValues[item] = (val === "hết hàng") ? 0 : Number(val);
-            rawValues[item] = val;
-            checkedItems[item] = true; // Đánh dấu là đã kiểm
-            let el = document.getElementById("val-"+escapeId(item));
-            if(el){
-                el.innerText = val;
-                el.classList.toggle('outofstock', val === 'hết hàng');
-            }
+            lastValues[item]=Number(entries[item]);
+            checkedItems[item]=true;
+            let el=document.getElementById("val-"+escapeId(item));
+            if(el)el.innerText=entries[item];
         });
-
-        // Xóa input đã nhập
         document.querySelectorAll('tbody tr').forEach(row=>{
-            row.children[1].querySelector('input').value="";
+            row.children[1].querySelector('input').value='';
         });
-
-        // Re-render to update red highlighting
-        renderTable();
+        document.querySelectorAll('.qty-input.entered').forEach(inp=>inp.classList.remove('entered'));
+        highlightRows();
         updateStats();
-
-        alert("✅ Đã ghi dữ liệu thành công!");
+        renderUncheckedList();
+        document.querySelectorAll('tbody tr').forEach(row=>{
+            row.classList.remove('row-unchecked');
+            row.classList.add('row-checked');
+        });
+        showToast("✅ Đã ghi thành công!","success");
     })
     .catch(()=>{
-        document.getElementById('loading').style.display = 'none';
-        alert("❌ Lỗi kết nối");
+        document.getElementById('loading').style.display='none';
+        showToast("❌ Lỗi kết nối","error");
     });
 }
 
 // ===== ESCAPE =====
-function escapeId(str){
-    return str.replace(/[^a-zA-Z0-9]/g,'_');
-}
-function escapeAttr(str){
-    return str.replace(/"/g,'&quot;');
-}
+function escapeId(str){return str.replace(/[^a-zA-Z0-9]/g,'_');}
+function escapeAttr(str){return str.replace(/"/g,'&quot;');}
 
 init();
 </script>
-
 </body>
 </html>
 
