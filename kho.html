@@ -164,7 +164,11 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
     <div class="card"><div id="tableWrapper"><div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div></div></div>
 </div>
 
-
+<div class="unchecked-section section-hidden" id="uncheckedSection">
+    <div class="unchecked-header" onclick="toggleUncheckedList()">
+        <h3>⚠️ Danh sách chưa kiểm</h3>
+        <span class="unchecked-count" id="uncheckedCount">0</span>
+    </div>
     <div class="unchecked-list" id="uncheckedList"></div>
 </div>
 
