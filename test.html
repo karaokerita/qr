@@ -34,9 +34,7 @@ body{
 }
 
 /* MAIN */
-.main{
-    padding:20px;
-}
+.main{padding:20px;}
 
 /* CARD */
 .card{
@@ -69,9 +67,7 @@ th{
     color:#555;
 }
 
-tbody tr:hover{
-    background:#fafafa;
-}
+tbody tr:hover{background:#fafafa;}
 
 /* INPUT */
 .qty-input{
@@ -101,19 +97,17 @@ tbody tr:hover{
 }
 .btn:hover{opacity:0.9;}
 
-/* LOADING POPUP */
+/* LOADING */
 .loading{
     position:fixed;
     top:0;left:0;
     width:100%;height:100%;
     background:rgba(0,0,0,0.4);
-    display:flex;
+    display:none;
     align-items:center;
     justify-content:center;
     z-index:999;
-    display:none;
 }
-
 .loading-box{
     background:#fff;
     padding:20px 30px;
@@ -138,7 +132,6 @@ tbody tr:hover{
     <button class="btn" onclick="saveData()">💾 Ghi</button>
 </div>
 
-<!-- LOADING -->
 <div class="loading" id="loading">
     <div class="loading-box">⏳ Đang lưu dữ liệu...</div>
 </div>
@@ -227,6 +220,7 @@ function renderTable(){
         <tr>
             <th>Mặt hàng</th>
             <th>Nhập</th>
+            <th>Tồn hệ thống</th>
             <th>Tồn trên máy</th>
             <th>Thừa / Thiếu</th>
         </tr>
@@ -235,6 +229,8 @@ function renderTable(){
     `;
 
     items.forEach(item=>{
+        let sys = lastValues[item] || 0;
+
         html += `
         <tr>
             <td>${item}</td>
@@ -245,6 +241,9 @@ function renderTable(){
                     class="qty-input"
                     data-item="${escapeAttr(item)}">
             </td>
+
+            <!-- TỒN HỆ THỐNG -->
+            <td id="val-${escapeId(item)}">${sys}</td>
 
             <!-- TỒN TRÊN MÁY -->
             <td>
@@ -292,7 +291,7 @@ function saveData(){
     let entries = {};
 
     document.querySelectorAll('tbody tr').forEach(row=>{
-        let input = row.children[1].querySelector('input'); // cột "Nhập"
+        let input = row.children[1].querySelector('input'); // cột Nhập
         if(input && input.value !== ""){
             entries[input.dataset.item] = input.value;
         }
@@ -326,6 +325,8 @@ function saveData(){
 
         Object.keys(entries).forEach(item=>{
             lastValues[item] = Number(entries[item]);
+            let el = document.getElementById("val-"+escapeId(item));
+            if(el) el.innerText = entries[item];
         });
 
         document.querySelectorAll('tbody tr').forEach(row=>{
