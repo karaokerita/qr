@@ -4,42 +4,485 @@
   <meta charset="UTF-8">
   <title>Thu ngân Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/800.css" />
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; color: blue; }
-    #currentTime { text-align:center; font-weight:bold; margin-top:-10px; color:#555; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background: #007bff; color: white; }
-    input[type="text"] { width: 140px; padding: 5px; text-align: right; }
-    button { padding: 6px 10px; margin: 2px; border: none; border-radius: 4px; cursor: pointer; }
-    .open { background: #17a2b8; color: white; }
-    .update { background: #28a745; color: white; opacity: 0.5; cursor: not-allowed; }
-    .update.enabled { opacity: 1; cursor: pointer; }
-    .paid { background: #dc3545; color: white; opacity: 0.5; cursor: not-allowed; }
-    .paid.enabled { opacity: 1; cursor: pointer; }
-    .status-unpaid { color: red; font-weight: bold; }
-    .status-paid { color: green; font-weight: bold; }
-    .highlight { background: #d4edda !important; transition: background 2s ease; }
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --success-dark: #059669;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --warning: #f59e0b;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --radius: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 0;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+      color: white;
+      text-align: center;
+      padding: 32px 20px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+      animation: pulse-bg 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse-bg {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .app-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .app-header h1 span {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-top: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #currentTime {
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 6px;
+      color: rgba(255,255,255,0.9);
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.15);
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .clock-wrapper {
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 16px 14px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    tbody tr {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tbody td {
+      padding: 14px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .room-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .room-name.unpaid {
+      color: var(--danger);
+    }
+
+    .room-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .amount-input {
+      width: 140px;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      text-align: right;
+      color: var(--text);
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    .amount-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-open {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+    }
+
+    .btn-open:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.4);
+    }
+
+    .btn-open:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-update {
+      background: linear-gradient(135deg, var(--success), #34d399);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+    }
+
+    .btn-update:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--success-dark), var(--success));
+      box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    }
+
+    .btn-update:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-update.enabled {
+      opacity: 1;
+      cursor: pointer;
+      animation: pulse-green 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+      50% { box-shadow: 0 2px 16px rgba(16,185,129,0.5); }
+    }
+
+    .btn-paid {
+      background: linear-gradient(135deg, var(--danger), #f87171);
+      color: white;
+      box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+    }
+
+    .btn-paid:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--danger-dark), var(--danger));
+      box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+    }
+
+    .btn-paid:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-paid.enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .status-paid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-unpaid {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .time-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .highlight {
+      animation: row-highlight 2s ease;
+    }
+
+    @keyframes row-highlight {
+      0% { background: #dbeafe; }
+      100% { background: transparent; }
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Kiểm Kho Button */
+    .check-inventory-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 28px auto 32px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      color: #78350f;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.35);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .check-inventory-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.45);
+    }
+
+    .check-inventory-btn:active {
+      transform: translateY(0);
+    }
+
+    .check-inventory-btn .icon {
+      margin-right: 8px;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app-header h1 { font-size: 22px; }
+      .app-header h1 span { font-size: 12px; }
+      .container { padding: 0 10px; margin: 16px auto; }
+      tbody td { padding: 10px 8px; }
+      .amount-input { width: 110px; padding: 8px 10px; font-size: 14px; }
+      .btn { padding: 7px 10px; font-size: 12px; }
+      .btn-group { gap: 4px; }
+      .room-name { font-size: 13px; }
+    }
+
+    /* Fade in animation */
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Auto refresh indicator */
+    .refresh-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), #a78bfa);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999;
+      animation: refresh-bar 15s linear infinite;
+      border-radius: 0 2px 2px 0;
+    }
+
+    @keyframes refresh-bar {
+      from { width: 0; }
+      to { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <h1>THU NGÂN <br>KARAOKE RITA</h1>
-  <p id="currentTime"></p>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Phòng</th>
-        <th>Số tiền</th>
-        <th>Hành động</th>
-        <th>Trạng thái</th>
-        <th>Thời gian</th>
-      </tr>
-    </thead>
-    <tbody id="roomTable"></tbody>
-  </table>
- 
+  <div class="refresh-bar" id="refreshBar"></div>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+  <header class="app-header">
+    <h1>
+      THU NGÂN
+      <span>Karaoke Rita</span>
+    </h1>
+    <div class="clock-wrapper">
+      <div id="currentTime"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card fade-in">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Phòng</th>
+              <th>Số tiền</th>
+              <th>Hành động</th>
+              <th>Trạng thái</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody id="roomTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <a class="check-inventory-btn" href="https://karaokerita.github.io/qr/kho.html">
+      <span class="icon">📦</span> KIỂM KHO
+    </a>
+  </div>
+
   <script>
     const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
 
@@ -51,6 +494,23 @@
       const table = document.getElementById("roomTable");
       table.innerHTML = "";
 
+      if (!data || data.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <p>Chưa có phòng hoạt động</p>
+              </div>
+            </td>
+          </tr>`;
+        return;
+      }
+
       data.forEach(room => {
         const roomId = encodeURIComponent(room.name);
         const paid = room.status === "Đã thanh toán";
@@ -60,22 +520,32 @@
         tr.id = "row-" + roomId;
 
         tr.innerHTML = `
-          <td style="color:${unpaid ? 'red' : 'black'}; font-weight:${unpaid ? 'bold' : 'normal'}">
-            ${room.name}
+          <td>
+            <span class="room-name ${unpaid ? 'unpaid' : ''}">${room.name}</span>
           </td>
           <td>
-            <input type="text" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+            <input type="text" class="amount-input" id="amount-${roomId}" value="${formatNumber(room.amount)}"
               data-raw="${room.amount || 0}"
               oninput="onAmountChange('${roomId}')"
               onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
           </td>
           <td>
-            <button id="open-${roomId}" class="open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">Mở phòng</button>
-            <button id="update-${roomId}" class="update" disabled onclick="updateAmount('${roomId}')">Cập nhật</button>
-            <button id="paid-${roomId}" class="paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">Đã thanh toán</button>
+            <div class="btn-group">
+              <button id="open-${roomId}" class="btn btn-open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">
+                🔓 Mở phòng
+              </button>
+              <button id="update-${roomId}" class="btn btn-update" disabled onclick="updateAmount('${roomId}')">
+                💾 Cập nhật
+              </button>
+              <button id="paid-${roomId}" class="btn btn-paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">
+                ✅ Đã thanh toán
+              </button>
+            </div>
           </td>
-          <td id="status-${roomId}" class="${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</td>
-          <td id="time-${roomId}">${room.refTime || ""}</td>
+          <td>
+            <span class="status-badge ${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</span>
+          </td>
+          <td class="time-text">${room.refTime || ""}</td>
         `;
 
         table.appendChild(tr);
@@ -98,31 +568,28 @@
 
     async function openRoom(id) {
       const btn = document.getElementById("open-" + id);
-      btn.innerText = "Đang mở...";
+      btn.innerText = "⏳ Đang mở...";
       btn.disabled = true;
       await fetch(`${API}?action=openRoom&room=${id}`);
       await loadRooms(id);
-      btn.innerText = "Mở phòng";
     }
 
     async function updateAmount(id) {
       const btn = document.getElementById("update-" + id);
-      btn.innerText = "Đang lưu...";
+      btn.innerText = "⏳ Đang lưu...";
       btn.disabled = true;
       const input = document.getElementById("amount-" + id);
       const amount = input.dataset.raw;
       await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
       await loadRooms(id);
-      btn.innerText = "Cập nhật";
     }
 
     async function markPaid(id) {
       const btn = document.getElementById("paid-" + id);
-      btn.innerText = "Đang lưu...";
+      btn.innerText = "⏳ Đang lưu...";
       btn.disabled = true;
       await fetch(`${API}?action=markPaid&room=${id}`);
       await loadRooms(id);
-      btn.innerText = "Đã thanh toán";
     }
 
     function updateClock() {
@@ -131,13 +598,21 @@
       const time = now.toLocaleTimeString("vi-VN", { hour12: false });
       const date = now.toLocaleDateString("vi-VN");
       const dayName = days[now.getDay()];
-      document.getElementById("currentTime").innerText = `${time} - ${dayName}, ${date}`;
+      document.getElementById("currentTime").innerText = `${time} • ${dayName}, ${date}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
     loadRooms();
     setInterval(loadRooms, 15000);
+
+    // Reset refresh bar animation periodically
+    setInterval(() => {
+      const bar = document.getElementById('refreshBar');
+      bar.style.animation = 'none';
+      bar.offsetHeight; // trigger reflow
+      bar.style.animation = 'refresh-bar 15s linear infinite';
+    }, 15000);
   </script>
 </body>
 </html>
