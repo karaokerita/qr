@@ -2,43 +2,153 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- FIX MOBILE + CHỐNG ZOOM -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
 <title>Kiểm Kho</title>
 
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:#f0f2f5;}
-.header{background:#667eea;color:#fff;padding:16px;}
-.main{padding:20px;}
-table{width:100%;border-collapse:collapse;background:#fff;}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
 
-.qty-input{width:80px;padding:6px;text-align:center;}
+body{
+    font-family:'Inter',sans-serif;
+    background:#eef2f7;
+}
 
+/* HEADER */
+.header{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;
+    padding:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+.header h2{
+    font-size:16px;
+}
+
+.header input{
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    font-size:16px; /* chống zoom */
+}
+
+/* MAIN */
+.main{
+    padding:10px;
+}
+
+/* CARD */
+.card{
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+    overflow:hidden;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed; /* QUAN TRỌNG */
+}
+
+thead{
+    background:#f7f9fc;
+    position:sticky;
+    top:0;
+}
+
+th,td{
+    padding:8px;
+    font-size:13px;
+    text-align:center;
+    border-bottom:1px solid #eee;
+}
+
+th{
+    font-weight:600;
+    color:#555;
+}
+
+td{
+    word-break:break-word;
+}
+
+/* INPUT */
+.qty-input{
+    width:100%;
+    padding:8px;
+    font-size:16px; /* CHỐNG ZOOM */
+    text-align:center;
+    border-radius:6px;
+    border:1px solid #ddd;
+}
+
+/* DIFF */
 .diff{font-weight:600;}
-.diff.pos{color:#2e7d32;}   /* thừa */
-.diff.neg{color:#c62828;}   /* thiếu */
+.diff.pos{color:#2e7d32;}
+.diff.neg{color:#c62828;}
 .diff.zero{color:#555;}
 
-.btn{padding:6px 12px;margin:5px;cursor:pointer;}
+/* BUTTON */
+.btn{
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    font-size:16px;
+    background:#667eea;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+/* LOADING */
+.loading{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+}
+.loading-box{
+    background:#fff;
+    padding:20px 30px;
+    border-radius:10px;
+    font-weight:600;
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-<h2>📦 Kiểm Kho</h2>
-
-<input type="date" id="checkDate">
-<button class="btn" onclick="searchDate()">🔍 Tra cứu</button>
-
+    <h2>📦 Kiểm Kho</h2>
+    <input type="date" id="checkDate">
 </div>
 
 <div class="main">
-<div id="tableWrapper">⏳ Đang tải...</div>
-<button class="btn" onclick="saveData()">💾 Ghi</button>
+    <div class="card">
+        <div id="tableWrapper">⏳ Đang tải...</div>
+    </div>
+
+    <button class="btn" onclick="saveData()">💾 Ghi</button>
+</div>
+
+<div class="loading" id="loading">
+    <div class="loading-box">⏳ Đang lưu dữ liệu...</div>
 </div>
 
 <script>
@@ -65,7 +175,14 @@ function getTimeVN(){
 // ===== INIT =====
 function init(){
     const today = getTodayVN();
-    document.getElementById('checkDate').value = today;
+    const dateInput = document.getElementById('checkDate');
+
+    dateInput.value = today;
+
+    dateInput.addEventListener('change', function(){
+        loadData(this.value);
+    });
+
     loadData(today);
 }
 
@@ -87,7 +204,6 @@ function loadData(date){
         items = data.headers || [];
         let revisions = data.revisions || [];
 
-        // ===== LẤY GIÁ TRỊ CUỐI =====
         lastValues = {};
         revisions.forEach(r=>{
             Object.keys(r.items).forEach(k=>{
@@ -105,12 +221,6 @@ function loadData(date){
     });
 }
 
-// ===== SEARCH =====
-function searchDate(){
-    let date = document.getElementById('checkDate').value;
-    loadData(date);
-}
-
 // ===== RENDER =====
 function renderTable(){
     if(items.length === 0){
@@ -123,10 +233,10 @@ function renderTable(){
     <thead>
         <tr>
             <th>Mặt hàng</th>
+            <th>Nhập</th>
             <th>Tồn hệ thống</th>
             <th>Tồn trên máy</th>
             <th>Thừa / Thiếu</th>
-            <th>Nhập</th>
         </tr>
     </thead>
     <tbody>
@@ -139,6 +249,12 @@ function renderTable(){
         <tr>
             <td>${item}</td>
 
+            <td>
+                <input type="number"
+                    class="qty-input"
+                    data-item="${escapeAttr(item)}">
+            </td>
+
             <td id="val-${escapeId(item)}">${sys}</td>
 
             <td>
@@ -149,12 +265,6 @@ function renderTable(){
             </td>
 
             <td id="diff-${escapeId(item)}" class="diff zero">0</td>
-
-            <td>
-                <input type="number"
-                    class="qty-input"
-                    data-item="${escapeAttr(item)}">
-            </td>
         </tr>`;
     });
 
@@ -163,7 +273,7 @@ function renderTable(){
     document.getElementById('tableWrapper').innerHTML = html;
 }
 
-// ===== TÍNH THỪA / THIẾU =====
+// ===== TÍNH =====
 function calcDiff(input){
     const item = input.dataset.item;
     const machineVal = Number(input.value || 0);
@@ -191,7 +301,7 @@ function saveData(){
     let entries = {};
 
     document.querySelectorAll('tbody tr').forEach(row=>{
-        let input = row.querySelector('td:last-child input'); // cột "Nhập"
+        let input = row.children[1].querySelector('input');
         if(input && input.value !== ""){
             entries[input.dataset.item] = input.value;
         }
@@ -201,6 +311,8 @@ function saveData(){
         alert("Chưa nhập");
         return;
     }
+
+    document.getElementById('loading').style.display = 'flex';
 
     fetch(API_URL,{
         method:'POST',
@@ -213,21 +325,28 @@ function saveData(){
     })
     .then(r=>r.json())
     .then(data=>{
+        document.getElementById('loading').style.display = 'none';
+
         if(!data.success){
             alert("❌ Lỗi ghi dữ liệu");
             return;
         }
 
-        // update tồn hệ thống ngay
         Object.keys(entries).forEach(item=>{
             lastValues[item] = Number(entries[item]);
             let el = document.getElementById("val-"+escapeId(item));
             if(el) el.innerText = entries[item];
         });
 
-        document.querySelectorAll('td:last-child input').forEach(i=>i.value="");
+        document.querySelectorAll('tbody tr').forEach(row=>{
+            row.children[1].querySelector('input').value="";
+        });
 
         alert("✅ Đã ghi!");
+    })
+    .catch(()=>{
+        document.getElementById('loading').style.display = 'none';
+        alert("❌ Lỗi kết nối");
     });
 }
 
@@ -235,12 +354,10 @@ function saveData(){
 function escapeId(str){
     return str.replace(/[^a-zA-Z0-9]/g,'_');
 }
-
 function escapeAttr(str){
     return str.replace(/"/g,'&quot;');
 }
 
-// ===== RUN =====
 init();
 </script>
 
