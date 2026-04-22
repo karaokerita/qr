@@ -2,13 +2,17 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- FIX MOBILE + CHỐNG ZOOM -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
 <title>Kiểm Kho</title>
 
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+
 body{
     font-family:'Inter',sans-serif;
     background:#eef2f7;
@@ -18,29 +22,34 @@ body{
 .header{
     background:linear-gradient(135deg,#667eea,#764ba2);
     color:#fff;
-    padding:16px 20px;
+    padding:12px;
     display:flex;
     justify-content:space-between;
     align-items:center;
-    flex-wrap:wrap;
+    gap:10px;
 }
-.header h2{font-size:20px;}
+
+.header h2{
+    font-size:16px;
+}
 
 .header input{
-    padding:8px 10px;
+    padding:8px;
     border-radius:8px;
     border:none;
-    outline:none;
+    font-size:16px; /* chống zoom */
 }
 
 /* MAIN */
-.main{padding:20px;}
+.main{
+    padding:10px;
+}
 
 /* CARD */
 .card{
     background:#fff;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    border-radius:10px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
     overflow:hidden;
 }
 
@@ -48,6 +57,7 @@ body{
 table{
     width:100%;
     border-collapse:collapse;
+    table-layout:fixed; /* QUAN TRỌNG */
 }
 
 thead{
@@ -57,7 +67,8 @@ thead{
 }
 
 th,td{
-    padding:12px;
+    padding:8px;
+    font-size:13px;
     text-align:center;
     border-bottom:1px solid #eee;
 }
@@ -67,12 +78,15 @@ th{
     color:#555;
 }
 
-tbody tr:hover{background:#fafafa;}
+td{
+    word-break:break-word;
+}
 
 /* INPUT */
 .qty-input{
-    width:90px;
-    padding:6px;
+    width:100%;
+    padding:8px;
+    font-size:16px; /* CHỐNG ZOOM */
     text-align:center;
     border-radius:6px;
     border:1px solid #ddd;
@@ -86,16 +100,17 @@ tbody tr:hover{background:#fafafa;}
 
 /* BUTTON */
 .btn{
-    margin-top:15px;
-    padding:10px 18px;
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    font-size:16px;
     background:#667eea;
     color:#fff;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     cursor:pointer;
     font-weight:600;
 }
-.btn:hover{opacity:0.9;}
 
 /* LOADING */
 .loading{
@@ -164,7 +179,6 @@ function init(){
 
     dateInput.value = today;
 
-    // auto load khi đổi ngày
     dateInput.addEventListener('change', function(){
         loadData(this.value);
     });
@@ -235,17 +249,14 @@ function renderTable(){
         <tr>
             <td>${item}</td>
 
-            <!-- NHẬP -->
             <td>
                 <input type="number"
                     class="qty-input"
                     data-item="${escapeAttr(item)}">
             </td>
 
-            <!-- TỒN HỆ THỐNG -->
             <td id="val-${escapeId(item)}">${sys}</td>
 
-            <!-- TỒN TRÊN MÁY -->
             <td>
                 <input type="number"
                     class="qty-input"
@@ -253,7 +264,6 @@ function renderTable(){
                     oninput="calcDiff(this)">
             </td>
 
-            <!-- THỪA THIẾU -->
             <td id="diff-${escapeId(item)}" class="diff zero">0</td>
         </tr>`;
     });
@@ -263,7 +273,7 @@ function renderTable(){
     document.getElementById('tableWrapper').innerHTML = html;
 }
 
-// ===== TÍNH THỪA / THIẾU =====
+// ===== TÍNH =====
 function calcDiff(input){
     const item = input.dataset.item;
     const machineVal = Number(input.value || 0);
@@ -291,7 +301,7 @@ function saveData(){
     let entries = {};
 
     document.querySelectorAll('tbody tr').forEach(row=>{
-        let input = row.children[1].querySelector('input'); // cột Nhập
+        let input = row.children[1].querySelector('input');
         if(input && input.value !== ""){
             entries[input.dataset.item] = input.value;
         }
@@ -302,7 +312,6 @@ function saveData(){
         return;
     }
 
-    // HIỆN LOADING
     document.getElementById('loading').style.display = 'flex';
 
     fetch(API_URL,{
@@ -345,12 +354,10 @@ function saveData(){
 function escapeId(str){
     return str.replace(/[^a-zA-Z0-9]/g,'_');
 }
-
 function escapeAttr(str){
     return str.replace(/"/g,'&quot;');
 }
 
-// ===== RUN =====
 init();
 </script>
 
