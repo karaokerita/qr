@@ -18,12 +18,20 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
     position:sticky;top:0;z-index:100;
 }
 .header h2{font-size:17px;white-space:nowrap;}
+.header-right{display:flex;align-items:center;gap:8px;}
 .header input[type="date"]{
     padding:8px 12px;border-radius:10px;border:none;font-size:16px;
     background:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(4px);
     font-family:'Inter',sans-serif;
 }
 .header input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
+.btn-calendar{
+    width:40px;height:40px;border-radius:10px;border:none;
+    background:rgba(255,255,255,0.2);color:#fff;font-size:20px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);transition:background 0.2s;
+}
+.btn-calendar:active{background:rgba(255,255,255,0.35);}
 
 /* STATS BAR */
 .stats-bar{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -145,13 +153,82 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 .empty-state{text-align:center;padding:40px 20px;color:#999;}
 .empty-state .icon{font-size:48px;margin-bottom:12px;}
 .empty-state p{font-size:14px;}
+
+/* CALENDAR OVERLAY */
+.calendar-overlay{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.5);z-index:200;display:none;
+    align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);
+    animation:fadeInOverlay 0.25s ease;
+}
+.calendar-overlay.open{display:flex;}
+@keyframes fadeInOverlay{from{opacity:0;}to{opacity:1;}}
+.calendar-panel{
+    background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;
+    max-height:85vh;overflow-y:auto;animation:slideUp 0.35s ease;
+    box-shadow:0 -10px 40px rgba(0,0,0,0.2);
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.calendar-top{
+    background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+    padding:18px 20px 14px;border-radius:20px 20px 0 0;
+    display:flex;align-items:center;justify-content:space-between;
+}
+.calendar-top h3{font-size:18px;font-weight:700;}
+.calendar-close{
+    width:36px;height:36px;border-radius:50%;border:none;
+    background:rgba(255,255,255,0.2);color:#fff;font-size:20px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background 0.2s;
+}
+.calendar-close:active{background:rgba(255,255,255,0.4);}
+.calendar-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px 8px;
+}
+.calendar-nav-btn{
+    width:38px;height:38px;border-radius:10px;border:none;
+    background:#f0f3f8;color:#555;font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background 0.2s;
+}
+.calendar-nav-btn:active{background:#e0e3e8;}
+.calendar-month-label{font-size:16px;font-weight:700;color:#333;}
+.calendar-grid{padding:8px 12px 20px;}
+.calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+.calendar-weekdays span{
+    text-align:center;font-size:11px;font-weight:600;color:#888;padding:6px 0;text-transform:uppercase;
+}
+.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day{
+    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-radius:12px;font-size:14px;font-weight:500;color:#333;cursor:pointer;
+    position:relative;transition:all 0.15s;
+}
+.cal-day:active{transform:scale(0.92);}
+.cal-day.other-month{color:#ccc;}
+.cal-day.today{background:#f0f3f8;font-weight:700;}
+.cal-day.selected{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;}
+.cal-day.has-data::after{
+    content:'';width:6px;height:6px;border-radius:50%;
+    background:#2e7d32;position:absolute;bottom:4px;
+}
+.cal-day.selected.has-data::after{background:#fff;}
+.cal-day.empty{pointer-events:none;}
+.calendar-legend{display:flex;gap:16px;justify-content:center;padding:0 16px 18px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#666;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.legend-dot.green{background:#2e7d32;}
+.legend-dot.purple{background:linear-gradient(135deg,#667eea,#764ba2);}
 </style>
 </head>
 <body>
 
 <div class="header">
     <h2>📦 Kiểm Kho</h2>
-    <input type="date" id="checkDate">
+    <div class="header-right">
+        <input type="date" id="checkDate">
+        <button class="btn-calendar" onclick="openCalendar()" title="Lịch kiểm kho">📅</button>
+    </div>
 </div>
 
 <div class="stats-bar" id="statsBar">
@@ -177,15 +254,43 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 <div class="loading" id="loading"><div class="loading-box"><div class="spinner"></div><div>Đang lưu dữ liệu...</div></div></div>
 <div class="toast" id="toast"></div>
 
+<!-- CALENDAR -->
+<div class="calendar-overlay" id="calendarOverlay" onclick="closeCalendarOutside(event)">
+    <div class="calendar-panel">
+        <div class="calendar-top">
+            <h3>📅 Lịch kiểm kho</h3>
+            <button class="calendar-close" onclick="closeCalendar()">✕</button>
+        </div>
+        <div class="calendar-nav">
+            <button class="calendar-nav-btn" onclick="changeMonth(-1)">◀</button>
+            <span class="calendar-month-label" id="calMonthLabel"></span>
+            <button class="calendar-nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid">
+            <div class="calendar-weekdays">
+                <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+            </div>
+            <div class="calendar-days" id="calDays"></div>
+        </div>
+        <div class="calendar-legend">
+            <div class="legend-item"><div class="legend-dot green"></div>Ngày có kiểm kho</div>
+            <div class="legend-item"><div class="legend-dot purple"></div>Ngày đang chọn</div>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbyFfyiJnc1G-Yb6qv3C0oqPQDLFccsgwwF2GmSyFCxvJUoTMAdpYFJDM2XF9N-cr_jf9A/exec';
 let invItems=[];
 let lastValues={};
 let checkedItems={};
+let calendarDates={};
+let calViewYear,calViewMonth;
 
 function getNowVN(){const n=new Date();return new Date(n.getTime()-n.getTimezoneOffset()*60000);}
 function getTodayVN(){return getNowVN().toISOString().split('T')[0];}
 function getTimeVN(){return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});}
+function formatDateVN(ds){const parts=ds.split('-');return parts[2]+'/'+parts[1]+'/'+parts[0];}
 
 function showToast(m,t){const e=document.getElementById('toast');e.textContent=m;e.className='toast '+t;setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>e.classList.remove('show'),2500);}
 function toggleUncheckedList(){document.getElementById('uncheckedList').classList.toggle('open');}
@@ -230,6 +335,7 @@ function init(){
     const today=getTodayVN();const d=document.getElementById('checkDate');d.value=today;
     d.addEventListener('change',function(){checkedItems={};loadData(this.value);});
     loadData(today);
+    initCalendar();
 }
 
 function loadData(date){
@@ -288,8 +394,104 @@ function saveData(){
         document.querySelectorAll('tbody tr').forEach(r=>{r.children[1].querySelector('input').value='';});
         document.querySelectorAll('.qty-input.entered').forEach(i=>i.classList.remove('entered'));
         highlightRows();updateStats();renderUncheckedList();
+        loadCalendarDates();
+        renderCalendar();
         showToast("✅ Đã ghi thành công!","success");
     }).catch(()=>{document.getElementById('loading').style.display='none';showToast("❌ Lỗi kết nối","error");});
+}
+
+/* ==================== CALENDAR ==================== */
+function initCalendar(){
+    const now=getNowVN();
+    calViewYear=now.getFullYear();
+    calViewMonth=now.getMonth();
+    loadCalendarDates();
+    renderCalendar();
+}
+
+function loadCalendarDates(){
+    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'getDates'})})
+    .then(r=>r.json()).then(data=>{
+        if(data.success&&data.dates){
+            calendarDates={};
+            data.dates.forEach(ds=>{calendarDates[ds]=true;});
+            renderCalendar();
+        }
+    }).catch(()=>{});
+}
+
+function openCalendar(){
+    document.getElementById('calendarOverlay').classList.add('open');
+    renderCalendar();
+}
+
+function closeCalendar(){
+    document.getElementById('calendarOverlay').classList.remove('open');
+}
+
+function closeCalendarOutside(e){
+    if(e.target===document.getElementById('calendarOverlay'))closeCalendar();
+}
+
+function changeMonth(dir){
+    calViewMonth+=dir;
+    if(calViewMonth>11){calViewMonth=0;calViewYear++;}
+    if(calViewMonth<0){calViewMonth=11;calViewYear--;}
+    renderCalendar();
+}
+
+function selectDate(ds){
+    closeCalendar();
+    document.getElementById('checkDate').value=ds;
+    checkedItems={};
+    loadData(ds);
+}
+
+function renderCalendar(){
+    const monthsVN=['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+    document.getElementById('calMonthLabel').textContent=monthsVN[calViewMonth]+' '+calViewYear;
+
+    const container=document.getElementById('calDays');
+    const today=getTodayVN();
+    const selected=document.getElementById('checkDate').value;
+
+    const firstDay=new Date(calViewYear,calViewMonth,1);
+    let startDow=firstDay.getDay();
+    startDow=startDow===0?6:startDow-1;
+
+    const daysInMonth=new Date(calViewYear,calViewMonth+1,0).getDate();
+    const daysInPrevMonth=new Date(calViewYear,calViewMonth,0).getDate();
+
+    let html='';
+    const totalCells=Math.ceil((startDow+daysInMonth)/7)*7;
+
+    for(let i=0;i<totalCells;i++){
+        let dayNum,ds,cls='cal-day';
+        if(i<startDow){
+            const prevDay=daysInPrevMonth-startDow+i+1;
+            dayNum=prevDay;
+            const pm=calViewMonth===0?11:calViewMonth-1;
+            const py=calViewMonth===0?calViewYear-1:calViewYear;
+            ds=py+'-'+String(pm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+            cls+=' other-month';
+        } else if(i>=startDow+daysInMonth){
+            dayNum=i-startDow-daysInMonth+1;
+            const nm=calViewMonth===11?0:calViewMonth+1;
+            const ny=calViewMonth===11?calViewYear+1:calViewYear;
+            ds=ny+'-'+String(nm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+            cls+=' other-month';
+        } else {
+            dayNum=i-startDow+1;
+            ds=calViewYear+'-'+String(calViewMonth+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+        }
+
+        if(ds===today)cls+=' today';
+        if(ds===selected)cls+=' selected';
+        if(calendarDates[ds])cls+=' has-data';
+
+        html+=`<div class="${cls}" onclick="selectDate('${ds}')">${dayNum}</div>`;
+    }
+    container.innerHTML=html;
 }
 
 function escapeId(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
