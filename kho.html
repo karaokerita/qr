@@ -18,12 +18,20 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
     position:sticky;top:0;z-index:100;
 }
 .header h2{font-size:17px;white-space:nowrap;}
+.header-right{display:flex;align-items:center;gap:8px;}
 .header input[type="date"]{
     padding:8px 12px;border-radius:10px;border:none;font-size:16px;
     background:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(4px);
     font-family:'Inter',sans-serif;
 }
 .header input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
+.btn-cal{
+    width:40px;height:40px;border-radius:10px;border:none;
+    background:rgba(255,255,255,0.2);color:#fff;font-size:18px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);transition:background 0.2s;
+}
+.btn-cal:active{background:rgba(255,255,255,0.35);}
 
 /* STATS BAR */
 .stats-bar{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -145,13 +153,78 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 .empty-state{text-align:center;padding:40px 20px;color:#999;}
 .empty-state .icon{font-size:48px;margin-bottom:12px;}
 .empty-state p{font-size:14px;}
+
+/* CALENDAR OVERLAY */
+.cal-overlay{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.5);z-index:200;display:none;
+    align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);
+}
+.cal-overlay.open{display:flex;}
+.cal-panel{
+    background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;
+    max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;
+    box-shadow:0 -10px 40px rgba(0,0,0,0.2);
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.cal-top{
+    background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+    padding:18px 20px 14px;border-radius:20px 20px 0 0;
+    display:flex;align-items:center;justify-content:space-between;
+}
+.cal-top h3{font-size:18px;font-weight:700;}
+.cal-close{
+    width:36px;height:36px;border-radius:50%;border:none;
+    background:rgba(255,255,255,0.2);color:#fff;font-size:20px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background 0.2s;
+}
+.cal-close:active{background:rgba(255,255,255,0.4);}
+.cal-nav{
+    display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;
+}
+.cal-nav-btn{
+    width:38px;height:38px;border-radius:10px;border:none;
+    background:#f0f3f8;color:#555;font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background 0.2s;
+}
+.cal-nav-btn:active{background:#e0e3e8;}
+.cal-month-label{font-size:16px;font-weight:700;color:#333;}
+.cal-grid{padding:8px 12px 16px;}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+.cal-weekdays span{
+    text-align:center;font-size:11px;font-weight:600;color:#888;padding:6px 0;text-transform:uppercase;
+}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day{
+    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-radius:12px;font-size:14px;font-weight:500;color:#333;cursor:pointer;
+    position:relative;transition:all 0.15s;min-height:36px;
+}
+.cal-day:active{transform:scale(0.92);}
+.cal-day.other-month{color:#ccc;}
+.cal-day.today{background:#f0f3f8;font-weight:700;}
+.cal-day.selected{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;}
+.cal-day.has-data{background:#1e88e5;color:#fff;font-weight:600;}
+.cal-day.selected.has-data{background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;font-weight:700;}
+.cal-day.today.has-data{background:#1e88e5;color:#fff;}
+.cal-day.today.selected.has-data{background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;}
+.cal-day.empty{pointer-events:none;}
+.cal-legend{display:flex;gap:16px;justify-content:center;padding:0 16px 18px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#666;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.legend-dot.blue{background:#1e88e5;}
+.legend-dot.purple{background:linear-gradient(135deg,#667eea,#764ba2);}
 </style>
 </head>
 <body>
 
 <div class="header">
     <h2>📦 Kiểm Kho</h2>
-    <input type="date" id="checkDate">
+    <div class="header-right">
+        <input type="date" id="checkDate">
+        <button class="btn-cal" onclick="openCal()" title="Lịch kiểm kho">📅</button>
+    </div>
 </div>
 
 <div class="stats-bar" id="statsBar">
@@ -177,11 +250,38 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 <div class="loading" id="loading"><div class="loading-box"><div class="spinner"></div><div>Đang lưu dữ liệu...</div></div></div>
 <div class="toast" id="toast"></div>
 
+<!-- CALENDAR OVERLAY -->
+<div class="cal-overlay" id="calOverlay" onclick="closeCalOutside(event)">
+    <div class="cal-panel">
+        <div class="cal-top">
+            <h3>📅 Lịch kiểm kho</h3>
+            <button class="cal-close" onclick="closeCal()">✕</button>
+        </div>
+        <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+            <span class="cal-month-label" id="calMonthLabel"></span>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="cal-grid">
+            <div class="cal-weekdays">
+                <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+            </div>
+            <div class="cal-days" id="calDays"></div>
+        </div>
+        <div class="cal-legend">
+            <div class="legend-item"><div class="legend-dot blue"></div>Ngày đã kiểm kho</div>
+            <div class="legend-item"><div class="legend-dot purple"></div>Ngày đang chọn</div>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbyRDLS7QwkbRCvzKFPHEMF6Nw_fBpfo_nArXwHFZoQoOUeh57NSwuZ8Wb8NGGyMhsrIaA/exec';
 let invItems=[];
 let lastValues={};
 let checkedItems={};
+let calDates={};
+let calVYear,calVMonth;
 
 function getNowVN(){const n=new Date();return new Date(n.getTime()-n.getTimezoneOffset()*60000);}
 function getTodayVN(){return getNowVN().toISOString().split('T')[0];}
@@ -229,6 +329,8 @@ function highlightRows(){
 function init(){
     const today=getTodayVN();const d=document.getElementById('checkDate');d.value=today;
     d.addEventListener('change',function(){checkedItems={};loadData(this.value);});
+    /* Tự động kiểm tra & đánh dấu lịch mỗi lần load trang */
+    initCal();
     loadData(today);
 }
 
@@ -239,6 +341,10 @@ function loadData(date){
         if(!data.success){document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">❌</div><p>Lỗi API</p></div>';return;}
         invItems=data.headers||[];let rev=data.revisions||[];
         lastValues={};checkedItems={};
+        if(rev&&rev.length>0){
+            const hasData=rev.some(r=>Object.keys(r.items||{}).length>0);
+            if(hasData){calDates[date]=true;renderCal();}
+        }
         rev.forEach(r=>Object.keys(r.items).forEach(k=>{let v=r.items[k];if(v!==""&&v!==null&&v!==undefined){lastValues[k]=Number(v);checkedItems[k]=true;}}));
         renderTable();
     }).catch(()=>document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">❌</div><p>Lỗi kết nối API</p></div>');
@@ -280,16 +386,115 @@ function saveData(){
     });
     if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập mặt hàng nào","error");return;}
     document.getElementById('loading').style.display='flex';
-    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',date:getTodayVN(),time:getTimeVN(),items:entries})})
+    const curDate=getTodayVN();
+    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',date:curDate,time:getTimeVN(),items:entries})})
     .then(r=>r.json()).then(data=>{
         document.getElementById('loading').style.display='none';
         if(!data.success){showToast("❌ Lỗi ghi dữ liệu","error");return;}
+        calDates[curDate]=true;
+        renderCal();
         Object.keys(entries).forEach(i=>{lastValues[i]=Number(entries[i]);checkedItems[i]=true;let el=document.getElementById("val-"+escapeId(i));if(el)el.innerText=entries[i];});
         document.querySelectorAll('tbody tr').forEach(r=>{r.children[1].querySelector('input').value='';});
         document.querySelectorAll('.qty-input.entered').forEach(i=>i.classList.remove('entered'));
         highlightRows();updateStats();renderUncheckedList();
         showToast("✅ Đã ghi thành công!","success");
     }).catch(()=>{document.getElementById('loading').style.display='none';showToast("❌ Lỗi kết nối","error");});
+}
+
+/* ==================== CALENDAR ==================== */
+function initCal(){
+    const now=getNowVN();
+    calVYear=now.getFullYear();
+    calVMonth=now.getMonth();
+    calDates={};
+    /* Tự động tải danh sách ngày có kiểm kho từ API mỗi lần load trang */
+    loadCalDates();
+    renderCal();
+}
+
+function loadCalDates(){
+    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'getDates'})})
+    .then(r=>r.json()).then(data=>{
+        if(data.success&&data.dates&&Array.isArray(data.dates)){
+            calDates={};
+            data.dates.forEach(ds=>{if(ds)calDates[ds]=true;});
+            renderCal();
+        }
+    }).catch(()=>{});
+}
+
+function openCal(){
+    document.getElementById('calOverlay').classList.add('open');
+    renderCal();
+}
+
+function closeCal(){
+    document.getElementById('calOverlay').classList.remove('open');
+}
+
+function closeCalOutside(e){
+    if(e.target===document.getElementById('calOverlay'))closeCal();
+}
+
+function changeMonth(dir){
+    calVMonth+=dir;
+    if(calVMonth>11){calVMonth=0;calVYear++;}
+    if(calVMonth<0){calVMonth=11;calVYear--;}
+    renderCal();
+}
+
+function pickDate(ds){
+    closeCal();
+    document.getElementById('checkDate').value=ds;
+    checkedItems={};
+    loadData(ds);
+}
+
+function renderCal(){
+    const monthsVN=['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+    document.getElementById('calMonthLabel').textContent=monthsVN[calVMonth]+' '+calVYear;
+
+    const container=document.getElementById('calDays');
+    const today=getTodayVN();
+    const selected=document.getElementById('checkDate').value;
+
+    const firstDay=new Date(calVYear,calVMonth,1);
+    let startDow=firstDay.getDay();
+    startDow=startDow===0?6:startDow-1;
+
+    const daysInMonth=new Date(calVYear,calVMonth+1,0).getDate();
+    const daysInPrevMonth=new Date(calVYear,calVMonth,0).getDate();
+
+    let html='';
+    const totalCells=Math.ceil((startDow+daysInMonth)/7)*7;
+
+    for(let i=0;i<totalCells;i++){
+        let dayNum,ds,cls='cal-day';
+        if(i<startDow){
+            const prevDay=daysInPrevMonth-startDow+i+1;
+            dayNum=prevDay;
+            const pm=calVMonth===0?11:calVMonth-1;
+            const py=calVMonth===0?calVYear-1:calVYear;
+            ds=py+'-'+String(pm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+            cls+=' other-month';
+        } else if(i>=startDow+daysInMonth){
+            dayNum=i-startDow-daysInMonth+1;
+            const nm=calVMonth===11?0:calVMonth+1;
+            const ny=calVMonth===11?calVYear+1:calVYear;
+            ds=ny+'-'+String(nm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+            cls+=' other-month';
+        } else {
+            dayNum=i-startDow+1;
+            ds=calVYear+'-'+String(calVMonth+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
+        }
+
+        if(ds===today)cls+=' today';
+        if(ds===selected)cls+=' selected';
+        if(calDates[ds])cls+=' has-data';
+
+        html+=`<div class="${cls}" onclick="pickDate('${ds}')">${dayNum}</div>`;
+    }
+    container.innerHTML=html;
 }
 
 function escapeId(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
