@@ -1,507 +1,855 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Kiểm Kho</title>
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/400.css" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
+  <meta charset="UTF-8">
+  <title>Thu ngân Karaoke</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/800.css" />
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --success-dark: #059669;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --warning: #f59e0b;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --radius: 14px;
+    }
 
-/* HEADER */
-.header{
-    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-    color:#fff;padding:14px 16px;
-    display:flex;justify-content:space-between;align-items:center;gap:10px;
-    box-shadow:0 4px 15px rgba(102,126,234,0.35);
-    position:sticky;top:0;z-index:100;
-}
-.header h2{font-size:17px;white-space:nowrap;}
-.header-right{display:flex;align-items:center;gap:8px;}
-.header input[type="date"]{
-    padding:8px 12px;border-radius:10px;border:none;font-size:16px;
-    background:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(4px);
-    font-family:'Inter',sans-serif;
-}
-.header input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
-.btn-cal{
-    width:40px;height:40px;border-radius:10px;border:none;
-    background:rgba(255,255,255,0.2);color:#fff;font-size:18px;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;
-    backdrop-filter:blur(4px);transition:background 0.2s;
-}
-.btn-cal:active{background:rgba(255,255,255,0.35);}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* STATS BAR */
-.stats-bar{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.stat-card{
-    flex:1;min-width:100px;background:#fff;border-radius:12px;padding:10px 12px;
-    text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:transform 0.2s;
-}
-.stat-card:active{transform:scale(0.97);}
-.stat-num{font-size:22px;font-weight:700;line-height:1.2;}
-.stat-label{font-size:11px;color:#888;margin-top:2px;}
-.stat-total .stat-num{color:#667eea;}
-.stat-checked .stat-num{color:#2e7d32;}
-.stat-unchecked .stat-num{color:#e53935;}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 0;
+    }
 
-/* MAIN */
-.main{padding:0 10px;}
-.card{
-    background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);
-    overflow:hidden;margin-bottom:14px;
-}
+    .app-header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+      color: white;
+      text-align: center;
+      padding: 32px 20px 28px;
+      position: relative;
+      overflow: hidden;
+    }
 
-/* TABLE */
-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-thead{background:linear-gradient(180deg,#f7f9fc,#f0f3f8);position:sticky;top:0;z-index:10;}
-th,td{padding:9px 6px;font-size:12.5px;text-align:center;border-bottom:1px solid #eee;}
-th{font-weight:700;color:#555;font-size:11.5px;text-transform:uppercase;letter-spacing:0.3px;}
-td{word-break:break-word;vertical-align:middle;}
-td:first-child{text-align:left;padding-left:10px;font-weight:500;}
+    .app-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+      animation: pulse-bg 6s ease-in-out infinite;
+    }
 
-/* ROW STATES */
-.row-unchecked{background:rgba(255,226,226,0.7) !important;animation:rowPulse 2s ease-in-out infinite;}
-.row-unchecked td{border-bottom-color:#ffcdd2;}
-.row-checked{background:#fff;}
-@keyframes rowPulse{0%,100%{background:rgba(255,226,226,0.7);}50%{background:rgba(255,205,205,0.9);}}
+    @keyframes pulse-bg {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
 
-/* BADGE */
-.badge-unchecked{
-    display:inline-block;background:#e53935;color:#fff;font-size:10px;padding:2px 6px;
-    border-radius:20px;margin-left:4px;font-weight:600;animation:badgeBlink 1.5s ease-in-out infinite;
-}
-@keyframes badgeBlink{0%,100%{opacity:1;}50%{opacity:0.6;}}
+    .app-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
 
-/* INPUT */
-.qty-input{
-    width:100%;padding:8px 4px;font-size:16px;text-align:center;border-radius:8px;
-    border:1.5px solid #e0e0e0;background:#fafafa;transition:all 0.2s;font-family:'Inter',sans-serif;
-}
-.qty-input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,0.15);background:#fff;outline:none;}
-.qty-input.entered{border-color:#2e7d32;background:#e8f5e9;color:#2e7d32;font-weight:600;}
+    .app-header h1 span {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-top: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
 
-/* DIFF */
-.diff{font-weight:700;font-size:13px;}
-.diff.pos{color:#2e7d32;}
-.diff.neg{color:#c62828;}
-.diff.zero{color:#78909c;}
+    #currentTime {
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 6px;
+      color: rgba(255,255,255,0.9);
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.15);
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
 
-/* UNCHECKED LIST */
-.unchecked-section{
-    background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);
-    margin:0 10px 14px;overflow:hidden;
-}
-.unchecked-header{
-    background:linear-gradient(135deg,#e53935,#ef5350);color:#fff;padding:12px 16px;
-    display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;
-}
-.unchecked-header h3{font-size:14px;font-weight:600;}
-.unchecked-count{background:rgba(255,255,255,0.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;}
-.unchecked-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease;}
-.unchecked-list.open{max-height:1000px;}
-.unchecked-item{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #fce4ec;gap:10px;}
-.unchecked-item:last-child{border-bottom:none;}
-.unchecked-item:active{background:#fce4ec;}
-.unchecked-icon{
-    width:28px;height:28px;background:#ffcdd2;border-radius:50%;display:flex;
-    align-items:center;justify-content:center;flex-shrink:0;color:#e53935;font-size:14px;
-}
-.unchecked-name{font-size:13px;color:#333;flex:1;}
-.section-hidden{display:none !important;}
+    .clock-wrapper {
+      text-align: center;
+      margin-top: 12px;
+    }
 
-/* BUTTON */
-.btn{
-    width:calc(100% - 20px);margin:0 10px 16px;padding:14px;font-size:16px;
-    background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;
-    cursor:pointer;font-weight:700;font-family:'Inter',sans-serif;
-    box-shadow:0 4px 15px rgba(102,126,234,0.35);transition:transform 0.15s,box-shadow 0.15s;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn:active{transform:scale(0.98);box-shadow:0 2px 8px rgba(102,126,234,0.3);}
+    /* Speed Monitor Widget */
+    .speed-widget {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 11px;
+      min-width: 155px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
 
-/* LOADING */
-.loading{
-    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);
-    display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);
-}
-.loading-box{
-    background:#fff;padding:24px 36px;border-radius:16px;font-weight:600;
-    display:flex;flex-direction:column;align-items:center;gap:12px;
-    box-shadow:0 10px 40px rgba(0,0,0,0.15);animation:popIn 0.3s ease;
-}
-@keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
-.spinner{
-    width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#667eea;
-    border-radius:50%;animation:spin 0.8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg);}}
+    .speed-widget .sw-title {
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-/* TOAST */
-.toast{
-    position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
-    background:#333;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;
-    font-weight:600;z-index:1000;transition:transform 0.3s ease;white-space:nowrap;
-    box-shadow:0 6px 20px rgba(0,0,0,0.2);
-}
-.toast.show{transform:translateX(-50%) translateY(0);}
-.toast.success{background:linear-gradient(135deg,#43a047,#66bb6a);}
-.toast.error{background:linear-gradient(135deg,#e53935,#ef5350);}
+    .speed-widget .sw-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      display: inline-block;
+    }
 
-/* EMPTY */
-.empty-state{text-align:center;padding:40px 20px;color:#999;}
-.empty-state .icon{font-size:48px;margin-bottom:12px;}
-.empty-state p{font-size:14px;}
+    .speed-widget .sw-title .dot.testing {
+      background: #fbbf24;
+      animation: blink 0.8s infinite;
+    }
 
-/* CALENDAR OVERLAY */
-.cal-overlay{
-    position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,0.5);z-index:200;display:none;
-    align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);
-}
-.cal-overlay.open{display:flex;}
-.cal-panel{
-    background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;
-    max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;
-    box-shadow:0 -10px 40px rgba(0,0,0,0.2);
-}
-@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.cal-top{
-    background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
-    padding:18px 20px 14px;border-radius:20px 20px 0 0;
-    display:flex;align-items:center;justify-content:space-between;
-}
-.cal-top h3{font-size:18px;font-weight:700;}
-.cal-close{
-    width:36px;height:36px;border-radius:50%;border:none;
-    background:rgba(255,255,255,0.2);color:#fff;font-size:20px;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:background 0.2s;
-}
-.cal-close:active{background:rgba(255,255,255,0.4);}
-.cal-nav{
-    display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;
-}
-.cal-nav-btn{
-    width:38px;height:38px;border-radius:10px;border:none;
-    background:#f0f3f8;color:#555;font-size:18px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:background 0.2s;
-}
-.cal-nav-btn:active{background:#e0e3e8;}
-.cal-month-label{font-size:16px;font-weight:700;color:#333;}
-.cal-grid{padding:8px 12px 16px;}
-.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
-.cal-weekdays span{
-    text-align:center;font-size:11px;font-weight:600;color:#888;padding:6px 0;text-transform:uppercase;
-}
-.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.cal-day{
-    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    border-radius:12px;font-size:14px;font-weight:500;color:#333;cursor:pointer;
-    position:relative;transition:all 0.15s;min-height:36px;
-}
-.cal-day:active{transform:scale(0.92);}
-.cal-day.other-month{color:#ccc;}
-.cal-day.today{background:#f0f3f8;font-weight:700;}
-.cal-day.selected{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;}
-.cal-day.has-data{background:#1e88e5;color:#fff;font-weight:600;}
-.cal-day.selected.has-data{background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;font-weight:700;}
-.cal-day.today.has-data{background:#1e88e5;color:#fff;}
-.cal-day.today.selected.has-data{background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;}
-.cal-day.empty{pointer-events:none;}
-.cal-legend{display:flex;gap:16px;justify-content:center;padding:0 16px 18px;}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#666;}
-.legend-dot{width:10px;height:10px;border-radius:50%;}
-.legend-dot.blue{background:#1e88e5;}
-.legend-dot.purple{background:linear-gradient(135deg,#667eea,#764ba2);}
-</style>
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .speed-widget .sw-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+    }
+
+    .speed-widget .sw-label {
+      opacity: 0.75;
+      font-weight: 500;
+    }
+
+    .speed-widget .sw-value {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+    }
+
+    .sw-val-dl { color: #93c5fd; }
+    .sw-val-ul { color: #c4b5fd; }
+    .sw-val-pg { color: #fda4af; }
+
+    .speed-widget .sw-status {
+      font-size: 9px;
+      opacity: 0.6;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .speed-widget {
+        position: relative;
+        top: auto; right: auto;
+        margin: 10px auto 0;
+        max-width: 200px;
+      }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 16px 14px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    tbody tr {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tbody td {
+      padding: 14px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .room-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .room-name.unpaid {
+      color: var(--danger);
+    }
+
+    .room-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .amount-input {
+      width: 140px;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      text-align: right;
+      color: var(--text);
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    .amount-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-open {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+    }
+
+    .btn-open:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      box-shadow: 0 4px 12px rgba(14,165,233,0.4);
+    }
+
+    .btn-open:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-update {
+      background: linear-gradient(135deg, var(--success), #34d399);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+    }
+
+    .btn-update:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--success-dark), var(--success));
+      box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    }
+
+    .btn-update:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-update.enabled {
+      opacity: 1;
+      cursor: pointer;
+      animation: pulse-green 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+      50% { box-shadow: 0 2px 16px rgba(16,185,129,0.5); }
+    }
+
+    .btn-paid {
+      background: linear-gradient(135deg, var(--danger), #f87171);
+      color: white;
+      box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+    }
+
+    .btn-paid:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--danger-dark), var(--danger));
+      box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+    }
+
+    .btn-paid:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-paid.enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .status-paid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-unpaid {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .time-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .highlight {
+      animation: row-highlight 2s ease;
+    }
+
+    @keyframes row-highlight {
+      0% { background: #dbeafe; }
+      100% { background: transparent; }
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Kiểm Kho Button */
+    .check-inventory-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 28px auto 32px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      color: #78350f;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.35);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .check-inventory-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.45);
+    }
+
+    .check-inventory-btn:active {
+      transform: translateY(0);
+    }
+
+    .check-inventory-btn .icon {
+      margin-right: 8px;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app-header h1 { font-size: 22px; }
+      .app-header h1 span { font-size: 12px; }
+      .container { padding: 0 10px; margin: 16px auto; }
+      tbody td { padding: 10px 8px; }
+      .amount-input { width: 110px; padding: 8px 10px; font-size: 14px; }
+      .btn { padding: 7px 10px; font-size: 12px; }
+      .btn-group { gap: 4px; }
+      .room-name { font-size: 13px; }
+    }
+
+    /* Fade in animation */
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Auto refresh indicator */
+    .refresh-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), #a78bfa);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999;
+      animation: refresh-bar 15s linear infinite;
+      border-radius: 0 2px 2px 0;
+    }
+
+    @keyframes refresh-bar {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>📦 Kiểm Kho</h2>
-    <div class="header-right">
-        <input type="date" id="checkDate">
-        <button class="btn-cal" onclick="openCal()" title="Lịch kiểm kho">📅</button>
+  <div class="refresh-bar" id="refreshBar"></div>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+  <header class="app-header">
+    <!-- Speed Monitor Widget -->
+    <div class="speed-widget" id="speedWidget">
+      <div class="sw-title"><span class="dot" id="swDot"></span> Tốc độ mạng</div>
+      <div class="sw-row">
+        <span class="sw-label">↓ Tải xuống</span>
+        <span class="sw-value sw-val-dl" id="swDl">— Mbps</span>
+      </div>
+      <div class="sw-row">
+        <span class="sw-label">↑ Tải lên</span>
+        <span class="sw-value sw-val-ul" id="swUl">— Mbps</span>
+      </div>
+      <div class="sw-row">
+        <span class="sw-label">◎ Độ trễ</span>
+        <span class="sw-value sw-val-pg" id="swPg">— ms</span>
+      </div>
+      <div class="sw-status" id="swStatus">Nhấn để kiểm tra</div>
     </div>
-</div>
 
-<div class="stats-bar" id="statsBar">
-    <div class="stat-card stat-total"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Tổng mặt hàng</div></div>
-    <div class="stat-card stat-checked"><div class="stat-num" id="statChecked">0</div><div class="stat-label">Đã kiểm</div></div>
-    <div class="stat-card stat-unchecked"><div class="stat-num" id="statUnchecked">0</div><div class="stat-label">Chưa kiểm</div></div>
-</div>
-
-<div class="main">
-    <div class="card"><div id="tableWrapper"><div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div></div></div>
-</div>
-
-<div class="unchecked-section section-hidden" id="uncheckedSection">
-    <div class="unchecked-header" onclick="toggleUncheckedList()">
-        <h3>⚠️ Danh sách chưa kiểm</h3>
-        <span class="unchecked-count" id="uncheckedCount">0</span>
+    <h1>
+      THU NGÂN
+      <span>Karaoke Rita</span>
+    </h1>
+    <div class="clock-wrapper">
+      <div id="currentTime"></div>
     </div>
-    <div class="unchecked-list" id="uncheckedList"></div>
-</div>
+  </header>
 
-<button class="btn" type="button" onclick="saveData()"><span>💾</span><span>LƯU DỮ LIỆU</span></button>
+  <div class="container">
+    <div class="card fade-in">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Phòng</th>
+              <th>Số tiền</th>
+              <th>Hành động</th>
+              <th>Trạng thái</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody id="roomTable"></tbody>
+        </table>
+      </div>
+    </div>
 
-<div class="loading" id="loading"><div class="loading-box"><div class="spinner"></div><div>Đang lưu dữ liệu...</div></div></div>
-<div class="toast" id="toast"></div>
+    <a class="check-inventory-btn" href="https://karaokerita.github.io/qr/kho.html" target="_blank">
+      <span class="icon">📦</span> KIỂM KHO
+    </a>
+  </div>
 
-<!-- CALENDAR OVERLAY -->
-<div class="cal-overlay" id="calOverlay" onclick="closeCalOutside(event)">
-    <div class="cal-panel">
-        <div class="cal-top">
-            <h3>📅 Lịch kiểm kho</h3>
-            <button class="cal-close" onclick="closeCal()">✕</button>
-        </div>
-        <div class="cal-nav">
-            <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
-            <span class="cal-month-label" id="calMonthLabel"></span>
-            <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
-        </div>
-        <div class="cal-grid">
-            <div class="cal-weekdays">
-                <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
+
+    const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
+
+    async function loadRooms(highlight=null) {
+      const res = await fetch(API + "?action=getRooms");
+      const data = await res.json();
+      const table = document.getElementById("roomTable");
+      table.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <p>Chưa có phòng hoạt động</p>
+              </div>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      data.forEach(room => {
+        const roomId = encodeURIComponent(room.name);
+        const paid = room.status === "Đã thanh toán";
+        const unpaid = room.status === "Chưa thanh toán";
+
+        const tr = document.createElement("tr");
+        tr.id = "row-" + roomId;
+
+        tr.innerHTML = `
+          <td>
+            <span class="room-name ${unpaid ? 'unpaid' : ''}">${room.name}</span>
+          </td>
+          <td>
+            <input type="text" class="amount-input" id="amount-${roomId}" value="${formatNumber(room.amount)}"
+              data-raw="${room.amount || 0}"
+              oninput="onAmountChange('${roomId}')"
+              onkeypress="if(event.key==='Enter'){updateAmount('${roomId}')}"/>
+          </td>
+          <td>
+            <div class="btn-group">
+              <button id="open-${roomId}" class="btn btn-open" ${unpaid ? "disabled" : ""} onclick="openRoom('${roomId}')">
+                🔓 Mở phòng
+              </button>
+              <button id="update-${roomId}" class="btn btn-update" disabled onclick="updateAmount('${roomId}')">
+                💾 Cập nhật
+              </button>
+              <button id="paid-${roomId}" class="btn btn-paid ${unpaid ? 'enabled' : ''}" ${unpaid ? "" : "disabled"} onclick="markPaid('${roomId}')">
+                ✅ Đã thanh toán
+              </button>
             </div>
-            <div class="cal-days" id="calDays"></div>
-        </div>
-        <div class="cal-legend">
-            <div class="legend-item"><div class="legend-dot blue"></div>Ngày đã kiểm kho</div>
-            <div class="legend-item"><div class="legend-dot purple"></div>Ngày đang chọn</div>
-        </div>
-    </div>
-</div>
+          </td>
+          <td>
+            <span class="status-badge ${paid ? 'status-paid':'status-unpaid'}">${room.status || ""}</span>
+          </td>
+          <td class="time-text">${room.refTime || ""}</td>
+        `;
 
-<script>
-const API_URL='https://script.google.com/macros/s/AKfycbyRDLS7QwkbRCvzKFPHEMF6Nw_fBpfo_nArXwHFZoQoOUeh57NSwuZ8Wb8NGGyMhsrIaA/exec';
-let invItems=[];
-let lastValues={};
-let checkedItems={};
-let calDates={};
-let calVYear,calVMonth;
-
-function getNowVN(){const n=new Date();return new Date(n.getTime()-n.getTimezoneOffset()*60000);}
-function getTodayVN(){return getNowVN().toISOString().split('T')[0];}
-function getTimeVN(){return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});}
-
-function showToast(m,t){const e=document.getElementById('toast');e.textContent=m;e.className='toast '+t;setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>e.classList.remove('show'),2500);}
-function toggleUncheckedList(){document.getElementById('uncheckedList').classList.toggle('open');}
-
-function updateStats(){
-    const total=invItems.length;
-    const checkedCount=Object.keys(checkedItems).filter(k=>invItems.includes(k)).length;
-    const uncheckedCount=total-checkedCount;
-    document.getElementById('statTotal').textContent=total;
-    document.getElementById('statChecked').textContent=checkedCount;
-    document.getElementById('statUnchecked').textContent=uncheckedCount;
-    document.getElementById('uncheckedCount').textContent=uncheckedCount+' mục';
-    const sec=document.getElementById('uncheckedSection');
-    if(checkedCount>0&&uncheckedCount>0)sec.classList.remove('section-hidden');
-    else sec.classList.add('section-hidden');
-}
-
-function renderUncheckedList(){
-    const list=document.getElementById('uncheckedList');
-    let html='';
-    invItems.forEach(i=>{if(!checkedItems[i])html+=`<div class="unchecked-item"><div class="unchecked-icon">✕</div><div class="unchecked-name">${i}</div></div>`;});
-    list.innerHTML=html;
-}
-
-function highlightRows(){
-    const hasChecked=Object.keys(checkedItems).length>0;
-    document.querySelectorAll('tbody tr').forEach(row=>{
-        const input=row.children[1].querySelector('input');
-        const itemName=input?input.dataset.item:'';
-        row.classList.remove('row-checked','row-unchecked');
-        const td=row.children[0];
-        const exist=td.querySelector('.badge-unchecked');
-        if(exist)exist.remove();
-        if(hasChecked&&!checkedItems[itemName]){
-            row.classList.add('row-unchecked');
-            const b=document.createElement('span');b.className='badge-unchecked';b.textContent='CHƯA KIỂM';td.appendChild(b);
+        table.appendChild(tr);
+        if (highlight === roomId) {
+          tr.classList.add("highlight");
+          setTimeout(()=>tr.classList.remove("highlight"),2000);
         }
-    });
-}
-
-function init(){
-    const today=getTodayVN();const d=document.getElementById('checkDate');d.value=today;
-    d.addEventListener('change',function(){checkedItems={};loadData(this.value);});
-    /* Tự động kiểm tra & đánh dấu lịch mỗi lần load trang */
-    initCal();
-    loadData(today);
-}
-
-function loadData(date){
-    document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div>';
-    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'load',date:date})})
-    .then(r=>r.json()).then(data=>{
-        if(!data.success){document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">❌</div><p>Lỗi API</p></div>';return;}
-        invItems=data.headers||[];let rev=data.revisions||[];
-        lastValues={};checkedItems={};
-        if(rev&&rev.length>0){
-            const hasData=rev.some(r=>Object.keys(r.items||{}).length>0);
-            if(hasData){calDates[date]=true;renderCal();}
-        }
-        rev.forEach(r=>Object.keys(r.items).forEach(k=>{let v=r.items[k];if(v!==""&&v!==null&&v!==undefined){lastValues[k]=Number(v);checkedItems[k]=true;}}));
-        renderTable();
-    }).catch(()=>document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">❌</div><p>Lỗi kết nối API</p></div>');
-}
-
-function renderTable(){
-    if(invItems.length===0){document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">⚠️</div><p>Không có dữ liệu</p></div>';updateStats();return;}
-    let h='<table><thead><tr><th style="width:28%">Mặt hàng</th><th style="width:16%">SL kiểm</th><th style="width:18%">Tồn theo ngày</th><th style="width:18%">Tồn trên máy</th><th style="width:20%">Thừa / Thiếu</th></tr></thead><tbody>';
-    invItems.forEach(item=>{
-        let sys=lastValues[item]||0;
-        let isOk=checkedItems[item]===true;
-        let cls=isOk?'row-checked':'row-unchecked';
-        let badge=(!isOk&&Object.keys(checkedItems).length>0)?'<span class="badge-unchecked">CHƯA KIỂM</span>':'';
-        h+=`<tr class="${cls}"><td>${item} ${badge}</td><td><input type="number" class="qty-input${isOk?' entered':''}" data-item="${escapeAttr(item)}" value="${isOk?lastValues[item]:''}" oninput="onQtyInput(this)"></td><td id="val-${escapeId(item)}">${sys}</td><td><input type="number" class="qty-input" data-item="${escapeAttr(item)}" oninput="calcDiff(this)"></td><td id="diff-${escapeId(item)}" class="diff zero">${isOk?(sys-lastValues[item]):0}</td></tr>`;
-    });
-    document.getElementById('tableWrapper').innerHTML=h+'</tbody></table>';
-    updateStats();renderUncheckedList();
-}
-
-function onQtyInput(inp){
-    const item=inp.dataset.item;
-    if(inp.value!==''&&!isNaN(Number(inp.value))){checkedItems[item]=true;inp.classList.add('entered');}
-    else{delete checkedItems[item];inp.classList.remove('entered');}
-    highlightRows();updateStats();renderUncheckedList();calcDiff(inp);
-}
-
-function calcDiff(inp){
-    const item=inp.dataset.item;const m=Number(inp.value||0);const s=Number(lastValues[item]||0);
-    const d=s-m;const el=document.getElementById("diff-"+escapeId(item));if(!el)return;
-    el.innerText=d;el.classList.remove("pos","neg","zero");
-    if(d>0)el.classList.add("pos");else if(d<0)el.classList.add("neg");else el.classList.add("zero");
-}
-
-function saveData(){
-    let entries={};
-    document.querySelectorAll('tbody tr').forEach(row=>{
-        let inp=row.children[1].querySelector('input');
-        if(inp&&inp.value!=='')entries[inp.dataset.item]=inp.value;
-    });
-    if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập mặt hàng nào","error");return;}
-    document.getElementById('loading').style.display='flex';
-    const curDate=getTodayVN();
-    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',date:curDate,time:getTimeVN(),items:entries})})
-    .then(r=>r.json()).then(data=>{
-        document.getElementById('loading').style.display='none';
-        if(!data.success){showToast("❌ Lỗi ghi dữ liệu","error");return;}
-        calDates[curDate]=true;
-        renderCal();
-        Object.keys(entries).forEach(i=>{lastValues[i]=Number(entries[i]);checkedItems[i]=true;let el=document.getElementById("val-"+escapeId(i));if(el)el.innerText=entries[i];});
-        document.querySelectorAll('tbody tr').forEach(r=>{r.children[1].querySelector('input').value='';});
-        document.querySelectorAll('.qty-input.entered').forEach(i=>i.classList.remove('entered'));
-        highlightRows();updateStats();renderUncheckedList();
-        showToast("✅ Đã ghi thành công!","success");
-    }).catch(()=>{document.getElementById('loading').style.display='none';showToast("❌ Lỗi kết nối","error");});
-}
-
-/* ==================== CALENDAR ==================== */
-function initCal(){
-    const now=getNowVN();
-    calVYear=now.getFullYear();
-    calVMonth=now.getMonth();
-    calDates={};
-    /* Tự động tải danh sách ngày có kiểm kho từ API mỗi lần load trang */
-    loadCalDates();
-    renderCal();
-}
-
-function loadCalDates(){
-    fetch(API_URL,{method:'POST',body:JSON.stringify({action:'getDates'})})
-    .then(r=>r.json()).then(data=>{
-        if(data.success&&data.dates&&Array.isArray(data.dates)){
-            calDates={};
-            data.dates.forEach(ds=>{if(ds)calDates[ds]=true;});
-            renderCal();
-        }
-    }).catch(()=>{});
-}
-
-function openCal(){
-    document.getElementById('calOverlay').classList.add('open');
-    renderCal();
-}
-
-function closeCal(){
-    document.getElementById('calOverlay').classList.remove('open');
-}
-
-function closeCalOutside(e){
-    if(e.target===document.getElementById('calOverlay'))closeCal();
-}
-
-function changeMonth(dir){
-    calVMonth+=dir;
-    if(calVMonth>11){calVMonth=0;calVYear++;}
-    if(calVMonth<0){calVMonth=11;calVYear--;}
-    renderCal();
-}
-
-function pickDate(ds){
-    closeCal();
-    document.getElementById('checkDate').value=ds;
-    checkedItems={};
-    loadData(ds);
-}
-
-function renderCal(){
-    const monthsVN=['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
-    document.getElementById('calMonthLabel').textContent=monthsVN[calVMonth]+' '+calVYear;
-
-    const container=document.getElementById('calDays');
-    const today=getTodayVN();
-    const selected=document.getElementById('checkDate').value;
-
-    const firstDay=new Date(calVYear,calVMonth,1);
-    let startDow=firstDay.getDay();
-    startDow=startDow===0?6:startDow-1;
-
-    const daysInMonth=new Date(calVYear,calVMonth+1,0).getDate();
-    const daysInPrevMonth=new Date(calVYear,calVMonth,0).getDate();
-
-    let html='';
-    const totalCells=Math.ceil((startDow+daysInMonth)/7)*7;
-
-    for(let i=0;i<totalCells;i++){
-        let dayNum,ds,cls='cal-day';
-        if(i<startDow){
-            const prevDay=daysInPrevMonth-startDow+i+1;
-            dayNum=prevDay;
-            const pm=calVMonth===0?11:calVMonth-1;
-            const py=calVMonth===0?calVYear-1:calVYear;
-            ds=py+'-'+String(pm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
-            cls+=' other-month';
-        } else if(i>=startDow+daysInMonth){
-            dayNum=i-startDow-daysInMonth+1;
-            const nm=calVMonth===11?0:calVMonth+1;
-            const ny=calVMonth===11?calVYear+1:calVYear;
-            ds=ny+'-'+String(nm+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
-            cls+=' other-month';
-        } else {
-            dayNum=i-startDow+1;
-            ds=calVYear+'-'+String(calVMonth+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');
-        }
-
-        if(ds===today)cls+=' today';
-        if(ds===selected)cls+=' selected';
-        if(calDates[ds])cls+=' has-data';
-
-        html+=`<div class="${cls}" onclick="pickDate('${ds}')">${dayNum}</div>`;
+      });
     }
-    container.innerHTML=html;
-}
 
-function escapeId(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
-function escapeAttr(s){return s.replace(/"/g,'&quot;');}
+    function onAmountChange(id) {
+      const input = document.getElementById("amount-" + id);
+      const raw = input.value.replace(/\./g,"").replace(/,/g,"");
+      input.dataset.raw = raw;
+      input.value = raw ? Number(raw).toLocaleString("vi-VN") : "";
+      const btn = document.getElementById("update-" + id);
+      btn.classList.add("enabled");
+      btn.disabled = false;
+    }
 
-init();
-</script>
+    async function openRoom(id) {
+      const btn = document.getElementById("open-" + id);
+      btn.innerText = "⏳ Đang mở...";
+      btn.disabled = true;
+      await fetch(`${API}?action=openRoom&room=${id}`);
+      await loadRooms(id);
+    }
+
+    async function updateAmount(id) {
+      const btn = document.getElementById("update-" + id);
+      btn.innerText = "⏳ Đang lưu...";
+      btn.disabled = true;
+      const input = document.getElementById("amount-" + id);
+      const amount = input.dataset.raw;
+      await fetch(`${API}?action=updateAmount&room=${id}&amount=${amount}`);
+      await loadRooms(id);
+    }
+
+    async function markPaid(id) {
+      const btn = document.getElementById("paid-" + id);
+      btn.innerText = "⏳ Đang lưu...";
+      btn.disabled = true;
+      await fetch(`${API}?action=markPaid&room=${id}`);
+      await loadRooms(id);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+      const time = now.toLocaleTimeString("vi-VN", { hour12: false });
+      const date = now.toLocaleDateString("vi-VN");
+      const dayName = days[now.getDay()];
+      document.getElementById("currentTime").innerText = `${time} • ${dayName}, ${date}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    loadRooms();
+    setInterval(loadRooms, 15000);
+
+    // Reset refresh bar animation periodically
+    setInterval(() => {
+      const bar = document.getElementById('refreshBar');
+      bar.style.animation = 'none';
+      bar.offsetHeight; // trigger reflow
+      bar.style.animation = 'refresh-bar 15s linear infinite';
+    }, 15000);
+
+    // ==================== NETWORK SPEED MONITOR ====================
+    const swDot = document.getElementById('swDot');
+    const swDl = document.getElementById('swDl');
+    const swUl = document.getElementById('swUl');
+    const swPg = document.getElementById('swPg');
+    const swStatus = document.getElementById('swStatus');
+    const speedWidget = document.getElementById('speedWidget');
+
+    let speedTestRunning = false;
+
+    function swSetStatus(text, testing = false) {
+      swStatus.textContent = text;
+      swDot.className = testing ? 'dot testing' : 'dot';
+    }
+
+    async function measurePing(iterations = 6) {
+      const pings = [];
+      for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        try {
+          await fetch('https://www.cloudflare.com/favicon.ico?_=' + Date.now() + Math.random(), {
+            mode: 'no-cors',
+            cache: 'no-store'
+          });
+        } catch(e) {}
+        const end = performance.now();
+        pings.push(end - start);
+      }
+      pings.sort((a, b) => a - b);
+      const trimmed = pings.slice(1, -1);
+      return trimmed.reduce((s, v) => s + v, 0) / trimmed.length;
+    }
+
+    async function measureDownload(durationMs = 6000) {
+      const startTime = performance.now();
+      let totalBytes = 0;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), durationMs + 2000);
+
+      const workers = Array.from({ length: 2 }, async () => {
+        while (performance.now() - startTime < durationMs) {
+          try {
+            const resp = await fetch(
+              'https://speed.cloudflare.com/__down?bytes=10000000&_=' + Date.now() + Math.random(),
+              { signal: controller.signal, cache: 'no-store' }
+            );
+            const reader = resp.body.getReader();
+            while (performance.now() - startTime < durationMs) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              totalBytes += value.length;
+            }
+          } catch(e) {
+            if (e.name !== 'AbortError') break;
+          }
+        }
+      });
+
+      await Promise.allSettled(workers);
+      clearTimeout(timeout);
+
+      const elapsed = (performance.now() - startTime) / 1000;
+      return elapsed > 0 ? (totalBytes * 8) / (elapsed * 1000000) : 0;
+    }
+
+    async function measureUpload(durationMs = 5000) {
+      const startTime = performance.now();
+      let totalBytes = 0;
+      const dataSize = 1000000;
+      const data = new Blob([new ArrayBuffer(dataSize)]);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), durationMs + 2000);
+
+      const workers = Array.from({ length: 2 }, async () => {
+        while (performance.now() - startTime < durationMs) {
+          try {
+            await fetch('https://speed.cloudflare.com/__up', {
+              method: 'POST',
+              body: data,
+              signal: controller.signal,
+              cache: 'no-store'
+            });
+            totalBytes += dataSize;
+          } catch(e) {
+            if (e.name !== 'AbortError') break;
+          }
+        }
+      });
+
+      await Promise.allSettled(workers);
+      clearTimeout(timeout);
+
+      const elapsed = (performance.now() - startTime) / 1000;
+      return elapsed > 0 ? (totalBytes * 8) / (elapsed * 1000000) : 0;
+    }
+
+    async function runSpeedTest() {
+      if (speedTestRunning) return;
+      speedTestRunning = true;
+      swSetStatus('Đang đo...', true);
+
+      try {
+        // Ping
+        const ping = await measurePing(8);
+        swPg.textContent = Math.round(ping) + ' ms';
+        swSetStatus('Đo tải xuống...', true);
+
+        // Download
+        const dl = await measureDownload(6000);
+        swDl.textContent = dl.toFixed(1) + ' Mbps';
+        swSetStatus('Đo tải lên...', true);
+
+        // Upload
+        const ul = await measureUpload(5000);
+        swUl.textContent = ul.toFixed(1) + ' Mbps';
+
+        const now = new Date();
+        swSetStatus('Cập nhật lúc ' + now.toLocaleTimeString('vi-VN', { hour12: false }));
+      } catch(e) {
+        console.error('Speed test error:', e);
+        swSetStatus('Lỗi, thử lại sau...');
+      }
+
+      speedTestRunning = false;
+    }
+
+    // Click to test
+    speedWidget.addEventListener('click', runSpeedTest);
+
+    // Auto test every 10 minutes
+    setInterval(runSpeedTest, 10 * 60 * 1000);
+
+    // Run initial test on page load
+    runSpeedTest();
+  </script>
 </body>
 </html>
 
