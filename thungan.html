@@ -101,6 +101,89 @@
       margin-top: 12px;
     }
 
+    /* Speed Monitor Widget */
+    .speed-widget {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 11px;
+      min-width: 155px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .speed-widget .sw-title {
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .speed-widget .sw-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      display: inline-block;
+    }
+
+    .speed-widget .sw-title .dot.testing {
+      background: #fbbf24;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .speed-widget .sw-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+    }
+
+    .speed-widget .sw-label {
+      opacity: 0.75;
+      font-weight: 500;
+    }
+
+    .speed-widget .sw-value {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+    }
+
+    .sw-val-dl { color: #93c5fd; }
+    .sw-val-ul { color: #c4b5fd; }
+    .sw-val-pg { color: #fda4af; }
+
+    .speed-widget .sw-status {
+      font-size: 9px;
+      opacity: 0.6;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .speed-widget {
+        position: relative;
+        top: auto; right: auto;
+        margin: 10px auto 0;
+        max-width: 200px;
+      }
+    }
+
     .container {
       max-width: 1100px;
       margin: 24px auto;
@@ -451,6 +534,24 @@
   <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
   <header class="app-header">
+    <!-- Speed Monitor Widget -->
+    <div class="speed-widget" id="speedWidget">
+      <div class="sw-title"><span class="dot" id="swDot"></span> Tốc độ mạng</div>
+      <div class="sw-row">
+        <span class="sw-label">↓ Tải xuống</span>
+        <span class="sw-value sw-val-dl" id="swDl">— Mbps</span>
+      </div>
+      <div class="sw-row">
+        <span class="sw-label">↑ Tải lên</span>
+        <span class="sw-value sw-val-ul" id="swUl">— Mbps</span>
+      </div>
+      <div class="sw-row">
+        <span class="sw-label">◎ Độ trễ</span>
+        <span class="sw-value sw-val-pg" id="swPg">— ms</span>
+      </div>
+      <div class="sw-status" id="swStatus">Nhấn để kiểm tra</div>
+    </div>
+
     <h1>
       THU NGÂN
       <span>Karaoke Rita</span>
@@ -478,7 +579,7 @@
       </div>
     </div>
 
-    <a class="check-inventory-btn" href="https://karaokerita.github.io/qr/kho.html" target="_blank>
+    <a class="check-inventory-btn" href="https://karaokerita.github.io/qr/kho.html" target="_blank">
       <span class="icon">📦</span> KIỂM KHO
     </a>
   </div>
@@ -613,6 +714,141 @@
       bar.offsetHeight; // trigger reflow
       bar.style.animation = 'refresh-bar 15s linear infinite';
     }, 15000);
+
+    // ==================== NETWORK SPEED MONITOR ====================
+    const swDot = document.getElementById('swDot');
+    const swDl = document.getElementById('swDl');
+    const swUl = document.getElementById('swUl');
+    const swPg = document.getElementById('swPg');
+    const swStatus = document.getElementById('swStatus');
+    const speedWidget = document.getElementById('speedWidget');
+
+    let speedTestRunning = false;
+
+    function swSetStatus(text, testing = false) {
+      swStatus.textContent = text;
+      swDot.className = testing ? 'dot testing' : 'dot';
+    }
+
+    async function measurePing(iterations = 6) {
+      const pings = [];
+      for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        try {
+          await fetch('https://www.cloudflare.com/favicon.ico?_=' + Date.now() + Math.random(), {
+            mode: 'no-cors',
+            cache: 'no-store'
+          });
+        } catch(e) {}
+        const end = performance.now();
+        pings.push(end - start);
+      }
+      pings.sort((a, b) => a - b);
+      const trimmed = pings.slice(1, -1);
+      return trimmed.reduce((s, v) => s + v, 0) / trimmed.length;
+    }
+
+    async function measureDownload(durationMs = 6000) {
+      const startTime = performance.now();
+      let totalBytes = 0;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), durationMs + 2000);
+
+      const workers = Array.from({ length: 2 }, async () => {
+        while (performance.now() - startTime < durationMs) {
+          try {
+            const resp = await fetch(
+              'https://speed.cloudflare.com/__down?bytes=10000000&_=' + Date.now() + Math.random(),
+              { signal: controller.signal, cache: 'no-store' }
+            );
+            const reader = resp.body.getReader();
+            while (performance.now() - startTime < durationMs) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              totalBytes += value.length;
+            }
+          } catch(e) {
+            if (e.name !== 'AbortError') break;
+          }
+        }
+      });
+
+      await Promise.allSettled(workers);
+      clearTimeout(timeout);
+
+      const elapsed = (performance.now() - startTime) / 1000;
+      return elapsed > 0 ? (totalBytes * 8) / (elapsed * 1000000) : 0;
+    }
+
+    async function measureUpload(durationMs = 5000) {
+      const startTime = performance.now();
+      let totalBytes = 0;
+      const dataSize = 1000000;
+      const data = new Blob([new ArrayBuffer(dataSize)]);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), durationMs + 2000);
+
+      const workers = Array.from({ length: 2 }, async () => {
+        while (performance.now() - startTime < durationMs) {
+          try {
+            await fetch('https://speed.cloudflare.com/__up', {
+              method: 'POST',
+              body: data,
+              signal: controller.signal,
+              cache: 'no-store'
+            });
+            totalBytes += dataSize;
+          } catch(e) {
+            if (e.name !== 'AbortError') break;
+          }
+        }
+      });
+
+      await Promise.allSettled(workers);
+      clearTimeout(timeout);
+
+      const elapsed = (performance.now() - startTime) / 1000;
+      return elapsed > 0 ? (totalBytes * 8) / (elapsed * 1000000) : 0;
+    }
+
+    async function runSpeedTest() {
+      if (speedTestRunning) return;
+      speedTestRunning = true;
+      swSetStatus('Đang đo...', true);
+
+      try {
+        // Ping
+        const ping = await measurePing(8);
+        swPg.textContent = Math.round(ping) + ' ms';
+        swSetStatus('Đo tải xuống...', true);
+
+        // Download
+        const dl = await measureDownload(6000);
+        swDl.textContent = dl.toFixed(1) + ' Mbps';
+        swSetStatus('Đo tải lên...', true);
+
+        // Upload
+        const ul = await measureUpload(5000);
+        swUl.textContent = ul.toFixed(1) + ' Mbps';
+
+        const now = new Date();
+        swSetStatus('Cập nhật lúc ' + now.toLocaleTimeString('vi-VN', { hour12: false }));
+      } catch(e) {
+        console.error('Speed test error:', e);
+        swSetStatus('Lỗi, thử lại sau...');
+      }
+
+      speedTestRunning = false;
+    }
+
+    // Click to test
+    speedWidget.addEventListener('click', runSpeedTest);
+
+    // Auto test every 10 minutes
+    setInterval(runSpeedTest, 10 * 60 * 1000);
+
+    // Run initial test on page load
+    runSpeedTest();
   </script>
 </body>
 </html>
