@@ -730,23 +730,42 @@
       swDot.className = testing ? 'dot testing' : 'dot';
     }
 
-    async function measurePing(iterations = 6) {
+    async function measurePing(iterations = 10) {
       const pings = [];
+      const targetUrl = "https://www.youtube.com/generate_204";
+      
       for (let i = 0; i < iterations; i++) {
-        const start = performance.now();
+        const cacheBuster = `?_=${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const requestUrl = targetUrl + cacheBuster;
+        
+        const markStart = performance.now();
         try {
-          // 🎯 Đã thay đổi đích ping sang youtube.com
-          await fetch('https://www.youtube.com/favicon.ico?_=' + Date.now() + Math.random(), {
-            mode: 'no-cors',
-            cache: 'no-store'
+          await fetch(requestUrl, { 
+            mode: 'no-cors', 
+            cache: 'no-store',
+            keepalive: false 
           });
         } catch(e) {}
-        const end = performance.now();
-        pings.push(end - start);
+        
+        const markEnd = performance.now();
+        const rtt = markEnd - markStart;
+        if (rtt > 10) { // Ignore unrealistically low values (<10ms usually means cached/invalid)
+          pings.push(rtt);
+        }
       }
+
+      if (pings.length === 0) return 0;
+
+      // Sắp xếp và loại bỏ 20% giá trị cao/thấp nhất để tránh nhiễu mạng
       pings.sort((a, b) => a - b);
-      const trimmed = pings.slice(1, -1);
-      return trimmed.reduce((s, v) => s + v, 0) / trimmed.length;
+      const trimCount = Math.max(1, Math.floor(pings.length * 0.2));
+      const trimmed = pings.slice(trimCount, pings.length - trimCount);
+      
+      // Trả về giá trị trung vị (median) của tập dữ liệu đã lọc
+      const mid = Math.floor(trimmed.length / 2);
+      return trimmed.length % 2 !== 0 
+        ? trimmed[mid] 
+        : (trimmed[mid - 1] + trimmed[mid]) / 2;
     }
 
     async function measureDownload(durationMs = 6000) {
@@ -819,7 +838,7 @@
 
       try {
         // Ping
-        const ping = await measurePing(8);
+        const ping = await measurePing(10);
         swPg.textContent = Math.round(ping) + ' ms';
         swSetStatus('Đo tải xuống...', true);
 
@@ -845,7 +864,7 @@
     // Click to test
     speedWidget.addEventListener('click', runSpeedTest);
 
-    // Auto test every 10 minutes
+    // Auto test every 5 minutes
     setInterval(runSpeedTest, 5 * 60 * 1000);
 
     // Run initial test on page load
@@ -853,3 +872,4 @@
   </script>
 </body>
 </html>
+
