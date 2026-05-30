@@ -53,6 +53,43 @@
     .btn-worktime:hover {
       background:#0056b3;
     }
+
+    /* Nút Tạm ứng */
+    .btn-tamung {
+      display:block;
+      width:100%;
+      text-align:center;
+      background:#e83e8c;
+      color:white;
+      font-size:18px;
+      font-weight:bold;
+      padding:10px 0;
+      margin-top:10px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      transition:0.2s;
+    }
+    .btn-tamung:hover {
+      background:#c8236e;
+    }
+
+    /* Modal Tạm ứng */
+    #tamungModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:999; }
+    .tamung-content { background:#fff; border-radius:12px; padding:20px; width:90%; max-width:440px; max-height:90vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
+    .tamung-content h2 { text-align:center; color:#e83e8c; margin-top:0; font-size:20px; }
+    .tamung-info { background:#f0f8ff; padding:12px; border-radius:8px; margin:10px 0; }
+    .tamung-info p { margin:4px 0; font-size:14px; }
+    .tamung-info .label { font-weight:bold; color:#333; }
+    .tamung-info .value { color:#007bff; }
+    .tamung-amount-input { width:100%; font-size:20px; padding:8px; margin:10px 0; text-align:center; border:2px solid #e83e8c; border-radius:6px; box-sizing:border-box; }
+    .tamung-qr-box { display:flex; justify-content:center; margin:10px 0; }
+    .tamung-qr-box img { width:200px; height:200px; }
+    .tamung-amount-text { font-size:13px; color:green; text-align:center; margin-bottom:8px; }
+    .btn-tamung-camera { background:#e83e8c; color:white; border:none; border-radius:6px; padding:10px 16px; cursor:pointer; margin:8px auto; display:block; font-size:15px; font-weight:bold; }
+    .btn-tamung-close { background:#666; color:white; border:none; border-radius:6px; padding:10px 16px; cursor:pointer; margin:8px auto; display:block; font-size:15px; font-weight:bold; width:100%; }
+    .tamung-buttons { display:flex; gap:8px; margin-top:10px; }
+    .tamung-buttons button { flex:1; }
   </style>
 </head>
 <body>
@@ -78,9 +115,11 @@
       <tbody id="roomTable"></tbody>
     </table>
 
+    <!-- 🔹 Nút Tạm ứng -->
+    <button id="openTamung" class="btn-tamung">💰 Tạm ứng</button>
+
     <!-- 🔹 Nút Tính giờ đi làm -->
     <a href="https://karaokerita.github.io/checkout/" class="btn-worktime" target="_blank">🕒 Tính giờ đi làm</a>
-    <a href="https://karaokerita.github.io/qr/kho.html" class="btn-worktime" >KIỂM KHO</a>
   </div>
 
   <!-- Modal Camera -->
@@ -93,6 +132,25 @@
         <button id="downloadBtn" class="btn-save" style="display:none;">Chia sẻ / Lưu ảnh</button>
         <button id="closeModal" class="btn-close">Đóng</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Tạm ứng -->
+  <div id="tamungModal">
+    <div class="tamung-content">
+      <h2>💰 TẠM ỨNG</h2>
+      <div class="tamung-info">
+        <p><span class="label">Số tài khoản:</span> <span class="value">9917523946</span></p>
+        <p><span class="label">Ngân hàng:</span> <span class="value">VIETCOMBANK</span></p>
+        <p><span class="label">Chủ tài khoản:</span> <span class="value">HUYNH PHUONG TRANG</span></p>
+        </div>
+      <input id="tamungAmount" class="tamung-amount-input" type="text" placeholder="Nhập số tiền tạm ứng" />
+      <div class="tamung-amount-text" id="tamungAmountText"></div>
+      <div class="tamung-qr-box"><img id="tamungQR" src="" alt="QR Tạm ứng" /></div>
+      <div class="tamung-buttons">
+        <button id="tamungCameraBtn" class="btn-tamung-camera">📸 Chụp hình giao dịch</button>
+      </div>
+      <button id="closeTamung" class="btn-tamung-close">Đóng</button>
     </div>
   </div>
 
@@ -109,7 +167,18 @@ const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const closeModal = document.getElementById("closeModal");
+
+// Tạm ứng elements
+const openTamung = document.getElementById("openTamung");
+const tamungModal = document.getElementById("tamungModal");
+const tamungAmount = document.getElementById("tamungAmount");
+const tamungQR = document.getElementById("tamungQR");
+const tamungAmountText = document.getElementById("tamungAmountText");
+const tamungCameraBtn = document.getElementById("tamungCameraBtn");
+const closeTamung = document.getElementById("closeTamung");
+
 let stream;
+let currentCameraMode = "regular"; // "regular" hoặc "tamung"
 
 // Hiển thị đồng hồ
 function updateClock() {
@@ -152,7 +221,7 @@ function numberToWords(n){
 }
 function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
 
-// QR
+// QR - Regular
 function updateQR(val, roomName=""){
   if(roomName) roomNameQR.textContent = roomName;
   const url=`https://img.vietqr.io/image/VCB-1038398686-qr_only.png?amount=${val}&addInfo=Thank+You+${roomNameQR.textContent}&accountName=HKD+RITA`;
@@ -168,6 +237,24 @@ manualAmount.addEventListener("input", function(){
     this.value="";
     amountText.textContent="";
     qrImage.src="";
+  }
+});
+
+// QR - Tạm ứng
+function updateTamungQR(val){
+  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=tam+ung&accountName=HUYNH+PHUONG+TRANG`;
+  tamungQR.src=url;
+  tamungAmountText.textContent = numberToWords(Number(val));
+}
+tamungAmount.addEventListener("input", function(){
+  let val=this.value.replace(/\D/g,"");
+  if(val){
+    this.value=formatNumber(val);
+    updateTamungQR(val);
+  } else {
+    this.value="";
+    tamungAmountText.textContent="";
+    tamungQR.src="";
   }
 });
 
@@ -208,7 +295,14 @@ function fillQR(amount, roomName){
 loadRooms();
 setInterval(loadRooms, 180000);
 
-// Camera
+// Camera mở từ Tạm ứng
+tamungCameraBtn.addEventListener("click", () => {
+  currentCameraMode = "tamung";
+  tamungModal.style.display = "none";
+  openCamera.click();
+});
+
+// Camera thường
 openCamera.addEventListener("click", async () => {
   cameraModal.style.display = "flex";
   canvas.style.display = "none";
@@ -227,8 +321,6 @@ captureBtn.addEventListener("click", () => {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const roomName = roomNameQR.textContent || " ";
-  const amountNumber = manualAmount.value || "0";
   const timeStr = new Date().toLocaleString('vi-VN');
 
   function drawLabel(text, x, y) {
@@ -241,9 +333,19 @@ captureBtn.addEventListener("click", () => {
     ctx.fillStyle = "lightgreen";
     ctx.fillText(text, x, y);
   }
-  drawLabel(`${roomName}`, 20, 20);
-  drawLabel(`Số tiền: ${amountNumber}`, 20, 55);
-  drawLabel(`Thời gian: ${timeStr}`, 20, 90);
+
+  if (currentCameraMode === "tamung") {
+    const amt = tamungAmount.value || "0";
+    drawLabel(`Tạm ứng`, 20, 20);
+    drawLabel(`Số tiền: ${amt}`, 20, 55);
+    drawLabel(`Thời gian: ${timeStr}`, 20, 90);
+  } else {
+    const roomName = roomNameQR.textContent || " ";
+    const amountNumber = manualAmount.value || "0";
+    drawLabel(`${roomName}`, 20, 20);
+    drawLabel(`Số tiền: ${amountNumber}`, 20, 55);
+    drawLabel(`Thời gian: ${timeStr}`, 20, 90);
+  }
 
   canvas.style.display = "block";
   downloadBtn.style.display = "inline-block";
@@ -251,17 +353,26 @@ captureBtn.addEventListener("click", () => {
 
 downloadBtn.addEventListener("click", async () => {
   canvas.toBlob(async (blob) => {
-    const file = new File([blob], `ThanhToan_${Date.now()}.png`, { type: "image/png" });
+    let titleText, shareText;
+    if (currentCameraMode === "tamung") {
+      titleText = "Ảnh tạm ứng";
+      shareText = `Tạm ứng\nSố tiền: ${tamungAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`;
+    } else {
+      titleText = "Ảnh thanh toán";
+      shareText = `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`;
+    }
+
+    const file = new File([blob], `TamUng_${Date.now()}.png`, { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
-        title: "Ảnh thanh toán",
-        text: `${roomNameQR.textContent}\nSố tiền: ${manualAmount.value}\nThời gian: ${new Date().toLocaleString('vi-VN')}`
+        title: titleText,
+        text: shareText
       });
     } else {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `ThanhToan_${Date.now()}.png`;
+      link.download = `TamUng_${Date.now()}.png`;
       link.click();
     }
   }, "image/png");
@@ -269,7 +380,21 @@ downloadBtn.addEventListener("click", async () => {
 
 closeModal.addEventListener("click", () => {
   cameraModal.style.display = "none";
+  currentCameraMode = "regular";
   if(stream){ stream.getTracks().forEach(track => track.stop()); }
+});
+
+// Mở modal tạm ứng
+openTamung.addEventListener("click", () => {
+  tamungAmount.value = "";
+  tamungQR.src = "";
+  tamungAmountText.textContent = "";
+  tamungModal.style.display = "flex";
+});
+
+// Đóng modal tạm ứng
+closeTamung.addEventListener("click", () => {
+  tamungModal.style.display = "none";
 });
 </script>
 </body>
