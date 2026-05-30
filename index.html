@@ -266,7 +266,7 @@ manualAmount.addEventListener("input", function(){
 
 // QR - Tạm ứng
 function updateTamungQR(val){
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=tam+ung&accountName=HUYNH+PHUONG+TRANG`;
+  const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=tam+ung&accountName=${accountName}`;
   tamungQR.src=url;
   tamungAmountText.textContent = numberToWords(Number(val));
 }
