@@ -74,6 +74,26 @@
       background:#c8236e;
     }
 
+    /* Nút Kiểm kho */
+    .btn-kho {
+      display:block;
+      width:100%;
+      text-align:center;
+      background:#198754;
+      color:white;
+      font-size:18px;
+      font-weight:bold;
+      padding:10px 0;
+      margin-top:10px;
+      border:none;
+      border-radius:8px;
+      text-decoration:none;
+      transition:0.2s;
+    }
+    .btn-kho:hover {
+      background:#157347;
+    }
+
     /* Modal Tạm ứng */
     #tamungModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:999; }
     .tamung-content { background:#fff; border-radius:12px; padding:20px; width:90%; max-width:440px; max-height:90vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
@@ -120,6 +140,9 @@
 
     <!-- 🔹 Nút Tính giờ đi làm -->
     <a href="https://karaokerita.github.io/checkout/" class="btn-worktime" target="_blank">🕒 Tính giờ đi làm</a>
+
+    <!-- 🔹 Nút Kiểm kho -->
+    <a href="https://karaokerita.github.io/qr/kho.html" class="btn-kho" target="_blank">📦 Kiểm kho</a>
   </div>
 
   <!-- Modal Camera -->
@@ -143,7 +166,8 @@
         <p><span class="label">Số tài khoản:</span> <span class="value">9917523946</span></p>
         <p><span class="label">Ngân hàng:</span> <span class="value">VIETCOMBANK</span></p>
         <p><span class="label">Chủ tài khoản:</span> <span class="value">HUYNH PHUONG TRANG</span></p>
-        </div>
+        <p><span class="label">Nội dung:</span> <span class="value">tam ung</span></p>
+      </div>
       <input id="tamungAmount" class="tamung-amount-input" type="text" placeholder="Nhập số tiền tạm ứng" />
       <div class="tamung-amount-text" id="tamungAmountText"></div>
       <div class="tamung-qr-box"><img id="tamungQR" src="" alt="QR Tạm ứng" /></div>
