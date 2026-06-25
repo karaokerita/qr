@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
   <title>Nhân viên Karaoke</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -81,26 +81,6 @@
       margin:10px 0 5px 5px;
       font-size:14px;
     }
-    .advance-info {
-      background:#fff8e1;
-      border-left:4px solid #ff9800;
-      padding:10px 12px;
-      margin:10px 5px;
-      border-radius:4px;
-      font-size:14px;
-      color:#5d4037;
-    }
-    .advance-info strong { color:#e65100; font-size:15px; }
-    .advance-room-display {
-      background:#e3f2fd;
-      border-left:4px solid #007bff;
-      padding:10px 12px;
-      margin:10px 5px;
-      border-radius:4px;
-      font-size:15px;
-      color:#0d47a1;
-      font-weight:bold;
-    }
   </style>
 </head>
 <body>
@@ -143,16 +123,11 @@
         <label for="advanceRoom">🏠 Tên phòng tạm ứng</label>
         <input id="advanceRoom" class="amount-input" type="text" placeholder="Nhập tên phòng tạm ứng" style="font-size:18px;" />
 
-        <!-- Hiển thị tên phòng đã nhập -->
-        
-
         <label for="advanceAmount">💵 Số tiền tạm ứng</label>
         <input id="advanceAmount" class="amount-input" type="text" placeholder="Nhập số tiền tạm ứng" />
 
-        <!-- Hiển thị nội dung chuyển tiền -->
-        <div class="room-name-qr" id="advanceRoomQR"></div>
-        <div class="amount-text" id="advanceAmountText"></div>
         <div class="qr-box"><img id="advanceQrImage" src="" alt="QR Tạm ứng" /></div>
+        <div class="amount-text" id="advanceAmountText"></div>
         <button id="openCameraAdvance" class="btn-camera">Chụp ảnh tạm ứng</button>
       </div>
     </div>
@@ -205,11 +180,6 @@ const advanceAmount = document.getElementById("advanceAmount");
 const advanceRoom = document.getElementById("advanceRoom");
 const advanceQrImage = document.getElementById("advanceQrImage");
 const advanceAmountText = document.getElementById("advanceAmountText");
-const advanceRoomQR = document.getElementById("advanceRoomQR");
-const advanceInfo = document.getElementById("advanceInfo");
-const advanceContent = document.getElementById("advanceContent");
-const advanceRoomDisplay = document.getElementById("advanceRoomDisplay");
-const advanceRoomDisplayText = document.getElementById("advanceRoomDisplayText");
 const openCameraAdvance = document.getElementById("openCameraAdvance");
 
 let stream;
@@ -278,29 +248,11 @@ manualAmount.addEventListener("input", function(){
   }
 });
 
-// ===== Hàm cập nhật giao diện tạm ứng =====
-function refreshAdvanceUI(){
+// ===== Cập nhật QR tạm ứng (nội dung: "tam ung + tên phòng") =====
+function refreshAdvanceQR(){
   const roomName = advanceRoom.value.trim();
   const amountRaw = advanceAmount.value.replace(/\D/g,"");
 
-  // 1. Luôn hiển thị tên phòng nếu có nhập
-  if(roomName){
-    advanceRoomDisplay.style.display = "block";
-    advanceRoomDisplayText.textContent = roomName;
-    advanceRoomQR.textContent = roomName;
-
-    // Luôn hiển thị nội dung chuyển tiền khi có tên phòng
-    advanceInfo.style.display = "block";
-    advanceContent.textContent = `tam ung ${roomName}`;
-  } else {
-    advanceRoomDisplay.style.display = "none";
-    advanceRoomDisplayText.textContent = "";
-    advanceRoomQR.textContent = "";
-    advanceInfo.style.display = "none";
-    advanceContent.textContent = "";
-  }
-
-  // 2. Cập nhật QR và số tiền bằng chữ nếu có số tiền
   if(amountRaw){
     const addInfoRaw = roomName ? `tam ung ${roomName}` : `tam ung`;
     const addInfo = encodeURIComponent(addInfoRaw);
@@ -320,11 +272,11 @@ advanceAmount.addEventListener("input", function(){
   } else {
     this.value = "";
   }
-  refreshAdvanceUI();
+  refreshAdvanceQR();
 });
 
 advanceRoom.addEventListener("input", function(){
-  refreshAdvanceUI();
+  refreshAdvanceQR();
 });
 
 // Load danh sách phòng
