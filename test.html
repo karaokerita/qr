@@ -9,9 +9,9 @@
     .container { max-width:480px; margin:auto; padding:15px; background: rgba(255,255,255,0.85); border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
     h1 { text-align:center; color:#007bff; font-size:22px; margin-bottom:10px; }
     #currentTime { text-align:center; font-weight:bold; margin:-5px 0 10px 0; color:#444; }
-    .amount-input { width:90%; font-size:22px; padding:6px; margin-bottom:8px; text-align:center; }
-    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; }
-    .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; }
+    .amount-input { width:90%; font-size:22px; padding:6px; margin-bottom:8px; text-align:center; box-sizing:border-box; }
+    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; min-height:22px; }
+    .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; min-height:18px; }
     .qr-box { display:flex; justify-content:center; margin:10px 0; }
     .qr-box img { width:220px; height:220px; }
     .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px auto; display:block; }
@@ -34,7 +34,6 @@
     .btn-save { background:#28a745; color:white; border:none; border-radius:6px; }
     .btn-close { background:#666; color:white; border:none; border-radius:6px; }
 
-    /* Nút Tính giờ đi làm */
     .btn-worktime {
       display:block;
       width:100%;
@@ -50,11 +49,8 @@
       text-decoration:none;
       transition:0.2s;
     }
-    .btn-worktime:hover {
-      background:#0056b3;
-    }
+    .btn-worktime:hover { background:#0056b3; }
 
-    /* Tab navigation */
     .tab-nav {
       display:flex;
       margin-bottom:15px;
@@ -74,14 +70,10 @@
       cursor:pointer;
       transition:0.2s;
     }
-    .tab-btn.active {
-      background:#007bff;
-      color:white;
-    }
+    .tab-btn.active { background:#007bff; color:white; }
     .tab-content { display:none; }
     .tab-content.active { display:block; }
 
-    /* Trang tạm ứng */
     .advance-form label {
       display:block;
       font-weight:bold;
@@ -92,13 +84,23 @@
     .advance-info {
       background:#fff8e1;
       border-left:4px solid #ff9800;
-      padding:8px 10px;
-      margin:10px 0;
+      padding:10px 12px;
+      margin:10px 5px;
       border-radius:4px;
-      font-size:13px;
+      font-size:14px;
       color:#5d4037;
     }
-    .advance-info strong { color:#e65100; }
+    .advance-info strong { color:#e65100; font-size:15px; }
+    .advance-room-display {
+      background:#e3f2fd;
+      border-left:4px solid #007bff;
+      padding:10px 12px;
+      margin:10px 5px;
+      border-radius:4px;
+      font-size:15px;
+      color:#0d47a1;
+      font-weight:bold;
+    }
   </style>
 </head>
 <body>
@@ -106,7 +108,6 @@
     <h1>QUÉT MÃ THANH TOÁN<br>KARAOKE RITA</h1>
     <p id="currentTime"></p>
 
-    <!-- Tab Navigation -->
     <div class="tab-nav">
       <button class="tab-btn active" data-tab="payment">💳 Thanh toán</button>
       <button class="tab-btn" data-tab="advance">💰 Tạm ứng</button>
@@ -133,22 +134,22 @@
         <tbody id="roomTable"></tbody>
       </table>
 
-      <!-- 🔹 Nút Tính giờ đi làm -->
       <a href="https://karaokerita.github.io/checkout/" class="btn-worktime" target="_blank">🕒 Tính giờ đi làm</a>
     </div>
 
     <!-- Tab 2: Tạm ứng -->
     <div id="tab-advance" class="tab-content">
       <div class="advance-form">
+        <label for="advanceRoom">🏠 Tên phòng tạm ứng</label>
+        <input id="advanceRoom" class="amount-input" type="text" placeholder="Nhập tên phòng tạm ứng" style="font-size:18px;" />
+
+        <!-- Hiển thị tên phòng đã nhập -->
+        
+
         <label for="advanceAmount">💵 Số tiền tạm ứng</label>
         <input id="advanceAmount" class="amount-input" type="text" placeholder="Nhập số tiền tạm ứng" />
 
-        <label for="advanceRoom">🏠 Tên Phòng tạm ứng</label>
-        <input id="advanceRoom" class="amount-input" type="text" placeholder="Nhập tên phòng tạm ứng" style="font-size:18px;" />
-
-        <div class="advance-info" id="advanceInfo" style="display:none;">
-         </div>
-
+        <!-- Hiển thị nội dung chuyển tiền -->
         <div class="room-name-qr" id="advanceRoomQR"></div>
         <div class="amount-text" id="advanceAmountText"></div>
         <div class="qr-box"><img id="advanceQrImage" src="" alt="QR Tạm ứng" /></div>
@@ -207,12 +208,13 @@ const advanceAmountText = document.getElementById("advanceAmountText");
 const advanceRoomQR = document.getElementById("advanceRoomQR");
 const advanceInfo = document.getElementById("advanceInfo");
 const advanceContent = document.getElementById("advanceContent");
+const advanceRoomDisplay = document.getElementById("advanceRoomDisplay");
+const advanceRoomDisplayText = document.getElementById("advanceRoomDisplayText");
 const openCameraAdvance = document.getElementById("openCameraAdvance");
 
 let stream;
-let currentMode = "payment"; // "payment" or "advance"
-let currentLabel = ""; // label to draw on photo
-let currentShareText = ""; // text for share
+let currentMode = "payment";
+let currentShareText = "";
 
 // Hiển thị đồng hồ
 function updateClock() {
@@ -276,50 +278,53 @@ manualAmount.addEventListener("input", function(){
   }
 });
 
-// ===== QR cho Tạm ứng =====
-function updateAdvanceQR(val, roomName=""){
-  if(roomName) advanceRoomQR.textContent = roomName;
-  const displayRoom = advanceRoomQR.textContent.trim();
-  // Nội dung: "tam ung + tên phòng"
-  const addInfoRaw = displayRoom ? `tam ung ${displayRoom}` : `tam ung`;
-  const addInfo = encodeURIComponent(addInfoRaw);
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=${addInfo}&accountName=HUYNH+PHUONG+TRANG`;
-  advanceQrImage.src=url;
-  advanceAmountText.textContent = numberToWords(Number(val));
+// ===== Hàm cập nhật giao diện tạm ứng =====
+function refreshAdvanceUI(){
+  const roomName = advanceRoom.value.trim();
+  const amountRaw = advanceAmount.value.replace(/\D/g,"");
 
-  if(displayRoom){
+  // 1. Luôn hiển thị tên phòng nếu có nhập
+  if(roomName){
+    advanceRoomDisplay.style.display = "block";
+    advanceRoomDisplayText.textContent = roomName;
+    advanceRoomQR.textContent = roomName;
+
+    // Luôn hiển thị nội dung chuyển tiền khi có tên phòng
     advanceInfo.style.display = "block";
-    advanceContent.textContent = addInfoRaw;
+    advanceContent.textContent = `tam ung ${roomName}`;
   } else {
+    advanceRoomDisplay.style.display = "none";
+    advanceRoomDisplayText.textContent = "";
+    advanceRoomQR.textContent = "";
     advanceInfo.style.display = "none";
     advanceContent.textContent = "";
   }
+
+  // 2. Cập nhật QR và số tiền bằng chữ nếu có số tiền
+  if(amountRaw){
+    const addInfoRaw = roomName ? `tam ung ${roomName}` : `tam ung`;
+    const addInfo = encodeURIComponent(addInfoRaw);
+    const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amountRaw}&addInfo=${addInfo}&accountName=HUYNH+PHUONG+TRANG`;
+    advanceQrImage.src = url;
+    advanceAmountText.textContent = numberToWords(Number(amountRaw));
+  } else {
+    advanceQrImage.src = "";
+    advanceAmountText.textContent = "";
+  }
 }
+
 advanceAmount.addEventListener("input", function(){
-  let val=this.value.replace(/\D/g,"");
+  let val = this.value.replace(/\D/g,"");
   if(val){
-    this.value=formatNumber(val);
-    updateAdvanceQR(val);
+    this.value = formatNumber(val);
   } else {
-    this.value="";
-    advanceAmountText.textContent="";
-    advanceQrImage.src="";
-    advanceInfo.style.display="none";
+    this.value = "";
   }
+  refreshAdvanceUI();
 });
+
 advanceRoom.addEventListener("input", function(){
-  const val = advanceAmount.value.replace(/\D/g,"");
-  if(val){
-    updateAdvanceQR(val, this.value);
-  } else {
-    advanceRoomQR.textContent = this.value;
-    if(this.value.trim()){
-      advanceInfo.style.display = "block";
-      advanceContent.textContent = `tam ung ${this.value.trim()}`;
-    } else {
-      advanceInfo.style.display = "none";
-    }
-  }
+  refreshAdvanceUI();
 });
 
 // Load danh sách phòng
@@ -389,7 +394,6 @@ captureBtn.addEventListener("click", () => {
   if(currentMode === "payment"){
     const roomName = roomNameQR.textContent || " ";
     const amountNumber = manualAmount.value || "0";
-    currentLabel = `Thanh toán - ${roomName}`;
     currentShareText = `${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
 
     function drawLabel(text, x, y) {
@@ -408,7 +412,6 @@ captureBtn.addEventListener("click", () => {
   } else {
     const roomName = advanceRoom.value.trim() || "Tạm ứng";
     const amountNumber = advanceAmount.value || "0";
-    currentLabel = `Tạm ứng - ${roomName}`;
     currentShareText = `tam ung ${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
 
     function drawLabelAdv(text, x, y) {
