@@ -132,7 +132,7 @@
           <option value="">-- Đang tải danh sách phòng --</option>
         </select>
         <div class="no-room-hint" id="noRoomHint" style="display:none;">
-          Hiện không có phòng nào đang "Chưa thanh toán"
+          Hiện không có phòng nào đang mở!
         </div>
 
         <label for="advanceAmount">💵 Số tiền tạm ứng</label>
@@ -305,7 +305,7 @@ function populateAdvanceRoomSelect(data){
   if(unpaid.length === 0){
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "-- Không có phòng chưa thanh toán --";
+    opt.textContent = "-- Không có phòng đang mở --";
     advanceRoom.appendChild(opt);
     noRoomHint.style.display = "block";
     return;
