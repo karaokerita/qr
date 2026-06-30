@@ -10,11 +10,18 @@
     h1 { text-align:center; color:#007bff; font-size:22px; margin-bottom:10px; }
     #currentTime { text-align:center; font-weight:bold; margin:-5px 0 10px 0; color:#444; }
     .amount-input, .room-select { width:90%; font-size:18px; padding:6px; margin-bottom:8px; text-align:center; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; background:#fff; font-weight:normal; color:#333; }
+    .amount-input:disabled {
+      background:#f0f0f0;
+      color:#999;
+      cursor:not-allowed;
+      opacity:0.6;
+    }
     .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; min-height:22px; }
     .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; min-height:18px; }
     .qr-box { display:flex; justify-content:center; margin:10px 0; }
     .qr-box img { width:220px; height:220px; }
     .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px auto; display:block; }
+    .btn-camera:disabled { background:#aaa; cursor:not-allowed; opacity:0.6; }
     table { width:100%; border-collapse: collapse; margin-top:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
     th, td { border:1px solid #ddd; padding:6px; text-align:center; font-size:14px; }
     th { background:#007bff; color:white; }
@@ -136,11 +143,11 @@
         </div>
 
         <label for="advanceAmount">💵 Số tiền tạm ứng</label>
-        <input id="advanceAmount" class="amount-input" type="text" placeholder="Nhập số tiền tạm ứng" />
+        <input id="advanceAmount" class="amount-input" type="text" placeholder="Vui lòng chọn phòng tạm ứng trước" disabled />
 
         <div class="qr-box"><img id="advanceQrImage" src="" alt="QR Tạm ứng" /></div>
         <div class="amount-text" id="advanceAmountText"></div>
-        <button id="openCameraAdvance" class="btn-camera">Chụp ảnh tạm ứng</button>
+        <button id="openCameraAdvance" class="btn-camera" disabled>Chụp ảnh tạm ứng</button>
       </div>
     </div>
   </div>
@@ -289,9 +296,30 @@ advanceAmount.addEventListener("input", function(){
   refreshAdvanceQR();
 });
 
+// ===== Cập nhật trạng thái ô nhập tiền tạm ứng theo phòng đã chọn =====
+function updateAdvanceAmountState(){
+  const hasRoom = advanceRoom.value.trim() !== "";
+  if(hasRoom){
+    advanceAmount.disabled = false;
+    advanceAmount.placeholder = "Nhập số tiền";
+    openCameraAdvance.disabled = false;
+  } else {
+    advanceAmount.disabled = true;
+    advanceAmount.value = "";
+    advanceAmount.placeholder = "Vui lòng chọn phòng tạm ứng trước";
+    openCameraAdvance.disabled = true;
+    advanceQrImage.src = "";
+    advanceAmountText.textContent = "";
+  }
+}
+
 advanceRoom.addEventListener("change", function(){
+  updateAdvanceAmountState();
   refreshAdvanceQR();
 });
+
+// Khởi tạo trạng thái ban đầu cho ô tạm ứng
+updateAdvanceAmountState();
 
 // ===== Populate dropdown phòng chưa thanh toán =====
 function populateAdvanceRoomSelect(data){
@@ -308,6 +336,7 @@ function populateAdvanceRoomSelect(data){
     opt.textContent = "-- Không có phòng đang mở --";
     advanceRoom.appendChild(opt);
     noRoomHint.style.display = "block";
+    updateAdvanceAmountState();
     return;
   }
 
@@ -321,13 +350,15 @@ function populateAdvanceRoomSelect(data){
   unpaid.forEach(room => {
     const opt = document.createElement("option");
     opt.value = room.name;
-    opt.textContent = room.name; // chỉ hiển thị tên phòng, không in đậm, không kèm số tiền
+    opt.textContent = room.name;
     advanceRoom.appendChild(opt);
   });
 
   if(prevValue && unpaid.some(r => r.name === prevValue)){
     advanceRoom.value = prevValue;
   }
+
+  updateAdvanceAmountState();
 }
 
 // Load danh sách phòng
@@ -386,7 +417,13 @@ function openCameraModal(mode){
 }
 
 openCamera.addEventListener("click", () => openCameraModal("payment"));
-openCameraAdvance.addEventListener("click", () => openCameraModal("advance"));
+openCameraAdvance.addEventListener("click", () => {
+  if(!advanceRoom.value.trim()){
+    alert("Vui lòng chọn phòng tạm ứng trước khi chụp ảnh!");
+    return;
+  }
+  openCameraModal("advance");
+});
 
 captureBtn.addEventListener("click", () => {
   const ctx = canvas.getContext("2d");
