@@ -34,7 +34,7 @@
       margin-bottom: 20px;
       font-size: 24px;
     }
-    .login-container input {
+    .login-container input[type="password"] {
       width: 100%;
       padding: 12px;
       font-size: 16px;
@@ -44,9 +44,31 @@
       box-sizing: border-box;
       text-align: center;
     }
-    .login-container input:focus {
+    .login-container input[type="password"]:focus {
       outline: none;
       border-color: #007bff;
+    }
+    .remember-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin: 0 5px 15px 5px;
+      gap: 8px;
+      font-size: 14px;
+      color: #555;
+      user-select: none;
+      cursor: pointer;
+    }
+    .remember-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #007bff;
+      margin: 0;
+    }
+    .remember-row label {
+      cursor: pointer;
+      margin: 0;
     }
     .login-container button {
       width: 100%;
@@ -168,6 +190,10 @@
     <div class="login-container">
       <h2>🔐 Đăng nhập</h2>
       <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" />
+      <div class="remember-row">
+        <input type="checkbox" id="rememberMe" />
+        <label for="rememberMe">Ghi nhớ mật khẩu</label>
+      </div>
       <button id="loginBtn">Đăng nhập</button>
       <div class="login-error" id="loginError">Mật khẩu không đúng!</div>
     </div>
@@ -246,18 +272,30 @@ const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp
 
 // ===== Login Logic =====
 const DEFAULT_PASSWORD = "6868";
+const REMEMBER_KEY = "karaoke_remember_password";
 const loginScreen = document.getElementById("loginScreen");
 const loginPassword = document.getElementById("loginPassword");
 const loginBtn = document.getElementById("loginBtn");
 const loginError = document.getElementById("loginError");
+const rememberMe = document.getElementById("rememberMe");
 const mainContainer = document.querySelector(".container");
+
+function showMainApp() {
+  loginScreen.style.display = "none";
+  mainContainer.style.display = "block";
+  loginError.style.display = "none";
+}
 
 function handleLogin() {
   const password = loginPassword.value;
   if (password === DEFAULT_PASSWORD) {
-    loginScreen.style.display = "none";
-    mainContainer.style.display = "block";
-    loginError.style.display = "none";
+    // Xử lý ghi nhớ mật khẩu
+    if (rememberMe.checked) {
+      localStorage.setItem(REMEMBER_KEY, password);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+    showMainApp();
   } else {
     loginError.style.display = "block";
     loginPassword.value = "";
@@ -272,9 +310,20 @@ loginPassword.addEventListener("keypress", function(e) {
   }
 });
 
-// Focus on password input when page loads
-loginPassword.focus();
+// Kiểm tra ghi nhớ mật khẩu khi tải trang
+(function checkRememberedLogin() {
+  const savedPassword = localStorage.getItem(REMEMBER_KEY);
+  if (savedPassword && savedPassword === DEFAULT_PASSWORD) {
+    showMainApp();
+  } else {
+    // Không có mật khẩu đã lưu -> xóa nếu có dữ liệu cũ không hợp lệ
+    localStorage.removeItem(REMEMBER_KEY);
+    loginPassword.focus();
+  }
+})();
+</script>
 
+<script>
 // ===== Tab switching =====
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -608,3 +657,4 @@ closeModal.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
