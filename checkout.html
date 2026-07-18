@@ -361,10 +361,10 @@
       const days = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
       dateLabel.textContent = days[tomorrow.getDay()] + ' — ' + pad(tomorrow.getDate()) + '/' + pad(tomorrow.getMonth()+1);
 
-      if(res.extra === 0){
-        detail.innerHTML = '✅ Giờ về <strong>' + val + '</strong> đúng tiêu chuẩn → Vào làm lúc <strong>11:00</strong>';
-      } else {
-        detail.innerHTML = 'Giờ về <strong>' + val + '</strong> → Muộn <strong>' + res.extra + ' phút</strong> so với 00:00 → Giờ vào làm: <strong>' + pad(h) + ':' + pad(m) + '</strong> (11:00 + ' + res.extra + ' phút).';
+      //if(res.extra === 0){
+        //detail.innerHTML = '✅ Giờ về <strong>' + val + '</strong> đúng tiêu chuẩn → Vào làm lúc <strong>11:00</strong>';
+      } //else {
+        //detail.innerHTML = 'Giờ về <strong>' + val + '</strong> → Muộn <strong>' + res.extra + ' phút</strong> so với 00:00 → Giờ vào làm: <strong>' + pad(h) + ':' + pad(m) + '</strong> (11:00 + ' + res.extra + ' phút).';
       }
     }
 
