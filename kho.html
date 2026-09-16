@@ -277,16 +277,15 @@ function loadMachineData(date){
 function renderTable(){
     if(invItems.length===0){document.getElementById('tableWrapper').innerHTML='<div class="empty-state"><div class="icon">⚠️</div><p>Không có dữ liệu</p></div>';updateStats();return;}
     
+    // ✅ Bảng chỉ còn 4 cột (đã bỏ "Tồn theo ngày")
     let h = '<table><thead><tr>';
-    h += '<th style="width:25%">Mặt hàng</th>';
-    h += '<th style="width:18%">SL kiểm</th>';
-    h += '<th style="width:18%">Tồn theo ngày</th>';
-    h += '<th style="width:18%">Tồn trên máy</th>';
-    h += '<th style="width:21%">Thừa / Thiếu</th>';
+    h += '<th style="width:28%">Mặt hàng</th>';
+    h += '<th style="width:22%">SL kiểm</th>';
+    h += '<th style="width:22%">Tồn trên máy</th>';
+    h += '<th style="width:28%">Thừa / Thiếu</th>';
     h += '</tr></thead><tbody>';
     
     invItems.forEach(item=>{
-        let sys=lastValues[item]||0;
         let isOk=checkedItems[item]===true;
         let cls=isOk?'row-checked':'row-unchecked';
         let badge=(!isOk&&Object.keys(checkedItems).length>0)?'<span class="badge-unchecked">CHƯA KIỂM</span>':'';
@@ -298,16 +297,15 @@ function renderTable(){
         h+=`<tr class="${cls}">
             <td>${item} ${badge}</td>
             <td><input type="number" class="qty-input qty-actual ${isOk?'entered':''}" data-item="${escapeAttr(item)}" data-original="${actualInit}" value="${actualInit}" oninput="onQtyInput(this); calcDiff(this); checkChanges()"></td>
-            <td id="val-${escapeId(item)}">${sys}</td>
             <td><input type="number" class="qty-input qty-machine ${machineClass}" data-item="${escapeAttr(item)}" data-original="${machineInit}" value="${machineInit}" oninput="onMachineInput(this); calcDiff(this); checkChanges()"></td>
             <td id="diff-${escapeId(item)}" class="diff zero">0</td>
         </tr>`;
     });
     
+    // ✅ Dòng nút bấm cũng chỉ còn 4 ô (bỏ ô trống cột "Tồn theo ngày")
     h += '</tbody><tfoot><tr class="action-row">';
     h += '<td></td>';
     h += '<td><button id="btnSaveActual" class="btn-table" disabled onclick="saveData()"><span>💾</span> Lưu SL Kiểm</button></td>';
-    h += '<td></td>';
     h += '<td><button id="btnSaveMachine" class="btn-table btn-secondary" disabled onclick="saveMachineData()"><span>💻</span> Lưu SL Máy</button></td>';
     h += '<td></td>';
     h += '</tr></tfoot></table>';
@@ -399,8 +397,6 @@ function saveData(){
         Object.keys(entries).forEach(i=>{
             lastValues[i]=Number(entries[i]);
             checkedItems[i]=true;
-            let el=document.getElementById("val-"+escapeId(i));
-            if(el)el.innerText=entries[i];
             let inp = document.querySelector(`.qty-actual[data-item="${escapeAttr(i)}"]`);
             if(inp) inp.dataset.original = entries[i];
         });
