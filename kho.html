@@ -163,7 +163,7 @@ tfoot tr.action-row {
 <body>
 
 <div class="header">
-    <h2>📦 KIỂM KHO</h2>
+    <h2>📦 Kiểm Kho</h2>
     <div class="header-right">
         <input type="date" id="checkDate" style="display:none;">
         <button class="btn-cal-single" onclick="openCal()">
@@ -285,7 +285,6 @@ function highlightRows(){
     });
 }
 
-// ✅ HÀM MỚI: Tính toán lại toàn bộ cột Thừa/Thiếu
 function recalcAllDiffs() {
     document.querySelectorAll('tbody tr').forEach(row => {
         const actualInput = row.querySelector('.qty-actual');
@@ -371,22 +370,20 @@ function renderTable(){
             <td>${item} ${badge}</td>
             <td><input type="number" class="qty-input qty-actual ${isOk?'entered':''}" data-item="${escapeAttr(item)}" data-original="${actualInit}" value="${actualInit}" oninput="onQtyInput(this); calcDiff(this); checkChanges()"></td>
             <td><input type="number" class="qty-input qty-machine ${machineClass}" data-item="${escapeAttr(item)}" data-original="${machineInit}" value="${machineInit}" oninput="onMachineInput(this); calcDiff(this); checkChanges()"></td>
-            <td id="diff-${escapeId(item)}" class="diff zero">0</td>
+            <td id="diff-${escapeId(item)}" class="diff"></td>
         </tr>`;
     });
     
     h += '</tbody><tfoot><tr class="action-row">';
     h += '<td></td>';
-    h += '<td><button id="btnSaveActual" class="btn-table" disabled onclick="saveData()"><span>💾</span> Lưu SL Kiểm</button></td>';
-    h += '<td><button id="btnSaveMachine" class="btn-table btn-secondary" disabled onclick="saveMachineData()"><span>💻</span> Lưu SL Máy</button></td>';
+    h += '<td><button id="btnSaveActual" class="btn-table" disabled onclick="saveData()"><span>💾</span> Lưu Kiểm</button></td>';
+    h += '<td><button id="btnSaveMachine" class="btn-table btn-secondary" disabled onclick="saveMachineData()"><span>💻</span> Lưu Máy</button></td>';
     h += '<td></td>';
     h += '</tr></tfoot></table>';
     
     document.getElementById('tableWrapper').innerHTML=h;
     updateStats();renderUncheckedList();
     checkChanges();
-    
-    // ✅ Tính toán lại toàn bộ cột Thừa/Thiếu sau khi render xong
     recalcAllDiffs();
 }
 
@@ -428,18 +425,27 @@ function checkChanges() {
     document.getElementById('btnSaveMachine').disabled = !machineChanged;
 }
 
+// ✅ CẬP NHẬT: Nếu 1 trong 2 ô rỗng → không hiển thị gì
 function calcDiff(inp){
     const item = inp.dataset.item;
     const row = inp.closest('tr');
     const actualInput = row.querySelector('.qty-actual');
     const machineInput = row.querySelector('.qty-machine');
     
-    const actualVal = Number(actualInput.value || 0);
-    const machineVal = Number(machineInput.value || 0);
-    const diff = actualVal - machineVal; 
+    const actualVal = actualInput.value.trim();
+    const machineVal = machineInput.value.trim();
     
     const el = document.getElementById("diff-" + escapeId(item));
     if (!el) return;
+    
+    // Nếu 1 trong 2 ô rỗng → để trống, không tính toán
+    if (actualVal === '' || machineVal === '') {
+        el.innerText = "";
+        el.classList.remove("pos", "neg", "zero");
+        return;
+    }
+    
+    const diff = Number(actualVal) - Number(machineVal);
     
     el.classList.remove("pos", "neg", "zero");
     if (diff > 0) {
