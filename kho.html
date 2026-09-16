@@ -9,12 +9,10 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 
-/* HEADER */
 .header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 4px 15px rgba(102,126,234,0.35);position:sticky;top:0;z-index:100;}
 .header h2{font-size:17px;white-space:nowrap;}
 .header-right{display:flex;align-items:center;}
 
-/* Nút lịch gộp duy nhất */
 .btn-cal-single {
     display: flex;
     align-items: center;
@@ -140,11 +138,9 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 <body>
 
 <div class="header">
-    <h2>📦 Kiểm Kho</h2>
+    <h2>📦 KIỂM KHO</h2>
     <div class="header-right">
-        <!-- Input ẩn để giữ nguyên logic JS cũ -->
         <input type="date" id="checkDate" style="display:none;">
-        <!-- Nút duy nhất hiển thị ngày và mở lịch -->
         <button class="btn-cal-single" onclick="openCal()">
             <span id="headerDateText">--/--/----</span>
             <span>📅</span>
@@ -212,13 +208,12 @@ function getNowVN(){const n=new Date();return new Date(n.getTime()-n.getTimezone
 function getTodayVN(){return getNowVN().toISOString().split('T')[0];}
 function getTimeVN(){return getNowVN().toLocaleTimeString('vi-VN',{hour12:false});}
 
-// ✅ Hàm cập nhật hiển thị ngày trên nút bấm
 function updateHeaderDateDisplay() {
     const dateVal = document.getElementById('checkDate').value;
     const displayEl = document.getElementById('headerDateText');
     if (dateVal) {
-        const parts = dateVal.split('-'); // YYYY-MM-DD
-        displayEl.textContent = `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+        const parts = dateVal.split('-');
+        displayEl.textContent = `${parts[2]}/${parts[1]}/${parts[0]}`;
     } else {
         displayEl.textContent = 'Chọn ngày';
     }
@@ -267,10 +262,10 @@ function init(){
     const today=getTodayVN();
     const d=document.getElementById('checkDate');
     d.value=today;
-    updateHeaderDateDisplay(); // Cập nhật hiển thị ngày
+    updateHeaderDateDisplay();
     
     d.addEventListener('change',function(){
-        updateHeaderDateDisplay(); // Cập nhật hiển thị ngày khi thay đổi
+        updateHeaderDateDisplay();
         checkedItems={};machineValues={};loadData(this.value);
     });
     initCal();
@@ -418,6 +413,7 @@ function calcDiff(inp){
     }
 }
 
+// ✅ ĐÃ CẬP NHẬT: Gọi lại loadData để refresh dữ liệu mới nhất từ server
 function saveData(){
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
@@ -427,25 +423,25 @@ function saveData(){
     if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập mặt hàng nào","error");return;}
     document.getElementById('loading').style.display='flex';
     const curDate=document.getElementById('checkDate').value;
+    
     fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',date:curDate,time:getTimeVN(),items:entries})})
     .then(r=>r.json()).then(data=>{
         document.getElementById('loading').style.display='none';
         if(!data.success){showToast("❌ Lỗi: "+(data.error||"Không xác định"),"error");return;}
+        
         calDates[curDate]=true;
         renderCal();
-        Object.keys(entries).forEach(i=>{
-            lastValues[i]=Number(entries[i]);
-            checkedItems[i]=true;
-            let inp = document.querySelector(`.qty-actual[data-item="${escapeAttr(i)}"]`);
-            if(inp) inp.dataset.original = entries[i];
-        });
-        document.querySelectorAll('.qty-actual').forEach(i=>{i.value='';i.classList.remove('entered');});
-        highlightRows();updateStats();renderUncheckedList();
-        checkChanges();
         showToast("✅ Đã ghi kiểm kho thành công!","success");
-    }).catch(e=>{document.getElementById('loading').style.display='none';showToast("❌ Lỗi kết nối: "+e.message,"error");});
+        
+        // Refresh toàn bộ dữ liệu để đồng bộ giao diện
+        setTimeout(() => loadData(curDate), 300); 
+    }).catch(e=>{
+        document.getElementById('loading').style.display='none';
+        showToast("❌ Lỗi kết nối: "+e.message,"error");
+    });
 }
 
+// ✅ ĐÃ CẬP NHẬT: Gọi lại loadData để refresh dữ liệu mới nhất từ server
 function saveMachineData(){
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
@@ -455,18 +451,20 @@ function saveMachineData(){
     if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập dữ liệu tồn trên máy nào","error");return;}
     document.getElementById('loading').style.display='flex';
     const curDate=document.getElementById('checkDate').value;
+    
     fetch(API_URL,{method:'POST',body:JSON.stringify({action:'savePC',date:curDate,time:getTimeVN(),items:entries})})
     .then(r=>r.json()).then(data=>{
         document.getElementById('loading').style.display='none';
         if(!data.success){showToast("❌ Lỗi: "+(data.error||"Không xác định"),"error");return;}
-        Object.keys(entries).forEach(i=>{
-            machineValues[i] = Number(entries[i]);
-            let inp = document.querySelector(`.qty-machine[data-item="${escapeAttr(i)}"]`);
-            if(inp) inp.dataset.original = entries[i];
-        });
-        checkChanges();
+        
         showToast("✅ Đã ghi tồn trên máy thành công!","success");
-    }).catch(e=>{document.getElementById('loading').style.display='none';showToast("❌ Lỗi kết nối: "+e.message,"error");});
+        
+        // Refresh toàn bộ dữ liệu để đồng bộ giao diện
+        setTimeout(() => loadData(curDate), 300);
+    }).catch(e=>{
+        document.getElementById('loading').style.display='none';
+        showToast("❌ Lỗi kết nối: "+e.message,"error");
+    });
 }
 
 function initCal(){
@@ -504,7 +502,7 @@ function pickDate(ds){
     closeCal();
     const d = document.getElementById('checkDate');
     d.value=ds;
-    updateHeaderDateDisplay(); // ✅ Cập nhật hiển thị ngày trên nút bấm
+    updateHeaderDateDisplay();
     checkedItems={};machineValues={};
     loadData(ds);
 }
