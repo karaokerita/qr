@@ -9,6 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 
+/* HEADER */
 .header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 4px 15px rgba(102,126,234,0.35);position:sticky;top:0;z-index:100;}
 .header h2{font-size:17px;white-space:nowrap;}
 .header-right{display:flex;align-items:center;}
@@ -31,6 +32,7 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 }
 .btn-cal-single:active { background: rgba(255,255,255,0.35); }
 
+/* STATS BAR */
 .stats-bar{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .stat-card{flex:1;min-width:100px;background:#fff;border-radius:12px;padding:10px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:transform 0.2s;}
 .stat-card:active{transform:scale(0.97);}
@@ -40,12 +42,14 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 .stat-checked .stat-num{color:#2e7d32;}
 .stat-unchecked .stat-num{color:#e53935;}
 
+/* MAIN */
 .main{padding:0 10px;}
 .card{
     background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);
     margin-bottom:14px;
 }
 
+/* TABLE SCROLL - Giữ tiêu đề cố định khi cuộn */
 .table-scroll{
     max-height: calc(100vh - 240px);
     overflow-y: auto;
@@ -65,9 +69,11 @@ th{font-weight:700;color:#555;font-size:11.5px;text-transform:uppercase;letter-s
 td{word-break:break-word;vertical-align:middle;}
 td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 
+/* ZEBRA STRIPE - Màu xen kẽ */
 tbody tr:nth-child(odd):not(.row-unchecked) { background: #ffffff; }
 tbody tr:nth-child(even):not(.row-unchecked) { background: #f5f7fa; }
 
+/* Dòng nút lưu cố định ở cuối */
 tfoot tr.action-row {
     position: sticky;
     bottom: 0;
@@ -81,24 +87,29 @@ tfoot tr.action-row {
 .btn-table.btn-secondary{background:linear-gradient(135deg,#00b09b,#96c93d);box-shadow:0 2px 8px rgba(0,176,155,0.3);}
 .btn-table:disabled{opacity:0.5;cursor:not-allowed;background:#cbd5e1 !important;box-shadow:none !important;transform:none !important;}
 
+/* ROW STATES */
 .row-unchecked{background:rgba(255,226,226,0.7) !important;animation:rowPulse 2s ease-in-out infinite;}
 .row-unchecked td{border-bottom-color:#ffcdd2;}
 .row-checked{background:#fff;}
 @keyframes rowPulse{0%,100%{background:rgba(255,226,226,0.7);}50%{background:rgba(255,205,205,0.9);}}
 
+/* BADGE */
 .badge-unchecked{display:inline-block;background:#e53935;color:#fff;font-size:10px;padding:2px 6px;border-radius:20px;margin-left:4px;font-weight:600;animation:badgeBlink 1.5s ease-in-out infinite;}
 @keyframes badgeBlink{0%,100%{opacity:1;}50%{opacity:0.6;}}
 
+/* INPUT */
 .qty-input{width:100%;padding:8px 4px;font-size:16px;text-align:center;border-radius:8px;border:1.5px solid #e0e0e0;background:#fafafa;transition:all 0.2s;font-family:'Inter',sans-serif;}
 .qty-input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,0.15);background:#fff;outline:none;}
 .qty-input.entered{border-color:#2e7d32;background:#e8f5e9;color:#2e7d32;font-weight:600;}
 .qty-input.machine-entered{border-color:#00b09b;background:#e0f2f1;color:#00897b;font-weight:600;}
 
+/* DIFF */
 .diff{font-weight:700;font-size:13px;}
 .diff.pos{color:#2e7d32;}
 .diff.neg{color:#c62828;}
 .diff.zero{color:#78909c;}
 
+/* UNCHECKED LIST */
 .unchecked-section{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);margin:0 10px 14px;overflow:hidden;}
 .unchecked-header{background:linear-gradient(135deg,#e53935,#ef5350);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
 .unchecked-header h3{font-size:14px;font-weight:600;}
@@ -112,21 +123,25 @@ tfoot tr.action-row {
 .unchecked-name{font-size:13px;color:#333;flex:1;}
 .section-hidden{display:none !important;}
 
+/* LOADING */
 .loading{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
 .loading-box{background:#fff;padding:24px 36px;border-radius:16px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,0.15);animation:popIn 0.3s ease;}
 @keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#667eea;border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* TOAST */
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#333;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:1000;transition:transform 0.3s ease;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,0.2);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast.success{background:linear-gradient(135deg,#43a047,#66bb6a);}
 .toast.error{background:linear-gradient(135deg,#e53935,#ef5350);}
 
+/* EMPTY */
 .empty-state{text-align:center;padding:40px 20px;color:#999;}
 .empty-state .icon{font-size:48px;margin-bottom:12px;}
 .empty-state p{font-size:14px;}
 
+/* CALENDAR OVERLAY */
 .cal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
 .cal-overlay.open{display:flex;}
 .cal-panel{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;box-shadow:0 -10px 40px rgba(0,0,0,0.2);}
@@ -223,7 +238,7 @@ tfoot tr.action-row {
 </div>
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbwCAw0hjN74t8P1PSaKi7gnxaSU8vABWAyAtbgkeCNWM0_1_Yp9FL8CYigthdOKKZbuYg/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbz6sZUNNX14GZXdxdjvPE197YZJCOq07IDdHi5QuiZLN8i_LZ35JSmm-uChqyi4R9gBAQ/exec';
 let invItems=[];
 let lastValues={};
 let machineValues={};
@@ -425,7 +440,6 @@ function checkChanges() {
     document.getElementById('btnSaveMachine').disabled = !machineChanged;
 }
 
-// ✅ CẬP NHẬT: Nếu 1 trong 2 ô rỗng → không hiển thị gì
 function calcDiff(inp){
     const item = inp.dataset.item;
     const row = inp.closest('tr');
@@ -438,7 +452,7 @@ function calcDiff(inp){
     const el = document.getElementById("diff-" + escapeId(item));
     if (!el) return;
     
-    // Nếu 1 trong 2 ô rỗng → để trống, không tính toán
+    // Nếu 1 trong 2 ô rỗng → để trống
     if (actualVal === '' || machineVal === '') {
         el.innerText = "";
         el.classList.remove("pos", "neg", "zero");
@@ -461,6 +475,14 @@ function calcDiff(inp){
 }
 
 function saveData(){
+    // 🔒 KIỂM TRA NGÀY HIỆN TẠI
+    const curDate = document.getElementById('checkDate').value;
+    const today = getTodayVN();
+    if (curDate !== today) {
+        showToast("⚠️ Không đúng ngày hiện tại", "error");
+        return;
+    }
+
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
         let inp=row.querySelector('.qty-actual');
@@ -468,12 +490,11 @@ function saveData(){
     });
     if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập mặt hàng nào","error");return;}
     document.getElementById('loading').style.display='flex';
-    const curDate=document.getElementById('checkDate').value;
     
     fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',date:curDate,time:getTimeVN(),items:entries})})
     .then(r=>r.json()).then(data=>{
         document.getElementById('loading').style.display='none';
-        if(!data.success){showToast("❌ Lỗi: "+(data.error||"Không xác định"),"error");return;}
+        if(!data.success){showToast("❌ "+(data.error||"Lỗi không xác định"),"error");return;}
         
         calDates[curDate]=true;
         renderCal();
@@ -487,6 +508,14 @@ function saveData(){
 }
 
 function saveMachineData(){
+    // 🔒 KIỂM TRA NGÀY HIỆN TẠI
+    const curDate = document.getElementById('checkDate').value;
+    const today = getTodayVN();
+    if (curDate !== today) {
+        showToast("⚠️ Không đúng ngày hiện tại", "error");
+        return;
+    }
+
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
         let inp=row.querySelector('.qty-machine');
@@ -494,12 +523,11 @@ function saveMachineData(){
     });
     if(Object.keys(entries).length===0){showToast("⚠️ Chưa nhập dữ liệu tồn trên máy nào","error");return;}
     document.getElementById('loading').style.display='flex';
-    const curDate=document.getElementById('checkDate').value;
     
     fetch(API_URL,{method:'POST',body:JSON.stringify({action:'savePC',date:curDate,time:getTimeVN(),items:entries})})
     .then(r=>r.json()).then(data=>{
         document.getElementById('loading').style.display='none';
-        if(!data.success){showToast("❌ Lỗi: "+(data.error||"Không xác định"),"error");return;}
+        if(!data.success){showToast("❌ "+(data.error||"Lỗi không xác định"),"error");return;}
         
         showToast("✅ Đã ghi tồn trên máy thành công!","success");
         
