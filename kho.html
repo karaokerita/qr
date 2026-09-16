@@ -44,10 +44,8 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 .card{
     background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);
     margin-bottom:14px;
-    /* ✅ Bỏ overflow:hidden để sticky hoạt động */
 }
 
-/* ✅ Vùng cuộn riêng cho bảng - giữ tiêu đề cố định */
 .table-scroll{
     max-height: calc(100vh - 240px);
     overflow-y: auto;
@@ -67,11 +65,9 @@ th{font-weight:700;color:#555;font-size:11.5px;text-transform:uppercase;letter-s
 td{word-break:break-word;vertical-align:middle;}
 td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 
-/* ✅ ZEBRA STRIPE - Màu xen kẽ cho dễ nhìn */
 tbody tr:nth-child(odd):not(.row-unchecked) { background: #ffffff; }
 tbody tr:nth-child(even):not(.row-unchecked) { background: #f5f7fa; }
 
-/* Cố định dòng nút bấm ở cuối bảng */
 tfoot tr.action-row {
     position: sticky;
     bottom: 0;
@@ -167,7 +163,7 @@ tfoot tr.action-row {
 <body>
 
 <div class="header">
-    <h2>📦 Kiểm Kho</h2>
+    <h2>📦 KIỂM KHO</h2>
     <div class="header-right">
         <input type="date" id="checkDate" style="display:none;">
         <button class="btn-cal-single" onclick="openCal()">
@@ -185,7 +181,6 @@ tfoot tr.action-row {
 
 <div class="main">
     <div class="card">
-        <!-- ✅ Bọc bảng trong vùng cuộn riêng -->
         <div class="table-scroll" id="tableWrapper">
             <div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div>
         </div>
@@ -290,6 +285,17 @@ function highlightRows(){
     });
 }
 
+// ✅ HÀM MỚI: Tính toán lại toàn bộ cột Thừa/Thiếu
+function recalcAllDiffs() {
+    document.querySelectorAll('tbody tr').forEach(row => {
+        const actualInput = row.querySelector('.qty-actual');
+        const machineInput = row.querySelector('.qty-machine');
+        if (actualInput && machineInput) {
+            calcDiff(actualInput);
+        }
+    });
+}
+
 function init(){
     const today=getTodayVN();
     const d=document.getElementById('checkDate');
@@ -371,14 +377,17 @@ function renderTable(){
     
     h += '</tbody><tfoot><tr class="action-row">';
     h += '<td></td>';
-    h += '<td><button id="btnSaveActual" class="btn-table" disabled onclick="saveData()"><span>💾</span> Lưu Kiểm</button></td>';
-    h += '<td><button id="btnSaveMachine" class="btn-table btn-secondary" disabled onclick="saveMachineData()"><span>💻</span> Lưu Máy</button></td>';
+    h += '<td><button id="btnSaveActual" class="btn-table" disabled onclick="saveData()"><span>💾</span> Lưu SL Kiểm</button></td>';
+    h += '<td><button id="btnSaveMachine" class="btn-table btn-secondary" disabled onclick="saveMachineData()"><span>💻</span> Lưu SL Máy</button></td>';
     h += '<td></td>';
     h += '</tr></tfoot></table>';
     
     document.getElementById('tableWrapper').innerHTML=h;
     updateStats();renderUncheckedList();
     checkChanges();
+    
+    // ✅ Tính toán lại toàn bộ cột Thừa/Thiếu sau khi render xong
+    recalcAllDiffs();
 }
 
 function onQtyInput(inp){
