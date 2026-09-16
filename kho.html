@@ -41,16 +41,45 @@ body{font-family:'Inter',sans-serif;background:#eef2f7;padding-bottom:24px;}
 .stat-unchecked .stat-num{color:#e53935;}
 
 .main{padding:0 10px;}
-.card{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:14px;}
+.card{
+    background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.07);
+    margin-bottom:14px;
+    /* ✅ Bỏ overflow:hidden để sticky hoạt động */
+}
+
+/* ✅ Vùng cuộn riêng cho bảng - giữ tiêu đề cố định */
+.table-scroll{
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
 
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
-thead{background:linear-gradient(180deg,#f7f9fc,#f0f3f8);position:sticky;top:0;z-index:10;}
+thead{
+    background:linear-gradient(180deg,#f7f9fc,#f0f3f8);
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 th,td{padding:9px 6px;font-size:12.5px;text-align:center;border-bottom:1px solid #eee;}
 th{font-weight:700;color:#555;font-size:11.5px;text-transform:uppercase;letter-spacing:0.3px;}
 td{word-break:break-word;vertical-align:middle;}
 td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 
-.action-row td{padding:16px 4px 20px;border-top:2px solid #e0e0e0;background:#f9fafb;}
+/* ✅ ZEBRA STRIPE - Màu xen kẽ cho dễ nhìn */
+tbody tr:nth-child(odd):not(.row-unchecked) { background: #ffffff; }
+tbody tr:nth-child(even):not(.row-unchecked) { background: #f5f7fa; }
+
+/* Cố định dòng nút bấm ở cuối bảng */
+tfoot tr.action-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: #f9fafb;
+}
+
+.action-row td{padding:12px 4px 16px;border-top:2px solid #e0e0e0;}
 .btn-table{width:90%;margin:0 auto;padding:10px 4px;font-size:13px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;box-shadow:0 2px 8px rgba(102,126,234,0.3);}
 .btn-table:active{transform:scale(0.95);}
 .btn-table.btn-secondary{background:linear-gradient(135deg,#00b09b,#96c93d);box-shadow:0 2px 8px rgba(0,176,155,0.3);}
@@ -138,7 +167,7 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 <body>
 
 <div class="header">
-    <h2>📦 KIỂM KHO</h2>
+    <h2>📦 Kiểm Kho</h2>
     <div class="header-right">
         <input type="date" id="checkDate" style="display:none;">
         <button class="btn-cal-single" onclick="openCal()">
@@ -156,7 +185,10 @@ td:first-child{text-align:left;padding-left:10px;font-weight:500;}
 
 <div class="main">
     <div class="card">
-        <div id="tableWrapper"><div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div></div>
+        <!-- ✅ Bọc bảng trong vùng cuộn riêng -->
+        <div class="table-scroll" id="tableWrapper">
+            <div class="empty-state"><div class="icon">⏳</div><p>Đang tải dữ liệu...</p></div>
+        </div>
     </div>
 </div>
 
@@ -413,7 +445,6 @@ function calcDiff(inp){
     }
 }
 
-// ✅ ĐÃ CẬP NHẬT: Gọi lại loadData để refresh dữ liệu mới nhất từ server
 function saveData(){
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
@@ -433,7 +464,6 @@ function saveData(){
         renderCal();
         showToast("✅ Đã ghi kiểm kho thành công!","success");
         
-        // Refresh toàn bộ dữ liệu để đồng bộ giao diện
         setTimeout(() => loadData(curDate), 300); 
     }).catch(e=>{
         document.getElementById('loading').style.display='none';
@@ -441,7 +471,6 @@ function saveData(){
     });
 }
 
-// ✅ ĐÃ CẬP NHẬT: Gọi lại loadData để refresh dữ liệu mới nhất từ server
 function saveMachineData(){
     let entries={};
     document.querySelectorAll('tbody tr').forEach(row=>{
@@ -459,7 +488,6 @@ function saveMachineData(){
         
         showToast("✅ Đã ghi tồn trên máy thành công!","success");
         
-        // Refresh toàn bộ dữ liệu để đồng bộ giao diện
         setTimeout(() => loadData(curDate), 300);
     }).catch(e=>{
         document.getElementById('loading').style.display='none';
