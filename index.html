@@ -1,238 +1,180 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-   <meta charset="UTF-8">
-  <title>Nhân viên Karaoke</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Nhân viên Karaoke Rita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/700.css" />
   <style>
-    body { font-family: Arial, sans-serif; background: url('background.jpg') no-repeat center center fixed; background-size: cover; margin:0; padding:10px; }
+    :root {
+      --primary: #007bff; --primary-dark: #0056b3;
+      --success: #28a745; --success-dark: #1e7e34;
+      --danger: #dc3545; --danger-dark: #a71d2a;
+      --warning: #ff6600;
+      --bg-overlay: rgba(255, 255, 255, 0.95);
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+      min-height: 100vh; padding: 15px; color: #333;
+    }
     
-    /* Login Screen Styles */
     #loginScreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+      display: flex; justify-content: center; align-items: center; z-index: 9999;
     }
     .login-container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      max-width: 350px;
-      width: 90%;
-      text-align: center;
+      background: white; padding: 30px; border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3); max-width: 350px; width: 90%; text-align: center;
     }
-    .login-container h2 {
-      color: #007bff;
-      margin-bottom: 20px;
-      font-size: 24px;
-    }
+    .login-container h2 { color: var(--primary); margin-bottom: 20px; font-size: 22px; font-weight: 700; }
     .login-container input[type="password"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      box-sizing: border-box;
-      text-align: center;
+      width: 100%; padding: 12px; font-size: 16px; border: 2px solid #e2e8f0;
+      border-radius: 8px; margin-bottom: 15px; text-align: center; outline: none; transition: 0.2s;
     }
-    .login-container input[type="password"]:focus {
-      outline: none;
-      border-color: #007bff;
-    }
-    .remember-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      margin: 0 5px 15px 5px;
-      gap: 8px;
-      font-size: 14px;
-      color: #555;
-      user-select: none;
-      cursor: pointer;
-    }
-    .remember-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: #007bff;
-      margin: 0;
-    }
-    .remember-row label {
-      cursor: pointer;
-      margin: 0;
-    }
+    .login-container input[type="password"]:focus { border-color: var(--primary); }
+    .remember-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #555; margin-bottom: 15px; justify-content: center; }
     .login-container button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
+      width: 100%; padding: 12px; font-size: 16px; font-weight: 700;
+      background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s;
     }
-    .login-container button:hover {
-      background: #0056b3;
-    }
-    .login-error {
-      color: red;
-      font-size: 14px;
-      margin-top: 10px;
-      display: none;
-    }
-    
-    /* Main App Styles */
-    .container { max-width:480px; margin:auto; padding:15px; background: rgba(255,255,255,0.85); border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); display: none; }
-    h1 { text-align:center; color:#007bff; font-size:22px; margin-bottom:10px; }
-    #currentTime { text-align:center; font-weight:bold; margin:-5px 0 10px 0; color:#444; }
-    .amount-input, .room-select { width:90%; font-size:18px; padding:6px; margin-bottom:8px; text-align:center; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; background:#fff; font-weight:normal; color:#333; }
-    .amount-input:disabled {
-      background:#f0f0f0;
-      color:#999;
-      cursor:not-allowed;
-      opacity:0.6;
-    }
-    .room-name-qr { font-size:18px; font-weight:bold; color:#007bff; margin-bottom:5px; text-align:center; min-height:22px; }
-    .amount-text { font-size:14px; color:green; margin-bottom:8px; text-align:center; min-height:18px; }
-    .qr-box { display:flex; justify-content:center; margin:10px 0; }
-    .qr-box img { width:220px; height:220px; }
-    .btn-camera { background:#ff6600; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin:5px auto; display:block; }
-    .btn-camera:disabled { background:#aaa; cursor:not-allowed; opacity:0.6; }
-    table { width:100%; border-collapse: collapse; margin-top:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    th, td { border:1px solid #ddd; padding:6px; text-align:center; font-size:14px; }
-    th { background:#007bff; color:white; }
-    .bg-unpaid { background:#f8f9fa; }
-    .status-unpaid { color:red; font-weight:bold; }
-    .status-paid { color:green; font-weight:bold; }
-    .btn { padding:5px 8px; border:none; border-radius:4px; cursor:pointer; margin:2px; font-size:13px; }
-    .btn-pay { background:#28a745; color:white; }
-    .btn-qr { background:#007bff; color:white; }
-    .btn:disabled { background:#aaa; cursor:not-allowed; }
-    #cameraModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    video { width:100%; height:100%; object-fit:cover; }
-    canvas { display:none; position:absolute; top:0; left:0; width:100%; height:100%; }
-    .modal-buttons { position:absolute; bottom:20px; display:flex; justify-content:center; width:100%; gap:10px; }
-    .modal-buttons button { font-size:16px; padding:8px 12px; }
-    .btn-save { background:#28a745; color:white; border:none; border-radius:6px; }
-    .btn-close { background:#666; color:white; border:none; border-radius:6px; }
+    .login-container button:hover { background: var(--primary-dark); }
+    .login-error { color: var(--danger); font-size: 14px; margin-top: 10px; display: none; font-weight: 600; }
 
-    .btn-worktime {
-      display:block;
-      width:100%;
-      text-align:center;
-      background:#007bff;
-      color:white;
-      font-size:18px;
-      font-weight:bold;
-      padding:10px 0;
-      margin-top:8px;
-      border:none;
-      border-radius:8px;
-      text-decoration:none;
-      transition:0.2s;
+    .container { 
+      max-width: 480px; margin: 0 auto; padding: 20px; 
+      background: var(--bg-overlay); border-radius: var(--radius); 
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15); display: none; 
     }
-    .btn-worktime:hover { background:#0056b3; }
+    h1 { text-align: center; color: var(--primary); font-size: 20px; font-weight: 800; margin-bottom: 5px; letter-spacing: -0.5px; }
+    #currentTime { text-align: center; font-weight: 600; font-size: 13px; color: #64748b; margin-bottom: 15px; }
 
-    .btn-kho {
-      display:block;
-      width:100%;
-      text-align:center;
-      background:#28a745;
-      color:white;
-      font-size:18px;
-      font-weight:bold;
-      padding:10px 0;
-      margin-top:15px;
-      border:none;
-      border-radius:8px;
-      text-decoration:none;
-      transition:0.2s;
-    }
-    .btn-kho:hover { background:#1e7e34; }
-
-    .tab-nav {
-      display:flex;
-      margin-bottom:15px;
-      border-radius:8px;
-      overflow:hidden;
-      box-shadow:0 2px 6px rgba(0,0,0,0.15);
-    }
+    .tab-nav { display: flex; margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .tab-btn {
-      flex:1;
-      padding:12px 0;
-      text-align:center;
-      font-size:16px;
-      font-weight:bold;
-      background:#e0e0e0;
-      color:#333;
-      border:none;
-      cursor:pointer;
-      transition:0.2s;
+      flex: 1; padding: 12px 0; text-align: center; font-size: 15px; font-weight: 700;
+      background: #e2e8f0; color: #475569; border: none; cursor: pointer; transition: 0.2s;
     }
-    .tab-btn.active { background:#007bff; color:white; }
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
+    .tab-btn.active { background: var(--primary); color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    .advance-form label {
-      display:block;
-      font-weight:bold;
-      color:#333;
-      margin:10px 0 5px 5px;
-      font-size:14px;
+    .amount-input, .room-select { 
+      width: 100%; font-size: 18px; font-weight: 600; padding: 12px; margin-bottom: 10px; 
+      text-align: center; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; color: #333; 
     }
-    .no-room-hint {
-      text-align:center;
-      color:#999;
-      font-size:13px;
-      font-style:italic;
-      margin:5px 0 10px 0;
+    .amount-input:disabled, .room-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+    .room-name-qr { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 5px; text-align: center; min-height: 24px; }
+    .amount-text { font-size: 13px; color: var(--success); margin-bottom: 10px; text-align: center; min-height: 18px; font-weight: 600; font-style: italic; }
+    .qr-box { display: flex; justify-content: center; margin: 10px 0; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .qr-box img { width: 200px; height: 200px; object-fit: contain; }
+    
+    .btn-camera { 
+      width: 100%; background: var(--warning); color: white; border: none; border-radius: 8px; 
+      padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin: 10px 0; transition: 0.2s; 
     }
+    .btn-camera:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn-camera:active { transform: scale(0.98); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    th, td { border-bottom: 1px solid #f1f5f9; padding: 10px 6px; text-align: center; font-size: 13px; transition: all 0.3s ease; }
+    th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    
+    /*  TỐI ƯU: Trạng thái "Chưa thanh toán" (dang mo) - MÀU ĐỎ NỔI BẬT */
+    tr.bg-unpaid { 
+      background: #fef2f2; 
+      animation: pulse-red 2s ease-in-out infinite;
+    }
+    @keyframes pulse-red {
+      0%, 100% { background: #fef2f2; }
+      50% { background: #fee2e2; }
+    }
+    .room-name-unpaid { 
+      color: var(--danger); 
+      font-weight: 800; 
+      font-size: 14px;
+      text-shadow: 0 0 2px rgba(220, 53, 69, 0.2);
+    }
+    .status-unpaid { 
+      color: var(--danger); 
+      font-weight: 800; 
+      font-size: 13px;
+      background: #fee2e2;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      border: 1px solid #fecaca;
+    }
+    .status-paid { color: var(--success); font-weight: 700; }
+    .status-closed { color: #94a3b8; font-weight: 600; }
+    
+    .btn-action { padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; margin: 2px; font-size: 12px; font-weight: 600; color: white; }
+    .btn-pay { background: var(--success); }
+    .btn-pay:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn-qr { background: var(--primary); }
+    .btn-action:active { transform: scale(0.95); }
+
+    .btn-link {
+      display: block; width: 100%; text-align: center; color: white; font-size: 16px; font-weight: 700;
+      padding: 12px 0; margin-top: 12px; border: none; border-radius: 8px; text-decoration: none; transition: 0.2s;
+    }
+    .btn-kho { background: var(--success); } .btn-kho:hover { background: var(--success-dark); }
+    .btn-worktime { background: var(--primary); } .btn-worktime:hover { background: var(--primary-dark); }
+
+    #cameraModal { 
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: #000; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; 
+    }
+    #video { width: 100%; height: 100%; object-fit: cover; }
+    #canvas { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .modal-buttons { 
+      position: absolute; bottom: 30px; display: flex; justify-content: center; width: 100%; gap: 15px; padding: 0 20px; 
+    }
+    .modal-buttons button { 
+      flex: 1; font-size: 16px; font-weight: 700; padding: 14px; border: none; border-radius: 8px; cursor: pointer; 
+    }
+    .btn-save { background: var(--success); color: white; }
+    .btn-close { background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(4px); }
+
+    .no-room-hint { text-align: center; color: var(--danger); font-size: 14px; font-weight: 600; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <!-- Login Screen -->
+
   <div id="loginScreen">
     <div class="login-container">
-      <h2>🔐 Đăng nhập</h2>
-      <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" />
+      <h2>🔐 Đăng nhập Nhân viên</h2>
+      <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" autocomplete="off" />
       <div class="remember-row">
         <input type="checkbox" id="rememberMe" />
         <label for="rememberMe">Ghi nhớ mật khẩu</label>
       </div>
-      <button id="loginBtn">Đăng nhập</button>
+      <button id="loginBtn">Vào ứng dụng</button>
       <div class="login-error" id="loginError">Mật khẩu không đúng!</div>
     </div>
   </div>
 
-  <!-- Main Application -->
-  <div class="container">
-    <h1>QUÉT MÃ THANH TOÁN<br>KARAOKE RITA</h1>
+  <div class="container" id="mainContainer">
+    <h1>KARAOKE RITA<br><span style="font-size:14px; font-weight:600; color:#64748b;">Nhân viên phục vụ</span></h1>
     <p id="currentTime"></p>
 
     <div class="tab-nav">
-      <button class="tab-btn active" data-tab="payment">💳 Thanh toán</button>
+      <button class="tab-btn active" data-tab="payment"> Thanh toán</button>
       <button class="tab-btn" data-tab="advance">💰 Tạm ứng</button>
     </div>
 
-    <!-- Tab 1: Thanh toán -->
     <div id="tab-payment" class="tab-content active">
-      <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền" />
+      <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền..." inputmode="numeric" />
       <div class="room-name-qr" id="roomNameQR"></div>
       <div class="amount-text" id="amountText"></div>
-      <div class="qr-box"><img id="qrImage" src="" alt="QR Thanh toán" /></div>
-      <button id="openCamera" class="btn-camera">Chụp ảnh thanh toán</button>
+      <div class="qr-box"><img id="qrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Thanh toán" /></div>
+      <button id="openCamera" class="btn-camera"> Chụp ảnh màn hình thanh toán</button>
 
       <table>
         <thead>
@@ -240,79 +182,84 @@
             <th>Phòng</th>
             <th>Số tiền</th>
             <th>Trạng thái</th>
-            <th>Thời gian</th>
-            <th>Hành động</th>
+            <th>Giờ</th>
+            <th>Thao tác</th>
           </tr>
         </thead>
         <tbody id="roomTable"></tbody>
       </table>
 
-      <a href="https://karaokerita.github.io/qr/kho.html" class="btn-kho" >📦 KIỂM KHO</a>
-      <a href="https://karaokerita.github.io/qr/checkout.html" class="btn-worktime" target="_blank">🕒 Tính giờ đi làm</a>
+      <a href="https://karaokerita.github.io/qr/kho.html" class="btn-link btn-kho" target="_blank">📦 KIỂM KHO</a>
+      <a href="https://karaokerita.github.io/qr/checkout.html" class="btn-link btn-worktime" target="_blank">🕒 TÍNH GIỜ ĐI LÀM</a>
     </div>
 
-    <!-- Tab 2: Tạm ứng -->
     <div id="tab-advance" class="tab-content">
-      <div class="advance-form">
-        <label for="advanceRoom">🏠 Chọn phòng tạm ứng</label>
-        <select id="advanceRoom" class="room-select">
-          <option value="">-- Đang tải danh sách phòng --</option>
-        </select>
-        <div class="no-room-hint" id="noRoomHint" style="display:none;">
-          Hiện không có phòng nào đang mở!
-        </div>
+      <label style="font-weight:700; font-size:14px; color:#475569; display:block; margin-bottom:5px;">🏠 Chọn phòng đang mở để tạm ứng</label>
+      <select id="advanceRoom" class="room-select" disabled>
+        <option value="">-- Đang tải danh sách --</option>
+      </select>
+      <div class="no-room-hint" id="noRoomHint" style="display:none;">⚠️ Hiện không có phòng nào đang mở để tạm ứng!</div>
 
-        <label for="advanceAmount">💵 Số tiền tạm ứng</label>
-        <input id="advanceAmount" class="amount-input" type="text" placeholder="Vui lòng chọn phòng tạm ứng trước" disabled />
+      <label style="font-weight:700; font-size:14px; color:#475569; display:block; margin:15px 0 5px 0;">💵 Số tiền tạm ứng</label>
+      <input id="advanceAmount" class="amount-input" type="text" placeholder="Vui lòng chọn phòng trước" disabled inputmode="numeric" />
 
-        <div class="qr-box"><img id="advanceQrImage" src="" alt="QR Tạm ứng" /></div>
-        <div class="amount-text" id="advanceAmountText"></div>
-        <button id="openCameraAdvance" class="btn-camera" disabled>Chụp ảnh tạm ứng</button>
-      </div>
+      <div class="qr-box"><img id="advanceQrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Tạm ứng" /></div>
+      <div class="amount-text" id="advanceAmountText"></div>
+      <button id="openCameraAdvance" class="btn-camera" disabled>📷 Chụp ảnh tạm ứng</button>
     </div>
   </div>
 
-  <!-- Modal Camera -->
   <div id="cameraModal">
-    <div class="modal-content">
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas"></canvas>
-      <div class="modal-buttons">
-        <button id="captureBtn" class="btn-camera">Chụp</button>
-        <button id="downloadBtn" class="btn-save" style="display:none;">Chia sẻ / Lưu ảnh</button>
-        <button id="closeModal" class="btn-close">Đóng</button>
-      </div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <div class="modal-buttons">
+      <button id="captureBtn" style="background:var(--primary); color:white;">📸 Chụp</button>
+      <button id="downloadBtn" class="btn-save" style="display:none;">💾 Chia sẻ / Lưu</button>
+      <button id="closeModal" class="btn-close">❌ Đóng</button>
     </div>
   </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyikI5jLJDeLWFEMRk6UVfW2ERp679iA2HkoSG2z_q7aT7SUY2axsFk5e1mUd_Q31Bf/exec";
+const SUPABASE_URL = 'https://nmgofzqtebcnfhttaudy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tZ29menF0ZWJjbmZodHRhdWR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTQ3NzQsImV4cCI6MjEwMjE3MDc3NH0.R9sPaChT0I96n42zSVI5umCITV9G7y-H2cl18qK3RMY';
+const DEFAULT_PASSWORD = "2222";
+const REMEMBER_KEY = "karaoke_staff_remember";
 
-// ===== Login Logic =====
-const DEFAULT_PASSWORD = "6868";
-const REMEMBER_KEY = "karaoke_remember_password";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ROOM_NAME_MAP = {
+  'Phong 3': 'Phòng 3', 'Phong 4': 'Phòng 4', 'Phong 5': 'Phòng 5',
+  'Phong 6': 'Phòng 6', 'Phong 7': 'Phòng 7', 'Phong 8': 'Phòng 8', 'Phong 9': 'Phòng 9'
+};
+
+function getDisplayName(dbName) { return ROOM_NAME_MAP[dbName] || dbName; }
+
+let bankAccounts = {
+    thanh_toan: { ten_ngan_hang: 'VCB', so_tai_khoan: '9917523946', chu_tai_khoan: 'HUYNH PHUONG TRANG' },
+    tam_ung: { ten_ngan_hang: 'VCB', so_tai_khoan: '9917523946', chu_tai_khoan: 'HUYNH PHUONG TRANG' }
+};
+
+// Lưu cache dữ liệu cũ để so sánh diff
+let previousRoomsData = [];
+
 const loginScreen = document.getElementById("loginScreen");
+const mainContainer = document.getElementById("mainContainer");
 const loginPassword = document.getElementById("loginPassword");
 const loginBtn = document.getElementById("loginBtn");
 const loginError = document.getElementById("loginError");
 const rememberMe = document.getElementById("rememberMe");
-const mainContainer = document.querySelector(".container");
 
 function showMainApp() {
   loginScreen.style.display = "none";
   mainContainer.style.display = "block";
   loginError.style.display = "none";
+  initData();
 }
 
 function handleLogin() {
-  const password = loginPassword.value;
-  if (password === DEFAULT_PASSWORD) {
-    // Xử lý ghi nhớ mật khẩu
-    if (rememberMe.checked) {
-      localStorage.setItem(REMEMBER_KEY, password);
-    } else {
-      localStorage.removeItem(REMEMBER_KEY);
-    }
+  if (loginPassword.value === DEFAULT_PASSWORD) {
+    if (rememberMe.checked) localStorage.setItem(REMEMBER_KEY, DEFAULT_PASSWORD);
+    else localStorage.removeItem(REMEMBER_KEY);
     showMainApp();
   } else {
     loginError.style.display = "block";
@@ -322,53 +269,282 @@ function handleLogin() {
 }
 
 loginBtn.addEventListener("click", handleLogin);
-loginPassword.addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    handleLogin();
-  }
-});
+loginPassword.addEventListener("keypress", e => { if (e.key === "Enter") handleLogin(); });
 
-// Kiểm tra ghi nhớ mật khẩu khi tải trang
 (function checkRememberedLogin() {
-  const savedPassword = localStorage.getItem(REMEMBER_KEY);
-  if (savedPassword && savedPassword === DEFAULT_PASSWORD) {
-    showMainApp();
-  } else {
-    // Không có mật khẩu đã lưu -> xóa nếu có dữ liệu cũ không hợp lệ
-    localStorage.removeItem(REMEMBER_KEY);
-    loginPassword.focus();
-  }
+  if (localStorage.getItem(REMEMBER_KEY) === DEFAULT_PASSWORD) showMainApp();
+  else loginPassword.focus();
 })();
-</script>
 
-<script>
-// ===== Tab switching =====
+function updateClock() {
+  const now = new Date();
+  const days = ["CN","T2","T3","T4","T5","T6","T7"];
+  document.getElementById("currentTime").innerText = `${now.toLocaleTimeString("vi-VN",{hour12:false})} • ${days[now.getDay()]}, ${now.toLocaleDateString("vi-VN")}`;
+}
+setInterval(updateClock, 1000); updateClock();
+
+function formatNumber(num) { return Number(num).toLocaleString("vi-VN"); }
+
+function readTriple(num) {
+  const units = ["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+  let [h,t,o] = String(num).padStart(3,'0').split("").map(Number);
+  let s = "";
+  if(h>0) { s += units[h]+" trăm"; if(t===0&&o>0) s+=" linh"; }
+  if(t>1) { s += " "+units[t]+" mươi"; if(o===1) s+=" mốt"; else if(o===5) s+=" lăm"; else if(o>0) s+=" "+units[o]; }
+  else if(t===1) { s += " mười"; if(o===1) s+=" một"; else if(o===5) s+=" lăm"; else if(o>0) s+=" "+units[o]; }
+  else if(t===0&&o>0&&h===0) { s += units[o]; }
+  else if(o>0) { s += " "+units[o]; }
+  return s.trim();
+}
+
+function numberToWords(n) {
+  if(!n || n===0) return "không đồng";
+  const scales = ["","nghìn","triệu","tỷ"];
+  let parts = [], scaleIdx = 0;
+  while(n > 0) {
+    let chunk = n % 1000;
+    if(chunk > 0) {
+      let words = readTriple(chunk);
+      if(scales[scaleIdx]) words += " " + scales[scaleIdx];
+      parts.unshift(words);
+    }
+    n = Math.floor(n / 1000); scaleIdx++;
+  }
+  return parts.join(", ").replace(/ ,/g, ",").replace(/\s+/g, " ").trim() + " đồng";
+}
+
+// ================= LOGIC DỮ LIỆU & REALTIME TỐI ƯU =================
+async function initData() {
+    console.log("🚀 Khởi tạo ứng dụng nhân viên...");
+    await loadBankAccounts();
+    await loadRooms(true);
+    
+    // 1. REALTIME - Lắng nghe thay đổi tức thì
+    const channel = supabaseClient
+      .channel('thungan-realtime-staff')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'thungan' }, async (payload) => {
+        console.log("🔄 Realtime:", payload.eventType, payload.new?.ten_phong);
+        
+        // Bảo vệ ô đang gõ
+        const activeEl = document.activeElement;
+        const isTyping = activeEl && (activeEl.id === 'manualAmount' || activeEl.id === 'advanceAmount');
+        const savedVal = isTyping ? activeEl.value : null;
+        const savedId = isTyping ? activeEl.id : null;
+
+        // Dùng requestAnimationFrame để render mượt, không nghẽn UI
+        requestAnimationFrame(async () => {
+          await loadRooms(false);
+          if (isTyping && savedId) {
+            const el = document.getElementById(savedId);
+            if (el) {
+              el.value = savedVal;
+              el.dispatchEvent(new Event('input'));
+            }
+          }
+        });
+      })
+      .subscribe((status) => {
+        console.log("📡 Realtime status:", status);
+      });
+
+    // 2. FALLBACK - Tự động đồng bộ mỗi 5 giây (nhanh hơn trước)
+    setInterval(() => {
+      loadRooms(false);
+    }, 5000);
+}
+
+async function loadBankAccounts() {
+    try {
+        const { data, error } = await supabaseClient.from('tai_khoan_bank').select('*');
+        if (!error && data) {
+            data.forEach(acc => {
+                if (acc.loai_tai_khoan === 'thanh_toan') bankAccounts.thanh_toan = acc;
+                if (acc.loai_tai_khoan === 'tam_ung') bankAccounts.tam_ung = acc;
+            });
+        }
+    } catch (e) { console.error("Lỗi tải bank:", e); }
+}
+
+async function loadRooms(showLoading = true) {
+  if (showLoading) {
+    let loader = document.getElementById("loadingOverlay");
+    if(!loader) {
+        loader = document.createElement("div");
+        loader.id = "loadingOverlay";
+        loader.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:9998;display:flex;justify-content:center;align-items:center;";
+        loader.innerHTML = "<div style='width:40px;height:40px;border:4px solid #fff;border-top-color:#007bff;border-radius:50%;animation:spin 1s linear infinite'></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
+        document.body.appendChild(loader);
+    }
+    loader.style.display = "flex";
+  }
+  
+  try {
+    const { data, error } = await supabaseClient.from('thungan').select('*');
+    if (error) throw error;
+    
+    // Sắp xếp: 'dang mo' lên đầu
+    data.sort((a, b) => {
+        if (a.trang_thai === 'dang mo' && b.trang_thai !== 'dang mo') return -1;
+        if (a.trang_thai !== 'dang mo' && b.trang_thai === 'dang mo') return 1;
+        return a.ten_phong.localeCompare(b.ten_phong);
+    });
+
+    // ⚡ TỐI ƯU: Chỉ render lại nếu có thay đổi thực sự
+    const dataChanged = hasDataChanged(previousRoomsData, data);
+    if (dataChanged) {
+      renderTable(data);
+      populateAdvanceRoomSelect(data);
+      previousRoomsData = JSON.parse(JSON.stringify(data)); // Deep clone
+    }
+  } catch (e) {
+    console.error("❌ Lỗi tải phòng:", e);
+  } finally {
+    if (showLoading) {
+      const loader = document.getElementById("loadingOverlay");
+      if(loader) loader.style.display = "none";
+    }
+  }
+}
+
+// ⚡ Hàm so sánh nhanh để tránh render không cần thiết
+function hasDataChanged(oldData, newData) {
+  if (!oldData || oldData.length !== newData.length) return true;
+  for (let i = 0; i < newData.length; i++) {
+    if (oldData[i].so_tien !== newData[i].so_tien ||
+        oldData[i].trang_thai !== newData[i].trang_thai ||
+        oldData[i].thoi_gian !== newData[i].thoi_gian) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ⚡ Render tối ưu: chỉ tạo DOM 1 lần, sau đó chỉ cập nhật nội dung
+function renderTable(data) {
+  const table = document.getElementById("roomTable");
+  
+  // Nếu số hàng khác -> render lại toàn bộ
+  if (table.children.length !== data.length) {
+    table.innerHTML = "";
+    data.forEach(room => {
+      const tr = document.createElement("tr");
+      tr.dataset.roomId = room.ten_phong;
+      tr.innerHTML = `
+        <td class="cell-name"></td>
+        <td class="cell-amount"></td>
+        <td class="cell-status"></td>
+        <td class="cell-time"></td>
+        <td class="cell-actions"></td>
+      `;
+      table.appendChild(tr);
+    });
+  }
+  
+  // Cập nhật nội dung từng hàng (nhanh hơn xóa và tạo lại)
+  const rows = table.children;
+  data.forEach((room, index) => {
+    const tr = rows[index];
+    if (!tr) return;
+    
+    const displayName = getDisplayName(room.ten_phong);
+    const isUnpaid = room.trang_thai === 'dang mo';
+    const isPaid = room.trang_thai === 'da thanh toan';
+    
+    const displayTime = (room.thoi_gian && room.thoi_gian !== '00:00') ? room.thoi_gian : '—';
+    const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : '0';
+    
+    //  MÀU ĐỎ NỔI BẬT cho phòng chưa thanh toán
+    if (isUnpaid) {
+      tr.className = 'bg-unpaid';
+      tr.querySelector('.cell-name').innerHTML = `<span class="room-name-unpaid">🔴 ${displayName}</span>`;
+      tr.querySelector('.cell-status').innerHTML = `<span class="status-unpaid">CHƯA THANH TOÁN</span>`;
+    } else if (isPaid) {
+      tr.className = '';
+      tr.querySelector('.cell-name').innerHTML = `<span style="color:#64748b; font-weight:600;">${displayName}</span>`;
+      tr.querySelector('.cell-status').innerHTML = `<span class="status-paid">✓ Đã thanh toán</span>`;
+    } else {
+      tr.className = '';
+      tr.querySelector('.cell-name').innerHTML = `<span style="color:#94a3b8; font-weight:600;">${displayName}</span>`;
+      tr.querySelector('.cell-status').innerHTML = `<span class="status-closed">Chưa mở</span>`;
+    }
+    
+    tr.querySelector('.cell-amount').innerHTML = `<span style="font-weight:700; color:${isUnpaid ? 'var(--danger)' : '#1e293b'}">${displayAmount}</span>`;
+    tr.querySelector('.cell-time').textContent = displayTime;
+    tr.querySelector('.cell-actions').innerHTML = `
+      <button class="btn-action btn-qr" onclick="fillQR('${room.so_tien || 0}', '${room.ten_phong}')">Lấy QR</button>
+      <button class="btn-action btn-pay" ${!isUnpaid ? 'disabled' : ''} onclick="markPaid('${room.ten_phong}')">✅ Trả</button>
+    `;
+  });
+}
+
+async function markPaid(roomName) {
+  const displayName = getDisplayName(roomName);
+  if(!confirm(`Xác nhận ${displayName} đã thanh toán?`)) return;
+  try {
+    const { error } = await supabaseClient.from('thungan').update({
+      trang_thai: 'da thanh toan'
+    }).eq('ten_phong', roomName);
+    
+    if (!error) {
+      alert(`Đã cập nhật trạng thái cho ${displayName}!`);
+    } else {
+      alert("Lỗi: " + error.message);
+    }
+  } catch(e) { alert("Lỗi kết nối!"); }
+}
+
+// ================= QR & TABS =================
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 tabBtns.forEach(btn => {
   btn.addEventListener("click", () => {
-    const target = btn.dataset.tab;
     tabBtns.forEach(b => b.classList.remove("active"));
     tabContents.forEach(c => c.classList.remove("active"));
     btn.classList.add("active");
-    document.getElementById("tab-" + target).classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
   });
 });
 
-// ===== Common elements =====
 const manualAmount = document.getElementById("manualAmount");
 const qrImage = document.getElementById("qrImage");
 const amountText = document.getElementById("amountText");
 const roomNameQR = document.getElementById("roomNameQR");
-const openCamera = document.getElementById("openCamera");
-const cameraModal = document.getElementById("cameraModal");
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const captureBtn = document.getElementById("captureBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const closeModal = document.getElementById("closeModal");
 
-// Advance elements
+function generateQR(amount, addInfo, type = 'thanh_toan') {
+    const acc = bankAccounts[type] || bankAccounts.thanh_toan;
+    return `https://img.vietqr.io/image/${acc.ten_ngan_hang}-${acc.so_tai_khoan}-qr_only.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(acc.chu_tai_khoan)}`;
+}
+
+function updateQR(val, dbRoomName = "") {
+  const displayName = dbRoomName ? getDisplayName(dbRoomName) : "";
+  if (displayName) roomNameQR.textContent = displayName;
+  
+  const currentDisplayRoom = roomNameQR.textContent || "";
+  const addInfo = currentDisplayRoom ? `Thank you ${currentDisplayRoom}` : `Thank you`;
+  
+  qrImage.src = generateQR(val, addInfo, 'thanh_toan');
+  amountText.textContent = val > 0 ? numberToWords(Number(val)) : "";
+}
+
+manualAmount.addEventListener("input", function() {
+  let val = this.value.replace(/\D/g, "");
+  if (val) {
+    this.value = formatNumber(val);
+    updateQR(val, roomNameQR.textContent ? Object.keys(ROOM_NAME_MAP).find(key => ROOM_NAME_MAP[key] === roomNameQR.textContent) : "");
+  } else {
+    this.value = "";
+    amountText.textContent = "";
+    qrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  }
+});
+
+function fillQR(amount, dbRoomName) {
+  manualAmount.value = formatNumber(amount);
+  updateQR(amount, dbRoomName);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Advance Tab
 const advanceAmount = document.getElementById("advanceAmount");
 const advanceRoom = document.getElementById("advanceRoom");
 const advanceQrImage = document.getElementById("advanceQrImage");
@@ -376,228 +552,99 @@ const advanceAmountText = document.getElementById("advanceAmountText");
 const openCameraAdvance = document.getElementById("openCameraAdvance");
 const noRoomHint = document.getElementById("noRoomHint");
 
-let stream;
-let currentMode = "payment";
-let currentShareText = "";
-let unpaidRoomsCache = [];
-
-// Hiển thị đồng hồ
-function updateClock() {
-  const now = new Date();
-  const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-  const time = now.toLocaleTimeString("vi-VN",{hour12:false});
-  const date = now.toLocaleDateString("vi-VN");
-  document.getElementById("currentTime").innerText = `${time} - ${days[now.getDay()]}, ${date}`;
-}
-setInterval(updateClock,1000);
-updateClock();
-
-// Chuyển số thành chữ
-function readTriple(num){
-  const units=["","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
-  let [h,t,o]=String(num).padStart(3,'0').split("").map(Number);
-  let s="";
-  if(h>0){ s+=units[h]+" trăm"; if(t===0&&o>0)s+=" linh"; }
-  if(t>1){ s+=" "+units[t]+" mươi"; if(o===1)s+=" mốt"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-  else if(t===1){ s+=" mười"; if(o===1)s+=" một"; else if(o===5)s+=" lăm"; else if(o>0)s+=" "+units[o]; }
-  else if(t===0&&o>0&&h===0){ s+=units[o]; }
-  else if(o>0){ s+=" "+units[o]; }
-  return s.trim();
-}
-function numberToWords(n){
-  if(!n||n===0) return "không đồng";
-  const scales=["","nghìn","triệu","tỷ"];
-  let parts=[], scaleIdx=0;
-  while(n>0){
-    let chunk=n%1000;
-    if(chunk>0){
-      let words=readTriple(chunk);
-      if(scales[scaleIdx]) words+=" "+scales[scaleIdx];
-      parts.unshift(words);
-    }
-    n=Math.floor(n/1000);
-    scaleIdx++;
-  }
-  return parts.join(", ").replace(/ ,/g,",").replace(/\s+/g," ").trim()+" đồng";
-}
-function formatNumber(num){ return Number(num).toLocaleString("vi-VN"); }
-
-// ===== QR cho Thanh toán phòng =====
-function updateQR(val, roomName=""){
-  if(roomName) roomNameQR.textContent = roomName;
-  const displayRoom = roomNameQR.textContent || "";
-  const addInfo = displayRoom ? `Thank+You+${encodeURIComponent(displayRoom)}` : `Thank+You`;
-  const url=`https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${val}&addInfo=${addInfo}&accountName=HUYNH+PHUONG+TRANG`;
-  qrImage.src=url;
-  amountText.textContent = numberToWords(Number(val));
-}
-manualAmount.addEventListener("input", function(){
-  let val=this.value.replace(/\D/g,"");
-  if(val){
-    this.value=formatNumber(val);
-    updateQR(val);
-  } else {
-    this.value="";
-    amountText.textContent="";
-    qrImage.src="";
-  }
-});
-
-// ===== Cập nhật QR tạm ứng (nội dung: "tam ung + tên phòng") =====
-function refreshAdvanceQR(){
-  const roomName = advanceRoom.value.trim();
-  const amountRaw = advanceAmount.value.replace(/\D/g,"");
-
-  if(amountRaw){
-    const addInfoRaw = roomName ? `tam ung ${roomName}` : `tam ung`;
-    const addInfo = encodeURIComponent(addInfoRaw);
-    const url = `https://img.vietqr.io/image/VCB-9917523946-qr_only.png?amount=${amountRaw}&addInfo=${addInfo}&accountName=HUYNH+PHUONG+TRANG`;
-    advanceQrImage.src = url;
-    advanceAmountText.textContent = numberToWords(Number(amountRaw));
-  } else {
-    advanceQrImage.src = "";
-    advanceAmountText.textContent = "";
-  }
-}
-
-advanceAmount.addEventListener("input", function(){
-  let val = this.value.replace(/\D/g,"");
-  if(val){
-    this.value = formatNumber(val);
-  } else {
-    this.value = "";
-  }
-  refreshAdvanceQR();
-});
-
-// ===== Cập nhật trạng thái ô nhập tiền tạm ứng theo phòng đã chọn =====
-function updateAdvanceAmountState(){
-  const hasRoom = advanceRoom.value.trim() !== "";
-  if(hasRoom){
-    advanceAmount.disabled = false;
-    advanceAmount.placeholder = "Nhập số tiền";
-    openCameraAdvance.disabled = false;
-  } else {
-    advanceAmount.disabled = true;
-    advanceAmount.value = "";
-    advanceAmount.placeholder = "Vui lòng chọn phòng tạm ứng trước";
-    openCameraAdvance.disabled = true;
-    advanceQrImage.src = "";
-    advanceAmountText.textContent = "";
-  }
-}
-
-advanceRoom.addEventListener("change", function(){
-  updateAdvanceAmountState();
-  refreshAdvanceQR();
-});
-
-// Khởi tạo trạng thái ban đầu cho ô tạm ứng
-updateAdvanceAmountState();
-
-// ===== Populate dropdown phòng chưa thanh toán =====
-function populateAdvanceRoomSelect(data){
-  const unpaid = data.filter(r => r.status === "Chưa thanh toán");
-  unpaidRoomsCache = unpaid;
-
+function populateAdvanceRoomSelect(data) {
+  const openRooms = data.filter(r => r.trang_thai === 'dang mo');
   const prevValue = advanceRoom.value;
-
   advanceRoom.innerHTML = "";
 
-  if(unpaid.length === 0){
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "-- Không có phòng đang mở --";
-    advanceRoom.appendChild(opt);
+  if (openRooms.length === 0) {
+    advanceRoom.innerHTML = "<option value=''>-- Không có phòng đang mở --</option>";
+    advanceRoom.disabled = true;
     noRoomHint.style.display = "block";
-    updateAdvanceAmountState();
+    advanceAmount.disabled = true;
+    openCameraAdvance.disabled = true;
     return;
   }
 
   noRoomHint.style.display = "none";
-
-  const defaultOpt = document.createElement("option");
-  defaultOpt.value = "";
-  defaultOpt.textContent = "-- Chọn phòng tạm ứng --";
-  advanceRoom.appendChild(defaultOpt);
-
-  unpaid.forEach(room => {
+  advanceRoom.disabled = false;
+  advanceRoom.innerHTML = "<option value=''>-- Chọn phòng tạm ứng --</option>";
+  
+  openRooms.forEach(room => {
     const opt = document.createElement("option");
-    opt.value = room.name;
-    opt.textContent = room.name;
+    opt.value = room.ten_phong;
+    opt.textContent = getDisplayName(room.ten_phong);
     advanceRoom.appendChild(opt);
   });
 
-  if(prevValue && unpaid.some(r => r.name === prevValue)){
-    advanceRoom.value = prevValue;
-  }
-
-  updateAdvanceAmountState();
+  if (prevValue && openRooms.some(r => r.ten_phong === prevValue)) advanceRoom.value = prevValue;
+  updateAdvanceState();
 }
 
-// Load danh sách phòng
-async function loadRooms(){
-  manualAmount.value="";
-  qrImage.src="";
-  amountText.textContent="";
-  roomNameQR.textContent="";
-  try {
-    const res = await fetch(API+"?action=getRooms");
-    const data = await res.json();
-    const table = document.getElementById("roomTable");
-    table.innerHTML = "";
-    data.sort((a,b)=> (a.status==="Chưa thanh toán"?0:1) - (b.status==="Chưa thanh toán"?0:1));
-    data.forEach(room=>{
-      const tr=document.createElement("tr");
-      if(room.status==="Chưa thanh toán") tr.classList.add("bg-unpaid");
-      tr.innerHTML=`
-        <td>${room.name}</td>
-        <td>${formatNumber(room.amount)}</td>
-        <td class="${room.status==='Đã thanh toán'?'status-paid':'status-unpaid'}">${room.status}</td>
-        <td>${room.refTime || ''}</td>
-        <td>
-          <button class="btn btn-pay" ${room.status==='Đã thanh toán'?'disabled':''} onclick="markPaid('${room.name}')">Thanh toán</button>
-          <button class="btn btn-qr" onclick="fillQR('${room.amount}','${room.name}')">Lấy QR</button>
-        </td>`;
-      table.appendChild(tr);
-    });
-
-    populateAdvanceRoomSelect(data);
-  } catch(e){
-    console.error("Lỗi tải phòng:", e);
+function updateAdvanceState() {
+  const hasRoom = advanceRoom.value.trim() !== "";
+  advanceAmount.disabled = !hasRoom;
+  openCameraAdvance.disabled = !hasRoom;
+  
+  if (!hasRoom) {
+    advanceAmount.value = "";
+    advanceAmount.placeholder = "Vui lòng chọn phòng trước";
+    advanceQrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    advanceAmountText.textContent = "";
+  } else {
+    advanceAmount.placeholder = "Nhập số tiền";
+    refreshAdvanceQR();
   }
 }
-async function markPaid(roomName){
-  await fetch(`${API}?action=markPaid&room=${encodeURIComponent(roomName)}`);
-  loadRooms();
-}
-function fillQR(amount, roomName){
-  manualAmount.value=formatNumber(amount);
-  updateQR(amount, roomName);
-}
-loadRooms();
-setInterval(loadRooms, 180000);
 
-// ===== Camera =====
-function openCameraModal(mode){
+advanceRoom.addEventListener("change", updateAdvanceState);
+
+function refreshAdvanceQR() {
+  const dbRoomName = advanceRoom.value.trim();
+  const displayName = getDisplayName(dbRoomName);
+  const amountRaw = advanceAmount.value.replace(/\D/g, "");
+  
+  if (amountRaw && dbRoomName) {
+    advanceQrImage.src = generateQR(amountRaw, `tam ung ${displayName}`, 'tam_ung');
+    advanceAmountText.textContent = numberToWords(Number(amountRaw));
+  } else {
+    advanceQrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    advanceAmountText.textContent = "";
+  }
+}
+
+advanceAmount.addEventListener("input", function() {
+  let val = this.value.replace(/\D/g, "");
+  this.value = val ? formatNumber(val) : "";
+  refreshAdvanceQR();
+});
+
+// ================= CAMERA =================
+let stream, currentMode = "payment", currentShareText = "";
+
+const cameraModal = document.getElementById("cameraModal");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const captureBtn = document.getElementById("captureBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const closeModal = document.getElementById("closeModal");
+
+document.getElementById("openCamera").addEventListener("click", () => openCameraModal("payment"));
+openCameraAdvance.addEventListener("click", () => openCameraModal("advance"));
+
+function openCameraModal(mode) {
+  if (mode === "payment" && !manualAmount.value) { alert("Vui lòng nhập số tiền trước!"); return; }
+  if (mode === "advance" && (!advanceRoom.value || !advanceAmount.value)) { alert("Vui lòng chọn phòng và nhập số tiền!"); return; }
+  
   currentMode = mode;
   cameraModal.style.display = "flex";
   canvas.style.display = "none";
   downloadBtn.style.display = "none";
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } }, audio:false })
+  
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
     .then(s => { stream = s; video.srcObject = stream; })
-    .catch(() => navigator.mediaDevices.getUserMedia({ video:true, audio:false })
-      .then(s => { stream = s; video.srcObject = stream; }));
+    .catch(err => { alert("Không thể truy cập camera: " + err); closeModal.click(); });
 }
-
-openCamera.addEventListener("click", () => openCameraModal("payment"));
-openCameraAdvance.addEventListener("click", () => {
-  if(!advanceRoom.value.trim()){
-    alert("Vui lòng chọn phòng tạm ứng trước khi chụp ảnh!");
-    return;
-  }
-  openCameraModal("advance");
-});
 
 captureBtn.addEventListener("click", () => {
   const ctx = canvas.getContext("2d");
@@ -606,59 +653,55 @@ captureBtn.addEventListener("click", () => {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const timeStr = new Date().toLocaleString('vi-VN');
+  const padding = 15;
 
-  if(currentMode === "payment"){
-    const roomName = roomNameQR.textContent || " ";
-    const amountNumber = manualAmount.value || "0";
+  if (currentMode === "payment") {
+    const roomName = roomNameQR.textContent || "Karaoke Rita";
+    const amountNumber = manualAmount.value;
     currentShareText = `${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
 
-    function drawLabel(text, x, y) {
-      ctx.font = "20px Arial";
-      ctx.textBaseline = "top";
-      const padding = 10;
-      const textWidth = ctx.measureText(text).width;
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 28);
-      ctx.fillStyle = "lightgreen";
-      ctx.fillText(text, x, y);
-    }
-    drawLabel(`${roomName}`, 20, 20);
-    drawLabel(`Số tiền: ${amountNumber}`, 20, 55);
-    drawLabel(`Thời gian: ${timeStr}`, 20, 90);
+    ctx.font = "bold 24px Inter, Arial";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, 0, canvas.width, 120);
+    ctx.fillStyle = "#4ade80"; 
+    ctx.fillText(`${roomName}`, padding, padding);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(`Số tiền: ${amountNumber}`, padding, padding + 35);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Inter, Arial";
+    ctx.fillText(`Thời gian: ${timeStr}`, padding, padding + 70);
   } else {
-    const roomName = advanceRoom.value.trim() || "Tạm ứng";
-    const amountNumber = advanceAmount.value || "0";
-    currentShareText = `tam ung ${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
+    const roomName = getDisplayName(advanceRoom.value.trim());
+    const amountNumber = advanceAmount.value;
+    currentShareText = `Tạm ứng ${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
 
-    function drawLabelAdv(text, x, y) {
-      ctx.font = "20px Arial";
-      ctx.textBaseline = "top";
-      const padding = 10;
-      const textWidth = ctx.measureText(text).width;
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(x - padding/2, y - padding/2, textWidth + padding, 28);
-      ctx.fillStyle = "#ffeb3b";
-      ctx.fillText(text, x, y);
-    }
-    drawLabelAdv(`Tạm ứng: ${roomName}`, 20, 20);
-    drawLabelAdv(`Số tiền: ${amountNumber}`, 20, 55);
-    drawLabelAdv(`Thời gian: ${timeStr}`, 20, 90);
+    ctx.font = "bold 24px Inter, Arial";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, 0, canvas.width, 120);
+    ctx.fillStyle = "#fbbf24"; 
+    ctx.fillText(`Tạm ứng: ${roomName}`, padding, padding);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(`Số tiền: ${amountNumber}`, padding, padding + 35);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Inter, Arial";
+    ctx.fillText(`Thời gian: ${timeStr}`, padding, padding + 70);
   }
 
   canvas.style.display = "block";
-  downloadBtn.style.display = "inline-block";
+  downloadBtn.style.display = "block";
+  captureBtn.style.display = "none";
 });
 
 downloadBtn.addEventListener("click", async () => {
   canvas.toBlob(async (blob) => {
     const prefix = currentMode === "payment" ? "ThanhToan" : "TamUng";
     const file = new File([blob], `${prefix}_${Date.now()}.png`, { type: "image/png" });
+    
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: currentMode === "payment" ? "Ảnh thanh toán" : "Ảnh tạm ứng",
-        text: currentShareText
-      });
+      try { await navigator.share({ files: [file], title: "Karaoke Rita", text: currentShareText }); } 
+      catch(e) { console.log("Share canceled"); }
     } else {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -670,7 +713,8 @@ downloadBtn.addEventListener("click", async () => {
 
 closeModal.addEventListener("click", () => {
   cameraModal.style.display = "none";
-  if(stream){ stream.getTracks().forEach(track => track.stop()); }
+  captureBtn.style.display = "block";
+  if (stream) { stream.getTracks().forEach(track => track.stop()); }
 });
 </script>
 </body>
