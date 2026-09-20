@@ -91,7 +91,6 @@
     .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Popup thông báo to, chính giữa màn hình */
     .toast { 
       position: fixed; top: 50%; left: 50%; 
       transform: translate(-50%, -50%) scale(0.9); 
@@ -364,27 +363,25 @@
       if (btn) { btn.disabled = false; btn.classList.add('enabled'); }
     }
 
-    // ⚡ LOGIC ĐẶC BIỆT: Nếu phòng chưa mở, nhấn cập nhật sẽ tự động mở phòng + lưu tiền
+    // ⚡ LOGIC MỚI: Mở phòng + Ghi giờ + Lưu tiền cho cả "Chưa mở" và "Đã thanh toán"
     async function updateAmount(roomName) {
       const amount = parseNumber(document.getElementById(`amount-${roomName}`).value);
       const btn = document.getElementById(`btn-update-${roomName}`);
       
-      // 1. Mờ nút ngay lập tức
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang lưu...'; }
       
-      // 2. Xác định trạng thái hiện tại của phòng
       const currentRoom = previousRoomsData.find(r => r.ten_phong === roomName);
       let updatePayload = { so_tien: amount };
       let actionMessage = `Đã cập nhật số tiền ${getDisplayName(roomName)}`;
       
-      // 3. Nếu đang "chưa mở", chuyển sang "đang mở" và ghi nhận giờ
-      if (currentRoom && currentRoom.trang_thai === 'chua mo') {
+      // Nếu phòng đang "Chưa mở" HOẶC "Đã thanh toán" -> Tự động mở lại và ghi giờ mới
+      if (currentRoom && (currentRoom.trang_thai === 'chua mo' || currentRoom.trang_thai === 'da thanh toan')) {
         updatePayload.trang_thai = 'dang mo';
         updatePayload.thoi_gian = getCurrentTime();
+        updatePayload.thoi_gian_thanh_toan = ''; // Xóa giờ thanh toán cũ để tránh xung đột logic 30 phút
         actionMessage = `Đã mở ${getDisplayName(roomName)} và cập nhật số tiền`;
       }
 
-      // 4. Gửi yêu cầu lên Supabase
       const { error } = await supabaseClient.from('thungan').update(updatePayload).eq('ten_phong', roomName);
       
       if (!error) { 
@@ -393,7 +390,6 @@
         showToast("Lỗi: " + error.message, "error"); 
       }
 
-      // 5. Khôi phục nút (fallback) và load lại dữ liệu để cập nhật UI ngay lập tức
       if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; }
       await loadRooms(false);
     }
