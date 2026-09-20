@@ -91,31 +91,17 @@
     .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* 🔄 CẬP NHẬT: Popup thông báo to, chính giữa màn hình */
+    /* Popup thông báo to, chính giữa màn hình */
     .toast { 
-      position: fixed; 
-      top: 50%; 
-      left: 50%; 
+      position: fixed; top: 50%; left: 50%; 
       transform: translate(-50%, -50%) scale(0.9); 
-      background: rgba(30, 41, 59, 0.95); 
-      backdrop-filter: blur(8px);
-      color: white; 
-      padding: 20px 32px; 
-      border-radius: 16px; 
-      font-size: 18px; 
-      font-weight: 700; 
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25); 
-      opacity: 0; 
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-      z-index: 3000; 
-      text-align: center;
-      min-width: 320px;
-      pointer-events: none;
+      background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px);
+      color: white; padding: 20px 32px; border-radius: 16px; 
+      font-size: 18px; font-weight: 700; box-shadow: 0 8px 32px rgba(0,0,0,0.25); 
+      opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      z-index: 3000; text-align: center; min-width: 320px; pointer-events: none;
     }
-    .toast.show { 
-      transform: translate(-50%, -50%) scale(1); 
-      opacity: 1; 
-    }
+    .toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     .toast.error { background: rgba(220, 38, 38, 0.95); }
     .toast.success { background: rgba(16, 185, 129, 0.95); }
 
@@ -190,7 +176,7 @@
       const toast = document.getElementById('toast');
       toast.textContent = message; 
       toast.className = `toast show ${type}`;
-      setTimeout(() => { toast.className = 'toast'; }, 3000); // Hiển thị 3 giây
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
     }
 
     const statusMap = {
@@ -281,7 +267,6 @@
       }
     }
 
-    // 🔄 LOGIC: Sau 30 phút "Đã thanh toán" chuyển về "Chưa mở"
     async function check30MinAfterPaid(data) {
       const now = new Date();
       let needsUpdate = false;
@@ -294,6 +279,7 @@
           if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; 
           
           if ((diffMs / 1000 / 60) >= 30) {
+            console.log(`Tự động reset phòng ${room.ten_phong} sau ${Math.floor(diffMs / 1000 / 60)} phút thanh toán`);
             await supabaseClient.from('thungan').update({
               trang_thai: 'chua mo', so_tien: 0, thoi_gian: '', thoi_gian_thanh_toan: ''
             }).eq('ten_phong', room.ten_phong);
@@ -301,9 +287,7 @@
           }
         }
       }
-      if (needsUpdate) {
-        showToast("Đã tự động đóng các phòng quá 30 phút sau thanh toán", "success");
-      }
+      if (needsUpdate) showToast("Đã tự động đóng các phòng quá 30 phút sau thanh toán", "success");
     }
 
     function renderTable(data) {
@@ -344,7 +328,6 @@
           inputEl.value = displayAmount;
         }
 
-        // 🔄 THÊM ID CHO NÚT BẤM ĐỂ DỄ DÀNG VÔ HIỆU HÓA
         tr.querySelector('.cell-actions').innerHTML = `
           <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
             <button id="btn-open-${room.ten_phong}" class="btn btn-open" ${isDangMo ? 'disabled' : ''} onclick="openRoom('${room.ten_phong}')">🔓 Mở phòng</button>
@@ -358,7 +341,6 @@
       });
     }
 
-    // 🔄 NÚT MỜ NGAY LẬP TỨC
     async function openRoom(roomName) {
       const btn = document.getElementById(`btn-open-${roomName}`);
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang mở...'; }
@@ -370,7 +352,7 @@
       if (!error) { showToast(`Đã mở ${getDisplayName(roomName)}`); } 
       else { showToast("Lỗi: " + error.message, "error"); }
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở phòng'; } // Fallback
+      if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở phòng'; }
       await loadRooms(false);
     }
 
@@ -382,29 +364,40 @@
       if (btn) { btn.disabled = false; btn.classList.add('enabled'); }
     }
 
-    // 🔄 NÚT MỜ NGAY LẬP TỨC
+    // ⚡ LOGIC ĐẶC BIỆT: Nếu phòng chưa mở, nhấn cập nhật sẽ tự động mở phòng + lưu tiền
     async function updateAmount(roomName) {
       const amount = parseNumber(document.getElementById(`amount-${roomName}`).value);
       const btn = document.getElementById(`btn-update-${roomName}`);
+      
+      // 1. Mờ nút ngay lập tức
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang lưu...'; }
       
+      // 2. Xác định trạng thái hiện tại của phòng
       const currentRoom = previousRoomsData.find(r => r.ten_phong === roomName);
       let updatePayload = { so_tien: amount };
+      let actionMessage = `Đã cập nhật số tiền ${getDisplayName(roomName)}`;
       
+      // 3. Nếu đang "chưa mở", chuyển sang "đang mở" và ghi nhận giờ
       if (currentRoom && currentRoom.trang_thai === 'chua mo') {
         updatePayload.trang_thai = 'dang mo';
         updatePayload.thoi_gian = getCurrentTime();
+        actionMessage = `Đã mở ${getDisplayName(roomName)} và cập nhật số tiền`;
       }
 
+      // 4. Gửi yêu cầu lên Supabase
       const { error } = await supabaseClient.from('thungan').update(updatePayload).eq('ten_phong', roomName);
-      if (!error) { showToast(`Đã cập nhật ${getDisplayName(roomName)}`); } 
-      else { showToast("Lỗi: " + error.message, "error"); }
+      
+      if (!error) { 
+        showToast(actionMessage, "success"); 
+      } else { 
+        showToast("Lỗi: " + error.message, "error"); 
+      }
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; } // Fallback
+      // 5. Khôi phục nút (fallback) và load lại dữ liệu để cập nhật UI ngay lập tức
+      if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; }
       await loadRooms(false);
     }
 
-    // 🔄 NÚT MỜ NGAY LẬP TỨC
     async function markPaid(roomName) {
       const btn = document.getElementById(`btn-paid-${roomName}`);
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang xử lý...'; }
@@ -416,7 +409,7 @@
       if (!error) { showToast(`Đã thanh toán ${getDisplayName(roomName)}`); } 
       else { showToast("Lỗi: " + error.message, "error"); }
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '✅ Thanh toán'; } // Fallback
+      if (btn) { btn.disabled = false; btn.innerHTML = '✅ Thanh toán'; }
       await loadRooms(false);
     }
 
