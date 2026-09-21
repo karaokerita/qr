@@ -18,8 +18,8 @@
       --bg: #f1f5f9; --card: #ffffff; --text: #1e293b;
       --text-secondary: #64748b; --border: #e2e8f0;
       --shadow: 0 4px 24px rgba(0,0,0,0.08); --radius: 14px;
-      --color-open: #0369a1;    /* Màu xanh dương cho Mở phòng */
-      --color-paid: #065f46;    /* Màu xanh lá cho Thanh toán */
+      --color-open: #0369a1;
+      --color-paid: #065f46;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
@@ -88,42 +88,43 @@
     tr.bg-unpaid { background: #fef2f2; animation: pulse-red-bg 3s ease-in-out infinite; }
     @keyframes pulse-red-bg { 0%, 100% { background: #fef2f2; } 50% { background: #fee2e2; } }
 
-    /* ⚡ Thời gian hiển thị - Màu label đồng bộ với thời gian */
+    /* ⚡ Thời gian hiển thị - Label và thời gian cùng hàng */
     .time-cell { 
       display: flex; 
       flex-direction: column; 
-      gap: 8px; 
-      font-size: 10px; 
+      gap: 6px; 
+      font-size: 11px; 
       line-height: 1.3;
       align-items: center;
     }
-    .time-open { 
+    .time-open, .time-paid { 
       color: var(--color-open); 
       display: flex; 
-      flex-direction: column; 
+      flex-direction: row; 
       align-items: center;
-      gap: 2px;
+      gap: 6px;
     }
-    .time-paid { 
-      color: var(--color-paid); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center;
-      gap: 2px;
+    .time-paid {
+      color: var(--color-paid);
     }
     .time-label { 
-      font-size: 10px; 
+      font-size: 11px; 
       text-transform: uppercase; 
       letter-spacing: 0.5px; 
       font-weight: 700;
       opacity: 0.85;
-      /* Không set color - kế thừa từ parent (time-open hoặc time-paid) */
+      white-space: nowrap;
+    }
+    .time-label::after {
+      content: ':';
+      margin-left: 2px;
     }
     .time-value { 
-      font-size: 10px; 
+      font-size: 14px; 
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.5px;
+      font-family: 'Courier New', monospace;
     }
 
     .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
@@ -208,7 +209,6 @@
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
     const parseNumber = str => Number(str.replace(/\./g, "").replace(/,/g, "")) || 0;
     
-    // ⚡ Chỉ lấy hh:mm (không giây)
     const getCurrentTime = () => {
       const now = new Date();
       const h = String(now.getHours()).padStart(2, '0');
@@ -216,7 +216,6 @@
       return `${h}:${m}`;
     };
     
-    // ⚡ Cắt giây nếu DB có dữ liệu cũ dạng HH:MM:SS
     function formatTime(timeStr) {
       if (!timeStr) return '';
       const parts = String(timeStr).split(':');
@@ -226,7 +225,6 @@
       return timeStr;
     }
     
-    // ⚡ Kiểm tra thời gian có phải là "00:00" hoặc "00:00:00" hay không
     function isEmptyTime(timeStr) {
       if (!timeStr) return true;
       const formatted = formatTime(timeStr);
@@ -381,27 +379,27 @@
         
         const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : "";
         
-        // ⚡ Build HTML thời gian với màu đồng bộ
+        // ⚡ Build HTML thời gian với label và thời gian cùng hàng
         let timeHTML = '';
         
-        // Thời gian mở phòng - màu xanh dương
+        // Thời gian mở phòng
         if (!isEmptyTime(room.thoi_gian)) {
           const openTime = formatTime(room.thoi_gian);
           timeHTML += `
             <div class="time-open">
-              <div class="time-label">Mở phòng</div>
-              <div class="time-value">${openTime}</div>
+              <span class="time-label">Mở phòng</span>
+              <span class="time-value">${openTime}</span>
             </div>
           `;
         }
         
-        // Thời gian thanh toán - màu xanh lá
+        // Thời gian thanh toán
         if (!isEmptyTime(room.thoi_gian_thanh_toan)) {
           const paidTime = formatTime(room.thoi_gian_thanh_toan);
           timeHTML += `
             <div class="time-paid">
-              <div class="time-label">Thanh toán</div>
-              <div class="time-value">${paidTime}</div>
+              <span class="time-label">Thanh toán</span>
+              <span class="time-value">${paidTime}</span>
             </div>
           `;
         }
