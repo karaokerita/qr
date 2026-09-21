@@ -16,6 +16,8 @@
       --warning: #ff6600;
       --bg-overlay: rgba(255, 255, 255, 0.95);
       --radius: 12px;
+      --color-time-open: #0369a1;    /* Xanh dương cho thời gian mở */
+      --color-time-paid: #065f46;    /* Xanh lá cho thời gian thanh toán */
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -86,7 +88,6 @@
     th, td { border-bottom: 1px solid #f1f5f9; padding: 10px 6px; text-align: center; font-size: 13px; transition: all 0.3s ease; }
     th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
     
-    /*  TỐI ƯU: Trạng thái "Chưa thanh toán" (dang mo) - MÀU ĐỎ NỔI BẬT */
     tr.bg-unpaid { 
       background: #fef2f2; 
       animation: pulse-red 2s ease-in-out infinite;
@@ -113,6 +114,32 @@
     }
     .status-paid { color: var(--success); font-weight: 700; }
     .status-closed { color: #94a3b8; font-weight: 600; }
+    
+    /* ⚡ CSS cho thời gian phân biệt */
+    .time-open {
+      color: var(--color-time-open);
+      font-weight: 700;
+      font-size: 13px;
+      background: rgba(3, 105, 161, 0.08);
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+    }
+    .time-paid {
+      color: var(--color-time-paid);
+      font-weight: 700;
+      font-size: 13px;
+      background: rgba(6, 95, 70, 0.08);
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+    }
+    .time-empty {
+      color: #94a3b8;
+      font-weight: 600;
+    }
     
     .btn-action { padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; margin: 2px; font-size: 12px; font-weight: 600; color: white; }
     .btn-pay { background: var(--success); }
@@ -165,7 +192,7 @@
     <p id="currentTime"></p>
 
     <div class="tab-nav">
-      <button class="tab-btn active" data-tab="payment"> Thanh toán</button>
+      <button class="tab-btn active" data-tab="payment">💳 Thanh toán</button>
       <button class="tab-btn" data-tab="advance">💰 Tạm ứng</button>
     </div>
 
@@ -174,7 +201,7 @@
       <div class="room-name-qr" id="roomNameQR"></div>
       <div class="amount-text" id="amountText"></div>
       <div class="qr-box"><img id="qrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Thanh toán" /></div>
-      <button id="openCamera" class="btn-camera"> Chụp ảnh màn hình thanh toán</button>
+      <button id="openCamera" class="btn-camera">📷 Chụp ảnh màn hình thanh toán</button>
 
       <table>
         <thead>
@@ -239,7 +266,6 @@ let bankAccounts = {
     tam_ung: { ten_ngan_hang: 'VCB', so_tai_khoan: '9917523946', chu_tai_khoan: 'HUYNH PHUONG TRANG' }
 };
 
-// Lưu cache dữ liệu cũ để so sánh diff
 let previousRoomsData = [];
 
 const loginScreen = document.getElementById("loginScreen");
@@ -313,25 +339,61 @@ function numberToWords(n) {
   return parts.join(", ").replace(/ ,/g, ",").replace(/\s+/g, " ").trim() + " đồng";
 }
 
-// ================= LOGIC DỮ LIỆU & REALTIME TỐI ƯU =================
+// ⚡ Helper functions cho xử lý thời gian
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  const parts = String(timeStr).split(':');
+  if (parts.length >= 2) return parts[0] + ':' + parts[1];
+  return timeStr;
+}
+
+function isEmptyTime(timeStr) {
+  if (!timeStr) return true;
+  const formatted = formatTime(timeStr);
+  return formatted === '00:00' || formatted === '';
+}
+
+// ⚡ Lấy thời gian hiển thị theo ưu tiên: 1. Mở phòng, 2. Thanh toán
+function getDisplayTimeInfo(room) {
+  // Ưu tiên 1: Thời gian mở phòng
+  if (!isEmptyTime(room.thoi_gian)) {
+    return {
+      time: formatTime(room.thoi_gian),
+      class: 'time-open',
+      type: 'open'
+    };
+  }
+  // Ưu tiên 2: Thời gian thanh toán
+  if (!isEmptyTime(room.thoi_gian_thanh_toan)) {
+    return {
+      time: formatTime(room.thoi_gian_thanh_toan),
+      class: 'time-paid',
+      type: 'paid'
+    };
+  }
+  // Không có thời gian
+  return {
+    time: '—',
+    class: 'time-empty',
+    type: 'none'
+  };
+}
+
 async function initData() {
     console.log("🚀 Khởi tạo ứng dụng nhân viên...");
     await loadBankAccounts();
     await loadRooms(true);
     
-    // 1. REALTIME - Lắng nghe thay đổi tức thì
     const channel = supabaseClient
       .channel('thungan-realtime-staff')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'thungan' }, async (payload) => {
         console.log("🔄 Realtime:", payload.eventType, payload.new?.ten_phong);
         
-        // Bảo vệ ô đang gõ
         const activeEl = document.activeElement;
         const isTyping = activeEl && (activeEl.id === 'manualAmount' || activeEl.id === 'advanceAmount');
         const savedVal = isTyping ? activeEl.value : null;
         const savedId = isTyping ? activeEl.id : null;
 
-        // Dùng requestAnimationFrame để render mượt, không nghẽn UI
         requestAnimationFrame(async () => {
           await loadRooms(false);
           if (isTyping && savedId) {
@@ -347,7 +409,6 @@ async function initData() {
         console.log("📡 Realtime status:", status);
       });
 
-    // 2. FALLBACK - Tự động đồng bộ mỗi 5 giây (nhanh hơn trước)
     setInterval(() => {
       loadRooms(false);
     }, 5000);
@@ -382,19 +443,17 @@ async function loadRooms(showLoading = true) {
     const { data, error } = await supabaseClient.from('thungan').select('*');
     if (error) throw error;
     
-    // Sắp xếp: 'dang mo' lên đầu
     data.sort((a, b) => {
         if (a.trang_thai === 'dang mo' && b.trang_thai !== 'dang mo') return -1;
         if (a.trang_thai !== 'dang mo' && b.trang_thai === 'dang mo') return 1;
         return a.ten_phong.localeCompare(b.ten_phong);
     });
 
-    // ⚡ TỐI ƯU: Chỉ render lại nếu có thay đổi thực sự
     const dataChanged = hasDataChanged(previousRoomsData, data);
     if (dataChanged) {
       renderTable(data);
       populateAdvanceRoomSelect(data);
-      previousRoomsData = JSON.parse(JSON.stringify(data)); // Deep clone
+      previousRoomsData = JSON.parse(JSON.stringify(data));
     }
   } catch (e) {
     console.error("❌ Lỗi tải phòng:", e);
@@ -406,24 +465,24 @@ async function loadRooms(showLoading = true) {
   }
 }
 
-// ⚡ Hàm so sánh nhanh để tránh render không cần thiết
+// ⚡ Cập nhật để detect thay đổi cả thoi_gian_thanh_toan
 function hasDataChanged(oldData, newData) {
   if (!oldData || oldData.length !== newData.length) return true;
   for (let i = 0; i < newData.length; i++) {
     if (oldData[i].so_tien !== newData[i].so_tien ||
         oldData[i].trang_thai !== newData[i].trang_thai ||
-        oldData[i].thoi_gian !== newData[i].thoi_gian) {
+        oldData[i].thoi_gian !== newData[i].thoi_gian ||
+        oldData[i].thoi_gian_thanh_toan !== newData[i].thoi_gian_thanh_toan) {
       return true;
     }
   }
   return false;
 }
 
-// ⚡ Render tối ưu: chỉ tạo DOM 1 lần, sau đó chỉ cập nhật nội dung
+// ⚡ Render với thời gian ưu tiên
 function renderTable(data) {
   const table = document.getElementById("roomTable");
   
-  // Nếu số hàng khác -> render lại toàn bộ
   if (table.children.length !== data.length) {
     table.innerHTML = "";
     data.forEach(room => {
@@ -440,7 +499,6 @@ function renderTable(data) {
     });
   }
   
-  // Cập nhật nội dung từng hàng (nhanh hơn xóa và tạo lại)
   const rows = table.children;
   data.forEach((room, index) => {
     const tr = rows[index];
@@ -450,10 +508,11 @@ function renderTable(data) {
     const isUnpaid = room.trang_thai === 'dang mo';
     const isPaid = room.trang_thai === 'da thanh toan';
     
-    const displayTime = (room.thoi_gian && room.thoi_gian !== '00:00') ? room.thoi_gian : '—';
+    // ⚡ Lấy thông tin thời gian theo ưu tiên
+    const timeInfo = getDisplayTimeInfo(room);
+    
     const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : '0';
     
-    //  MÀU ĐỎ NỔI BẬT cho phòng chưa thanh toán
     if (isUnpaid) {
       tr.className = 'bg-unpaid';
       tr.querySelector('.cell-name').innerHTML = `<span class="room-name-unpaid">🔴 ${displayName}</span>`;
@@ -469,7 +528,10 @@ function renderTable(data) {
     }
     
     tr.querySelector('.cell-amount').innerHTML = `<span style="font-weight:700; color:${isUnpaid ? 'var(--danger)' : '#1e293b'}">${displayAmount}</span>`;
-    tr.querySelector('.cell-time').textContent = displayTime;
+    
+    // ⚡ Hiển thị thời gian với class tương ứng
+    tr.querySelector('.cell-time').innerHTML = `<span class="${timeInfo.class}">${timeInfo.time}</span>`;
+    
     tr.querySelector('.cell-actions').innerHTML = `
       <button class="btn-action btn-qr" onclick="fillQR('${room.so_tien || 0}', '${room.ten_phong}')">Lấy QR</button>
       <button class="btn-action btn-pay" ${!isUnpaid ? 'disabled' : ''} onclick="markPaid('${room.ten_phong}')">✅ Trả</button>
@@ -493,7 +555,6 @@ async function markPaid(roomName) {
   } catch(e) { alert("Lỗi kết nối!"); }
 }
 
-// ================= QR & TABS =================
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 tabBtns.forEach(btn => {
@@ -544,7 +605,6 @@ function fillQR(amount, dbRoomName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Advance Tab
 const advanceAmount = document.getElementById("advanceAmount");
 const advanceRoom = document.getElementById("advanceRoom");
 const advanceQrImage = document.getElementById("advanceQrImage");
@@ -619,7 +679,6 @@ advanceAmount.addEventListener("input", function() {
   refreshAdvanceQR();
 });
 
-// ================= CAMERA =================
 let stream, currentMode = "payment", currentShareText = "";
 
 const cameraModal = document.getElementById("cameraModal");
