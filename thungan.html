@@ -17,137 +17,242 @@
       --warning: #f59e0b;
       --bg: #f1f5f9; --card: #ffffff; --text: #1e293b;
       --text-secondary: #64748b; --border: #e2e8f0;
-      --shadow: 0 4px 24px rgba(0,0,0,0.08); --radius: 14px;
-      --color-open: #0369a1;    /* Màu xanh dương cho Mở phòng */
-      --color-paid: #065f46;    /* Màu xanh lá cho Thanh toán */
+      --shadow: 0 2px 12px rgba(0,0,0,0.06); --radius: 12px;
+      --color-open: #0369a1;
+      --color-paid: #065f46;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+    html, body { height: 100%; }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: var(--bg); 
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* ⚡ Ngăn scroll toàn trang */
+    }
 
+    /* ⚡ HEADER COMPACT */
     .app-header {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-      color: white; text-align: center; padding: 32px 20px 28px;
+      color: white; text-align: center; padding: 14px 20px 12px;
       position: relative;
+      flex-shrink: 0;
     }
-    .app-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
-    .app-header h1 span { display: block; font-size: 15px; font-weight: 600; opacity: 0.9; margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
-    #currentTime { font-weight: 600; font-size: 14px; margin-top: 12px; background: rgba(255,255,255,0.15); display: inline-block; padding: 6px 18px; border-radius: 20px; }
+    .app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .app-header h1 span { display: inline; font-size: 12px; font-weight: 600; opacity: 0.9; margin-left: 8px; letter-spacing: 2px; text-transform: uppercase; }
+    #currentTime { font-weight: 600; font-size: 11px; margin-top: 6px; background: rgba(255,255,255,0.15); display: inline-block; padding: 3px 12px; border-radius: 12px; }
 
     .speed-widget {
-      position: absolute; top: 16px; right: 16px; z-index: 10;
+      position: absolute; top: 10px; right: 12px; z-index: 10;
       background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-      border-radius: 10px; padding: 10px 14px; font-size: 11px;
-      min-width: 160px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+      border-radius: 8px; padding: 6px 10px; font-size: 10px;
+      min-width: 130px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
       transition: background 0.2s;
     }
     .speed-widget:hover { background: rgba(255,255,255,0.25); }
-    .speed-widget .sw-title { font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
-    .speed-widget .sw-title .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; }
+    .speed-widget .sw-title { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.9; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+    .speed-widget .sw-title .dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; display: inline-block; }
     .speed-widget .sw-title .dot.testing { background: #fbbf24; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .speed-widget .sw-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
+    .speed-widget .sw-row { display: flex; justify-content: space-between; align-items: center; padding: 1px 0; font-size: 10px; }
     .speed-widget .sw-label { opacity: 0.8; font-weight: 500; }
-    .speed-widget .sw-value { font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
+    .speed-widget .sw-value { font-weight: 700; font-variant-numeric: tabular-nums; }
     .sw-val-dl { color: #93c5fd; } .sw-val-ul { color: #c4b5fd; } .sw-val-pg { color: #fda4af; }
-    .speed-widget .sw-status { font-size: 9px; opacity: 0.7; margin-top: 6px; text-align: center; }
-    @media (max-width: 600px) { .speed-widget { position: relative; top: auto; right: auto; margin: 10px auto 0; max-width: 220px; } }
+    .speed-widget .sw-status { font-size: 8px; opacity: 0.7; margin-top: 3px; text-align: center; }
 
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
-    .table-wrapper { overflow-x: auto; }
+    /* ⚡ CONTAINER - Chiếm toàn bộ phần còn lại */
+    .container { 
+      flex: 1; 
+      max-width: 1200px; 
+      width: 100%;
+      margin: 0 auto; 
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card { 
+      background: var(--card); 
+      border-radius: var(--radius); 
+      box-shadow: var(--shadow); 
+      overflow: hidden; 
+      border: 1px solid var(--border);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .table-wrapper { 
+      overflow-y: auto; 
+      flex: 1;
+    }
     table { width: 100%; border-collapse: collapse; }
-    thead th { background: linear-gradient(135deg, #f8fafc, #f1f5f9); color: var(--text-secondary); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 16px 14px; border-bottom: 2px solid var(--border); text-align: center; }
-    tbody tr { transition: all 0.3s ease; border-bottom: 1px solid var(--border); }
+    thead th { 
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9); 
+      color: var(--text-secondary); 
+      font-size: 10px; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 0.6px; 
+      padding: 8px 6px; 
+      border-bottom: 2px solid var(--border); 
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    tbody tr { transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
     tbody tr:hover { background: #f8fafc; }
-    tbody td { padding: 14px; text-align: center; vertical-align: middle; font-size: 14px; }
+    tbody td { 
+      padding: 8px 6px; 
+      text-align: center; 
+      vertical-align: middle; 
+      font-size: 12px; 
+    }
     
-    .room-name { font-weight: 700; font-size: 16px; color: var(--text); }
-    .room-name-unpaid { font-weight: 800; font-size: 16px; color: var(--danger); text-shadow: 0 0 2px rgba(239, 68, 68, 0.2); }
+    .room-name { font-weight: 700; font-size: 13px; color: var(--text); }
+    .room-name-unpaid { font-weight: 800; font-size: 13px; color: var(--danger); }
     
-    .amount-input { width: 140px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-weight: 600; text-align: right; background: #f8fafc; transition: all 0.2s ease; }
-    .amount-input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+    .amount-input { 
+      width: 100px; 
+      padding: 5px 8px; 
+      border: 2px solid var(--border); 
+      border-radius: 8px; 
+      font-size: 13px; 
+      font-weight: 600; 
+      text-align: right; 
+      background: #f8fafc; 
+      transition: all 0.2s ease; 
+    }
+    .amount-input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
     .amount-input::placeholder { color: #cbd5e1; font-weight: 400; }
 
-    .btn { padding: 8px 14px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn { 
+      padding: 5px 10px; 
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-size: 11px; 
+      font-weight: 600; 
+      transition: all 0.15s ease; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 3px;
+      white-space: nowrap;
+    }
     .btn:active { transform: scale(0.96); }
-    .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none !important; }
-    .btn-open { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-open { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white; box-shadow: 0 1px 4px rgba(14,165,233,0.25); }
     .btn-open:hover:not(:disabled) { background: linear-gradient(135deg, #0284c7, #0ea5e9); }
-    .btn-update { background: linear-gradient(135deg, var(--success), #34d399); color: white; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+    .btn-update { background: linear-gradient(135deg, var(--success), #34d399); color: white; box-shadow: 0 1px 4px rgba(16,185,129,0.25); }
     .btn-update:hover:not(:disabled) { background: linear-gradient(135deg, var(--success-dark), var(--success)); }
     .btn-update.enabled { animation: pulse-green 1.5s ease-in-out infinite; }
-    @keyframes pulse-green { 0%, 100% { box-shadow: 0 2px 8px rgba(16,185,129,0.3); } 50% { box-shadow: 0 2px 16px rgba(16,185,129,0.5); } }
-    .btn-paid { background: linear-gradient(135deg, var(--danger), #f87171); color: white; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+    @keyframes pulse-green { 0%, 100% { box-shadow: 0 1px 4px rgba(16,185,129,0.25); } 50% { box-shadow: 0 1px 8px rgba(16,185,129,0.4); } }
+    .btn-paid { background: linear-gradient(135deg, var(--danger), #f87171); color: white; box-shadow: 0 1px 4px rgba(239,68,68,0.25); }
     .btn-paid:hover:not(:disabled) { background: linear-gradient(135deg, var(--danger-dark), var(--danger)); }
 
-    .status-badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .status-badge { 
+      display: inline-block; 
+      padding: 3px 10px; 
+      border-radius: 14px; 
+      font-size: 10px; 
+      font-weight: 700; 
+      white-space: nowrap;
+    }
     .status-chua-mo { background: #f1f5f9; color: #64748b; }
     .status-dang-mo-red { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
     .status-da-thanh-toan { background: #d1fae5; color: var(--color-paid); }
 
-    tr.bg-unpaid { background: #fef2f2; animation: pulse-red-bg 3s ease-in-out infinite; }
-    @keyframes pulse-red-bg { 0%, 100% { background: #fef2f2; } 50% { background: #fee2e2; } }
+    tr.bg-unpaid { background: #fef2f2; }
+    tr.bg-unpaid:hover { background: #fee2e2; }
 
-    /* ⚡ Thời gian hiển thị - Màu label đồng bộ với thời gian */
+    /* ⚡ THỜI GIAN - COMPACT + CÙNG HÀNG */
     .time-cell { 
       display: flex; 
       flex-direction: column; 
-      gap: 8px; 
-      font-size: 13px; 
-      line-height: 1.3;
+      gap: 3px;
       align-items: center;
+    }
+    .time-open, .time-paid { 
+      display: inline-flex; /* ⚡ Cùng hàng */
+      align-items: center;
+      gap: 4px;
+      line-height: 1.1;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
     }
     .time-open { 
-      color: var(--color-open); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center;
-      gap: 2px;
+      color: var(--color-open);
+      background: rgba(3, 105, 161, 0.08);
     }
     .time-paid { 
-      color: var(--color-paid); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center;
-      gap: 2px;
+      color: var(--color-paid);
+      background: rgba(6, 95, 70, 0.08);
     }
     .time-label { 
-      font-size: 10px; 
+      font-size: 9px; 
       text-transform: uppercase; 
-      letter-spacing: 0.5px; 
+      letter-spacing: 0.3px; 
       font-weight: 700;
-      opacity: 0.85;
-      /* Không set color - kế thừa từ parent (time-open hoặc time-paid) */
+      /* Màu kế thừa từ parent */
     }
     .time-value { 
-      font-size: 16px; 
+      font-size: 12px; 
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.5px;
     }
 
     .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
     .loading-overlay.active { display: flex; }
-    .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .toast { 
       position: fixed; top: 50%; left: 50%; 
       transform: translate(-50%, -50%) scale(0.9); 
       background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px);
-      color: white; padding: 20px 32px; border-radius: 16px; 
-      font-size: 18px; font-weight: 700; box-shadow: 0 8px 32px rgba(0,0,0,0.25); 
-      opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-      z-index: 3000; text-align: center; min-width: 320px; pointer-events: none;
+      color: white; padding: 16px 28px; border-radius: 14px; 
+      font-size: 15px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
+      opacity: 0; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      z-index: 3000; text-align: center; min-width: 280px; pointer-events: none;
     }
     .toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     .toast.error { background: rgba(220, 38, 38, 0.95); }
     .toast.success { background: rgba(16, 185, 129, 0.95); }
 
-    .check-inventory-btn { display: block; width: 100%; max-width: 400px; margin: 28px auto 32px; padding: 16px 32px; background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #78350f; border: none; border-radius: 14px; font-size: 18px; font-weight: 800; font-family: 'Inter', sans-serif; cursor: pointer; text-align: center; text-decoration: none; letter-spacing: 1px; box-shadow: 0 4px 16px rgba(245,158,11,0.35); transition: all 0.3s ease; }
-    .check-inventory-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.45); }
+    .check-inventory-btn { 
+      display: block; 
+      max-width: 260px; 
+      margin: 8px auto 12px; 
+      padding: 10px 20px; 
+      background: linear-gradient(135deg, #f59e0b, #fbbf24); 
+      color: #78350f; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 13px; 
+      font-weight: 800; 
+      font-family: 'Inter', sans-serif; 
+      cursor: pointer; 
+      text-align: center; 
+      text-decoration: none; 
+      letter-spacing: 0.5px; 
+      box-shadow: 0 2px 8px rgba(245,158,11,0.3); 
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .check-inventory-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.4); }
     .check-inventory-btn:active { transform: translateY(0); }
-    .check-inventory-btn .icon { margin-right: 8px; }
+    .check-inventory-btn .icon { margin-right: 6px; }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .speed-widget { position: static; margin: 6px auto 0; max-width: 180px; }
+      .btn { padding: 4px 6px; font-size: 10px; }
+      .amount-input { width: 85px; font-size: 12px; }
+      .room-name, .room-name-unpaid { font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -158,12 +263,12 @@
   <header class="app-header">
     <div class="speed-widget" id="speedWidget" title="Nhấn để kiểm tra lại tốc độ">
       <div class="sw-title"><span class="dot" id="swDot"></span> Tốc độ mạng</div>
-      <div class="sw-row"><span class="sw-label">↓ Tải xuống</span><span class="sw-value sw-val-dl" id="swDl">— Mbps</span></div>
-      <div class="sw-row"><span class="sw-label">↑ Tải lên</span><span class="sw-value sw-val-ul" id="swUl">— Mbps</span></div>
-      <div class="sw-row"><span class="sw-label">◎ Độ trễ</span><span class="sw-value sw-val-pg" id="swPg">— ms</span></div>
+      <div class="sw-row"><span class="sw-label">↓ Tải</span><span class="sw-value sw-val-dl" id="swDl">—</span></div>
+      <div class="sw-row"><span class="sw-label">↑ Tải lên</span><span class="sw-value sw-val-ul" id="swUl">—</span></div>
+      <div class="sw-row"><span class="sw-label">◎ Trễ</span><span class="sw-value sw-val-pg" id="swPg">—</span></div>
       <div class="sw-status" id="swStatus">Nhấn để kiểm tra</div>
     </div>
-    <h1>THU NGÂN <span>Karaoke Rita</span></h1>
+    <h1>THU NGÂN<span>Karaoke Rita</span></h1>
     <div id="currentTime"></div>
   </header>
 
@@ -181,7 +286,7 @@
             </tr>
           </thead>
           <tbody id="roomTable">
-            <tr><td colspan="5" style="padding: 30px; color: #64748b;">Đang kết nối dữ liệu...</td></tr>
+            <tr><td colspan="5" style="padding: 30px; color: #64748b;">Đang kết nối...</td></tr>
           </tbody>
         </table>
       </div>
@@ -208,25 +313,18 @@
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
     const parseNumber = str => Number(str.replace(/\./g, "").replace(/,/g, "")) || 0;
     
-    // ⚡ Chỉ lấy hh:mm (không giây)
     const getCurrentTime = () => {
       const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      return `${h}:${m}`;
+      return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     };
     
-    // ⚡ Cắt giây nếu DB có dữ liệu cũ dạng HH:MM:SS
     function formatTime(timeStr) {
       if (!timeStr) return '';
       const parts = String(timeStr).split(':');
-      if (parts.length >= 2) {
-        return parts[0] + ':' + parts[1];
-      }
+      if (parts.length >= 2) return parts[0] + ':' + parts[1];
       return timeStr;
     }
     
-    // ⚡ Kiểm tra thời gian có phải là "00:00" hoặc "00:00:00" hay không
     function isEmptyTime(timeStr) {
       if (!timeStr) return true;
       const formatted = formatTime(timeStr);
@@ -261,9 +359,7 @@
           const isTyping = activeEl && activeEl.classList.contains('amount-input');
           const savedVal = isTyping ? activeEl.value : null;
           const savedId = isTyping ? activeEl.id : null;
-
           await loadRooms(false);
-
           if (isTyping && savedId) {
             const el = document.getElementById(savedId);
             if (el) {
@@ -280,21 +376,18 @@
       try {
         const { data, error } = await supabaseClient.from('thungan').select('*').order('ten_phong', { ascending: true });
         if (error) throw new Error(error.message);
-
         if (!data || data.length === 0) {
-           document.getElementById("roomTable").innerHTML = `<tr><td colspan="5" style="padding:30px; text-align:center;">Chưa có dữ liệu phòng.</td></tr>`;
+           document.getElementById("roomTable").innerHTML = `<tr><td colspan="5" style="padding:30px; text-align:center;">Chưa có dữ liệu.</td></tr>`;
            return;
         }
-
         await checkAndResetDaily(data);
         await check30MinAfterPaid(data);
-
         if (hasDataChanged(previousRoomsData, data)) {
           renderTable(data);
           previousRoomsData = JSON.parse(JSON.stringify(data));
         }
       } catch (err) {
-        console.error("Lỗi tải dữ liệu:", err);
+        console.error("Lỗi:", err);
         showToast("Lỗi CSDL: " + err.message, "error");
       } finally {
         if (displayLoading) showLoading(false);
@@ -325,7 +418,7 @@
               trang_thai: 'chua mo', so_tien: 0, thoi_gian: '', thoi_gian_thanh_toan: '', ngay_cap_nhat: todayStr
             }).eq('ten_phong', room);
           }
-          showToast("Đã tự động reset dữ liệu ngày mới", "success");
+          showToast("Đã reset dữ liệu ngày mới", "success");
         }
       }
     }
@@ -340,9 +433,7 @@
           paidTime.setHours(timeParts[0], timeParts[1], timeParts[2] || 0, 0);
           let diffMs = now - paidTime;
           if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; 
-          
           if ((diffMs / 1000 / 60) >= 30) {
-            console.log(`Tự động reset phòng ${room.ten_phong} sau ${Math.floor(diffMs / 1000 / 60)} phút thanh toán`);
             await supabaseClient.from('thungan').update({
               trang_thai: 'chua mo', so_tien: 0, thoi_gian: '', thoi_gian_thanh_toan: ''
             }).eq('ten_phong', room.ten_phong);
@@ -350,7 +441,7 @@
           }
         }
       }
-      if (needsUpdate) showToast("Đã tự động đóng các phòng quá 30 phút sau thanh toán", "success");
+      if (needsUpdate) showToast("Đã đóng các phòng quá 30 phút sau thanh toán", "success");
     }
 
     function renderTable(data) {
@@ -381,49 +472,29 @@
         
         const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : "";
         
-        // ⚡ Build HTML thời gian với màu đồng bộ
+        // ⚡ Build HTML thời gian - CÙNG HÀNG, COMPACT
         let timeHTML = '';
         
-        // Thời gian mở phòng - màu xanh dương
         if (!isEmptyTime(room.thoi_gian)) {
-          const openTime = formatTime(room.thoi_gian);
-          timeHTML += `
-            <div class="time-open">
-              <div class="time-label">Mở phòng</div>
-              <div class="time-value">${openTime}</div>
-            </div>
-          `;
+          timeHTML += `<div class="time-open"><span class="time-label">Mở</span><span class="time-value">${formatTime(room.thoi_gian)}</span></div>`;
         }
-        
-        // Thời gian thanh toán - màu xanh lá
         if (!isEmptyTime(room.thoi_gian_thanh_toan)) {
-          const paidTime = formatTime(room.thoi_gian_thanh_toan);
-          timeHTML += `
-            <div class="time-paid">
-              <div class="time-label">Thanh toán</div>
-              <div class="time-value">${paidTime}</div>
-            </div>
-          `;
+          timeHTML += `<div class="time-paid"><span class="time-label">Thanh toán</span><span class="time-value">${formatTime(room.thoi_gian_thanh_toan)}</span></div>`;
         }
-        
-        if (!timeHTML) {
-          timeHTML = '<span style="color: #94a3b8;">—</span>';
-        }
+        if (!timeHTML) timeHTML = '<span style="color:#94a3b8;font-size:11px;">—</span>';
 
         tr.className = isDangMo ? 'bg-unpaid' : '';
         tr.querySelector('.cell-name').innerHTML = `<span class="${isDangMo ? 'room-name-unpaid' : 'room-name'}">${displayName}</span>`;
         
         const inputEl = tr.querySelector('.cell-amount input');
         inputEl.id = `amount-${room.ten_phong}`;
-        if (document.activeElement !== inputEl) {
-          inputEl.value = displayAmount;
-        }
+        if (document.activeElement !== inputEl) inputEl.value = displayAmount;
 
         tr.querySelector('.cell-actions').innerHTML = `
-          <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
-            <button id="btn-open-${room.ten_phong}" class="btn btn-open" ${isDangMo ? 'disabled' : ''} onclick="openRoom('${room.ten_phong}')">🔓 Mở phòng</button>
-            <button id="btn-update-${room.ten_phong}" class="btn btn-update" disabled onclick="updateAmount('${room.ten_phong}')">💾 Cập nhật</button>
-            <button id="btn-paid-${room.ten_phong}" class="btn btn-paid" ${!isDangMo ? 'disabled' : ''} onclick="markPaid('${room.ten_phong}')">✅ Thanh toán</button>
+          <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
+            <button id="btn-open-${room.ten_phong}" class="btn btn-open" ${isDangMo ? 'disabled' : ''} onclick="openRoom('${room.ten_phong}')">🔓 Mở</button>
+            <button id="btn-update-${room.ten_phong}" class="btn btn-update" disabled onclick="updateAmount('${room.ten_phong}')">💾</button>
+            <button id="btn-paid-${room.ten_phong}" class="btn btn-paid" ${!isDangMo ? 'disabled' : ''} onclick="markPaid('${room.ten_phong}')">✅ TT</button>
           </div>
         `;
         
@@ -434,25 +505,20 @@
 
     async function openRoom(roomName) {
       const btn = document.getElementById(`btn-open-${roomName}`);
-      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang mở...'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳...'; }
 
       const openTime = getCurrentTime();
-      console.log(`🔓 Mở phòng ${roomName} lúc: ${openTime}`);
+      console.log(`🔓 Mở ${roomName} lúc: ${openTime}`);
 
       const { error } = await supabaseClient.from('thungan').update({
-        trang_thai: 'dang mo', 
-        so_tien: 0, 
-        thoi_gian: openTime,
-        thoi_gian_thanh_toan: ''
+        trang_thai: 'dang mo', so_tien: 0, 
+        thoi_gian: openTime, thoi_gian_thanh_toan: ''
       }).eq('ten_phong', roomName);
 
-      if (!error) { 
-        showToast(`✅ Đã mở ${getDisplayName(roomName)} lúc ${openTime}`); 
-      } else { 
-        showToast("❌ Lỗi: " + error.message, "error"); 
-      }
+      if (!error) showToast(`✅ Mở ${getDisplayName(roomName)} lúc ${openTime}`); 
+      else showToast("❌ " + error.message, "error");
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở phòng'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở'; }
       await loadRooms(false);
     }
 
@@ -467,67 +533,58 @@
     async function updateAmount(roomName) {
       const amount = parseNumber(document.getElementById(`amount-${roomName}`).value);
       const btn = document.getElementById(`btn-update-${roomName}`);
-      
-      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang lưu...'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
       
       const currentRoom = previousRoomsData.find(r => r.ten_phong === roomName);
       let updatePayload = { so_tien: amount };
-      let actionMessage = `✅ Đã cập nhật số tiền ${getDisplayName(roomName)}`;
+      let actionMessage = `✅ Cập nhật ${getDisplayName(roomName)}`;
       
       if (currentRoom && (currentRoom.trang_thai === 'chua mo' || currentRoom.trang_thai === 'da thanh toan')) {
         const openTime = getCurrentTime();
         updatePayload.trang_thai = 'dang mo';
         updatePayload.thoi_gian = openTime;
         updatePayload.thoi_gian_thanh_toan = '';
-        actionMessage = `✅ Đã mở ${getDisplayName(roomName)} lúc ${openTime} và cập nhật số tiền`;
-        console.log(`💾 Mở phòng lại ${roomName} lúc: ${openTime}`);
+        actionMessage = `✅ Mở ${getDisplayName(roomName)} lúc ${openTime}`;
       }
 
       const { error } = await supabaseClient.from('thungan').update(updatePayload).eq('ten_phong', roomName);
       
-      if (!error) { 
-        showToast(actionMessage, "success"); 
-      } else { 
-        showToast("❌ Lỗi: " + error.message, "error"); 
-      }
+      if (!error) showToast(actionMessage, "success"); 
+      else showToast("❌ " + error.message, "error");
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; btn.classList.remove('enabled'); }
+      if (btn) { btn.disabled = false; btn.innerHTML = '💾'; btn.classList.remove('enabled'); }
       await loadRooms(false);
     }
 
     async function markPaid(roomName) {
       const btn = document.getElementById(`btn-paid-${roomName}`);
-      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang xử lý...'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
 
       const paidTime = getCurrentTime();
-      console.log(`✅ Thanh toán phòng ${roomName} lúc: ${paidTime}`);
 
       const { error } = await supabaseClient.from('thungan').update({
         trang_thai: 'da thanh toan', 
         thoi_gian_thanh_toan: paidTime
       }).eq('ten_phong', roomName);
 
-      if (!error) { 
-        showToast(`✅ Đã thanh toán ${getDisplayName(roomName)} lúc ${paidTime}`); 
-      } else { 
-        showToast("❌ Lỗi: " + error.message, "error"); 
-      }
+      if (!error) showToast(`✅ TT ${getDisplayName(roomName)} lúc ${paidTime}`); 
+      else showToast("❌ " + error.message, "error");
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '✅ Thanh toán'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '✅ TT'; }
       await loadRooms(false);
     }
 
     function updateClock() {
       const now = new Date();
-      const days = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-      document.getElementById("currentTime").innerText = `${now.toLocaleTimeString("vi-VN", {hour12: false})} • ${days[now.getDay()]}, ${now.toLocaleDateString("vi-VN")}`;
+      const days = ["CN","T2","T3","T4","T5","T6","T7"];
+      document.getElementById("currentTime").innerText = 
+        `${now.toLocaleTimeString("vi-VN", {hour12: false})} • ${days[now.getDay()]}, ${now.toLocaleDateString("vi-VN")}`;
     }
     setInterval(updateClock, 1000); updateClock();
 
     initData();
     setInterval(() => loadRooms(false), 10000);
 
-    // ================= NETWORK SPEED MONITOR =================
     const swDot = document.getElementById('swDot'), swDl = document.getElementById('swDl');
     const swUl = document.getElementById('swUl'), swPg = document.getElementById('swPg');
     const swStatus = document.getElementById('swStatus'), speedWidget = document.getElementById('speedWidget');
@@ -538,9 +595,7 @@
       const pings = [];
       for (let i = 0; i < iterations; i++) {
         const start = performance.now();
-        try { 
-          await fetch('https://www.youtube.com/favicon.ico?_=' + Date.now(), { mode: 'no-cors', cache: 'no-store' }); 
-        } catch(e) {}
+        try { await fetch('https://www.youtube.com/favicon.ico?_=' + Date.now(), { mode: 'no-cors', cache: 'no-store' }); } catch(e) {}
         pings.push(performance.now() - start);
       }
       pings.sort((a, b) => a - b);
@@ -582,12 +637,12 @@
     async function runSpeedTest() {
       if (speedTestRunning) return; speedTestRunning = true; swSetStatus('Đang đo...', true);
       try {
-        swPg.textContent = Math.round(await measurePing(6)) + ' ms'; swSetStatus('Đo tải xuống...', true);
-        const dl = await measureDownload(5000); swDl.textContent = dl > 0 ? dl.toFixed(1) + ' Mbps' : '— Mbps';
+        swPg.textContent = Math.round(await measurePing(6)) + 'ms'; swSetStatus('Đo tải...', true);
+        const dl = await measureDownload(5000); swDl.textContent = dl > 0 ? dl.toFixed(1) + ' Mbps' : '—';
         swSetStatus('Đo tải lên...', true);
-        const ul = await measureUpload(4000); swUl.textContent = ul > 0 ? ul.toFixed(1) + ' Mbps' : '— Mbps';
-        swSetStatus('Cập nhật lúc ' + getCurrentTime());
-      } catch(e) { swSetStatus('Lỗi, thử lại sau...'); }
+        const ul = await measureUpload(4000); swUl.textContent = ul > 0 ? ul.toFixed(1) + ' Mbps' : '—';
+        swSetStatus('Cập nhật ' + getCurrentTime());
+      } catch(e) { swSetStatus('Lỗi'); }
       speedTestRunning = false;
     }
     speedWidget.addEventListener('click', runSpeedTest);
