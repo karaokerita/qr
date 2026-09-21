@@ -20,38 +20,56 @@
       --shadow: 0 2px 12px rgba(0,0,0,0.06); --radius: 12px;
       --color-open: #0369a1;
       --color-paid: #065f46;
+      
+      /* Font sizes mặc định - LỚN */
+      --fs-base: 16px;
+      --fs-room: 16px;
+      --fs-input: 16px;
+      --fs-btn: 14px;
+      --fs-badge: 13px;
+      --fs-time-val: 15px;
+      --fs-time-label: 10px;
+      --fs-th: 12px;
+      
+      /* Padding mặc định */
+      --pd-cell: 12px 10px;
+      --pd-header: 20px 20px 16px;
+      --pd-input: 10px 14px;
+      --pd-btn: 8px 16px;
     }
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
+    html { font-size: var(--fs-base); }
     body { 
       font-family: 'Inter', sans-serif; 
       background: var(--bg); 
       color: var(--text);
       display: flex;
       flex-direction: column;
-      overflow: hidden; /* ⚡ Ngăn scroll toàn trang */
+      height: 100vh;
+      overflow: hidden;
+      font-size: var(--fs-base);
     }
 
-    /* ⚡ HEADER COMPACT */
     .app-header {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-      color: white; text-align: center; padding: 14px 20px 12px;
+      color: white; text-align: center; padding: var(--pd-header);
       position: relative;
       flex-shrink: 0;
     }
-    .app-header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .app-header h1 span { display: inline; font-size: 12px; font-weight: 600; opacity: 0.9; margin-left: 8px; letter-spacing: 2px; text-transform: uppercase; }
-    #currentTime { font-weight: 600; font-size: 11px; margin-top: 6px; background: rgba(255,255,255,0.15); display: inline-block; padding: 3px 12px; border-radius: 12px; }
+    .app-header h1 { font-size: clamp(20px, 2.2vw, 26px); font-weight: 800; letter-spacing: -0.5px; }
+    .app-header h1 span { display: inline; font-size: clamp(12px, 1.4vw, 15px); font-weight: 600; opacity: 0.9; margin-left: 8px; letter-spacing: 2px; text-transform: uppercase; }
+    #currentTime { font-weight: 600; font-size: clamp(12px, 1.3vw, 14px); margin-top: 6px; background: rgba(255,255,255,0.15); display: inline-block; padding: 4px 14px; border-radius: 14px; }
 
     .speed-widget {
-      position: absolute; top: 10px; right: 12px; z-index: 10;
+      position: absolute; top: 12px; right: 14px; z-index: 10;
       background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-      border-radius: 8px; padding: 6px 10px; font-size: 10px;
-      min-width: 130px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+      border-radius: 8px; padding: 8px 12px; font-size: 11px;
+      min-width: 145px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
       transition: background 0.2s;
     }
     .speed-widget:hover { background: rgba(255,255,255,0.25); }
-    .speed-widget .sw-title { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.9; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+    .speed-widget .sw-title { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.9; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
     .speed-widget .sw-title .dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; display: inline-block; }
     .speed-widget .sw-title .dot.testing { background: #fbbf24; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -61,16 +79,16 @@
     .sw-val-dl { color: #93c5fd; } .sw-val-ul { color: #c4b5fd; } .sw-val-pg { color: #fda4af; }
     .speed-widget .sw-status { font-size: 8px; opacity: 0.7; margin-top: 3px; text-align: center; }
 
-    /* ⚡ CONTAINER - Chiếm toàn bộ phần còn lại */
     .container { 
       flex: 1; 
       max-width: 1200px; 
       width: 100%;
       margin: 0 auto; 
-      padding: 8px 12px;
+      padding: 10px 16px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
     }
     .card { 
       background: var(--card); 
@@ -86,16 +104,17 @@
     .table-wrapper { 
       overflow-y: auto; 
       flex: 1;
+      min-height: 0;
     }
     table { width: 100%; border-collapse: collapse; }
     thead th { 
       background: linear-gradient(135deg, #f8fafc, #f1f5f9); 
       color: var(--text-secondary); 
-      font-size: 10px; 
+      font-size: var(--fs-th); 
       font-weight: 700; 
       text-transform: uppercase; 
       letter-spacing: 0.6px; 
-      padding: 8px 6px; 
+      padding: var(--pd-cell); 
       border-bottom: 2px solid var(--border); 
       text-align: center;
       position: sticky;
@@ -105,21 +124,21 @@
     tbody tr { transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
     tbody tr:hover { background: #f8fafc; }
     tbody td { 
-      padding: 8px 6px; 
+      padding: var(--pd-cell); 
       text-align: center; 
       vertical-align: middle; 
-      font-size: 12px; 
+      font-size: var(--fs-base); 
     }
     
-    .room-name { font-weight: 700; font-size: 13px; color: var(--text); }
-    .room-name-unpaid { font-weight: 800; font-size: 13px; color: var(--danger); }
+    .room-name { font-weight: 700; font-size: var(--fs-room); color: var(--text); }
+    .room-name-unpaid { font-weight: 800; font-size: var(--fs-room); color: var(--danger); }
     
     .amount-input { 
-      width: 100px; 
-      padding: 5px 8px; 
+      width: clamp(90px, 10vw, 130px); 
+      padding: var(--pd-input); 
       border: 2px solid var(--border); 
       border-radius: 8px; 
-      font-size: 13px; 
+      font-size: var(--fs-input); 
       font-weight: 600; 
       text-align: right; 
       background: #f8fafc; 
@@ -129,16 +148,16 @@
     .amount-input::placeholder { color: #cbd5e1; font-weight: 400; }
 
     .btn { 
-      padding: 5px 10px; 
+      padding: var(--pd-btn); 
       border: none; 
       border-radius: 8px; 
       cursor: pointer; 
-      font-size: 11px; 
+      font-size: var(--fs-btn); 
       font-weight: 600; 
       transition: all 0.15s ease; 
       display: inline-flex; 
       align-items: center; 
-      gap: 3px;
+      gap: 4px;
       white-space: nowrap;
     }
     .btn:active { transform: scale(0.96); }
@@ -154,9 +173,9 @@
 
     .status-badge { 
       display: inline-block; 
-      padding: 3px 10px; 
+      padding: 4px 12px; 
       border-radius: 14px; 
-      font-size: 10px; 
+      font-size: var(--fs-badge); 
       font-weight: 700; 
       white-space: nowrap;
     }
@@ -167,21 +186,19 @@
     tr.bg-unpaid { background: #fef2f2; }
     tr.bg-unpaid:hover { background: #fee2e2; }
 
-    /* ⚡ THỜI GIAN - COMPACT + CÙNG HÀNG */
     .time-cell { 
       display: flex; 
       flex-direction: column; 
-      gap: 3px;
+      gap: 4px;
       align-items: center;
     }
     .time-open, .time-paid { 
-      display: inline-flex; /* ⚡ Cùng hàng */
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      line-height: 1.1;
-      padding: 3px 8px;
+      gap: 5px;
+      line-height: 1.2;
+      padding: 4px 10px;
       border-radius: 6px;
-      font-size: 11px;
     }
     .time-open { 
       color: var(--color-open);
@@ -192,31 +209,30 @@
       background: rgba(6, 95, 70, 0.08);
     }
     .time-label { 
-      font-size: 9px; 
+      font-size: var(--fs-time-label); 
       text-transform: uppercase; 
       letter-spacing: 0.3px; 
       font-weight: 700;
-      /* Màu kế thừa từ parent */
     }
     .time-value { 
-      font-size: 12px; 
+      font-size: var(--fs-time-val); 
       font-weight: 800;
       font-variant-numeric: tabular-nums;
     }
 
     .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
     .loading-overlay.active { display: flex; }
-    .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .toast { 
       position: fixed; top: 50%; left: 50%; 
       transform: translate(-50%, -50%) scale(0.9); 
       background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px);
-      color: white; padding: 16px 28px; border-radius: 14px; 
-      font-size: 15px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
+      color: white; padding: 18px 30px; border-radius: 14px; 
+      font-size: 16px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
       opacity: 0; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-      z-index: 3000; text-align: center; min-width: 280px; pointer-events: none;
+      z-index: 3000; text-align: center; min-width: 300px; pointer-events: none;
     }
     .toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     .toast.error { background: rgba(220, 38, 38, 0.95); }
@@ -224,14 +240,14 @@
 
     .check-inventory-btn { 
       display: block; 
-      max-width: 260px; 
-      margin: 8px auto 12px; 
-      padding: 10px 20px; 
+      max-width: 300px; 
+      margin: 10px auto 14px; 
+      padding: 12px 24px; 
       background: linear-gradient(135deg, #f59e0b, #fbbf24); 
       color: #78350f; 
       border: none; 
       border-radius: 10px; 
-      font-size: 13px; 
+      font-size: 15px; 
       font-weight: 800; 
       font-family: 'Inter', sans-serif; 
       cursor: pointer; 
@@ -246,12 +262,99 @@
     .check-inventory-btn:active { transform: translateY(0); }
     .check-inventory-btn .icon { margin-right: 6px; }
 
-    /* Responsive */
+    /* ===== RESPONSIVE THEO CHIỀU CAO (max-height) ===== */
+    /* Giảm dần font khi viewport thấp */
+    
+    @media (max-height: 900px) {
+      :root {
+        --fs-base: 15px;
+        --fs-room: 15px;
+        --fs-input: 15px;
+        --fs-btn: 13px;
+        --fs-badge: 12px;
+        --fs-time-val: 14px;
+        --fs-th: 11px;
+        --pd-cell: 10px 8px;
+        --pd-header: 16px 20px 14px;
+        --pd-input: 8px 12px;
+        --pd-btn: 7px 14px;
+      }
+    }
+
+    @media (max-height: 800px) {
+      :root {
+        --fs-base: 14px;
+        --fs-room: 14px;
+        --fs-input: 14px;
+        --fs-btn: 12px;
+        --fs-badge: 11px;
+        --fs-time-val: 13px;
+        --fs-time-label: 9px;
+        --fs-th: 10px;
+        --pd-cell: 8px 8px;
+        --pd-header: 14px 20px 12px;
+        --pd-input: 7px 10px;
+        --pd-btn: 6px 12px;
+      }
+      .app-header h1 { font-size: 22px; }
+      .app-header h1 span { font-size: 13px; }
+      .check-inventory-btn { margin: 8px auto 10px; padding: 10px 20px; font-size: 14px; }
+    }
+
+    @media (max-height: 700px) {
+      :root {
+        --fs-base: 13px;
+        --fs-room: 13px;
+        --fs-input: 13px;
+        --fs-btn: 11px;
+        --fs-badge: 10px;
+        --fs-time-val: 12px;
+        --fs-time-label: 9px;
+        --fs-th: 9px;
+        --pd-cell: 6px 6px;
+        --pd-header: 12px 16px 10px;
+        --pd-input: 6px 8px;
+        --pd-btn: 5px 10px;
+      }
+      .app-header h1 { font-size: 20px; }
+      .app-header h1 span { font-size: 12px; }
+      .app-header { padding: 10px 16px 8px; }
+      #currentTime { font-size: 11px; padding: 3px 10px; margin-top: 4px; }
+      .container { padding: 6px 12px; }
+      .check-inventory-btn { margin: 6px auto 8px; padding: 8px 16px; font-size: 13px; }
+      .status-badge { padding: 3px 8px; }
+      .time-open, .time-paid { padding: 3px 8px; gap: 4px; }
+    }
+
+    @media (max-height: 600px) {
+      :root {
+        --fs-base: 12px;
+        --fs-room: 12px;
+        --fs-input: 12px;
+        --fs-btn: 10px;
+        --fs-badge: 10px;
+        --fs-time-val: 11px;
+        --fs-time-label: 8px;
+        --fs-th: 9px;
+        --pd-cell: 5px 5px;
+        --pd-header: 10px 12px 8px;
+        --pd-input: 5px 8px;
+        --pd-btn: 4px 8px;
+      }
+      .app-header h1 { font-size: 18px; }
+      .app-header h1 span { font-size: 11px; }
+      .speed-widget { display: none; } /* Ẩn speed widget khi màn hình quá thấp */
+      .container { padding: 4px 8px; }
+      .check-inventory-btn { margin: 4px auto 6px; padding: 6px 14px; font-size: 12px; }
+    }
+
+    /* Responsive theo chiều rộng */
     @media (max-width: 700px) {
       .speed-widget { position: static; margin: 6px auto 0; max-width: 180px; }
-      .btn { padding: 4px 6px; font-size: 10px; }
-      .amount-input { width: 85px; font-size: 12px; }
-      .room-name, .room-name-unpaid { font-size: 12px; }
+      .btn { padding: 5px 8px; font-size: 11px; }
+      .amount-input { width: 90px; font-size: 13px; }
+      .room-name, .room-name-unpaid { font-size: 13px; }
+      .app-header h1 span { display: block; margin-left: 0; margin-top: 2px; }
     }
   </style>
 </head>
@@ -261,7 +364,7 @@
   <div class="toast" id="toast"></div>
 
   <header class="app-header">
-    <div class="speed-widget" id="speedWidget" title="Nhấn để kiểm tra lại tốc độ">
+    <div class="speed-widget" id="speedWidget" title="Nhấn để kiểm tra tốc độ">
       <div class="sw-title"><span class="dot" id="swDot"></span> Tốc độ mạng</div>
       <div class="sw-row"><span class="sw-label">↓ Tải</span><span class="sw-value sw-val-dl" id="swDl">—</span></div>
       <div class="sw-row"><span class="sw-label">↑ Tải lên</span><span class="sw-value sw-val-ul" id="swUl">—</span></div>
@@ -472,16 +575,14 @@
         
         const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : "";
         
-        // ⚡ Build HTML thời gian - CÙNG HÀNG, COMPACT
         let timeHTML = '';
-        
         if (!isEmptyTime(room.thoi_gian)) {
           timeHTML += `<div class="time-open"><span class="time-label">Mở</span><span class="time-value">${formatTime(room.thoi_gian)}</span></div>`;
         }
         if (!isEmptyTime(room.thoi_gian_thanh_toan)) {
           timeHTML += `<div class="time-paid"><span class="time-label">Thanh toán</span><span class="time-value">${formatTime(room.thoi_gian_thanh_toan)}</span></div>`;
         }
-        if (!timeHTML) timeHTML = '<span style="color:#94a3b8;font-size:11px;">—</span>';
+        if (!timeHTML) timeHTML = '<span style="color:#94a3b8;font-size:12px;">—</span>';
 
         tr.className = isDangMo ? 'bg-unpaid' : '';
         tr.querySelector('.cell-name').innerHTML = `<span class="${isDangMo ? 'room-name-unpaid' : 'room-name'}">${displayName}</span>`;
@@ -508,7 +609,6 @@
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳...'; }
 
       const openTime = getCurrentTime();
-      console.log(`🔓 Mở ${roomName} lúc: ${openTime}`);
 
       const { error } = await supabaseClient.from('thungan').update({
         trang_thai: 'dang mo', so_tien: 0, 
