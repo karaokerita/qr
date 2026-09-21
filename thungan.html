@@ -50,7 +50,7 @@
     .speed-widget .sw-status { font-size: 9px; opacity: 0.7; margin-top: 6px; text-align: center; }
     @media (max-width: 600px) { .speed-widget { position: relative; top: auto; right: auto; margin: 10px auto 0; max-width: 220px; } }
 
-    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
     .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
     .table-wrapper { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
@@ -85,6 +85,12 @@
 
     tr.bg-unpaid { background: #fef2f2; animation: pulse-red-bg 3s ease-in-out infinite; }
     @keyframes pulse-red-bg { 0%, 100% { background: #fef2f2; } 50% { background: #fee2e2; } }
+
+    /* Thời gian hiển thị */
+    .time-cell { font-size: 13px; line-height: 1.6; }
+    .time-open { color: #0369a1; font-weight: 600; }
+    .time-paid { color: #065f46; font-weight: 600; }
+    .time-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 
     .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
     .loading-overlay.active { display: flex; }
@@ -167,7 +173,17 @@
 
     const formatNumber = n => n ? Number(n).toLocaleString("vi-VN") : "";
     const parseNumber = str => Number(str.replace(/\./g, "").replace(/,/g, "")) || 0;
-    const getCurrentTime = () => new Date().toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit', hour12: false });
+    
+    // ⚡ Hàm lấy thời gian hiện tại chính xác
+    const getCurrentTime = () => {
+      const now = new Date();
+      return now.toLocaleTimeString("vi-VN", { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false 
+      });
+    };
     
     function showLoading(show) { document.getElementById('loadingOverlay').classList.toggle('active', show); }
     
@@ -271,9 +287,9 @@
       let needsUpdate = false;
       for (const room of data) {
         if (room.trang_thai === 'da thanh toan' && room.thoi_gian_thanh_toan) {
-          const [h, m] = room.thoi_gian_thanh_toan.split(':').map(Number);
+          const timeParts = room.thoi_gian_thanh_toan.split(':').map(Number);
           const paidTime = new Date();
-          paidTime.setHours(h, m, 0, 0);
+          paidTime.setHours(timeParts[0], timeParts[1], timeParts[2] || 0, 0);
           let diffMs = now - paidTime;
           if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; 
           
@@ -314,9 +330,22 @@
         
         const displayName = getDisplayName(room.ten_phong);
         const isDangMo = room.trang_thai === 'dang mo';
+        const isDaThanhToan = room.trang_thai === 'da thanh toan';
         
         const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : "";
-        const displayTime = (room.thoi_gian && room.thoi_gian !== '00:00') ? room.thoi_gian : "";
+        
+        // ⚡ Hiển thị thời gian mở và thời gian thanh toán
+        const displayTimeOpen = (room.thoi_gian && room.thoi_gian !== '00:00' && room.thoi_gian !== '00:00:00') 
+          ? `<div class="time-label">Mở phòng</div><div class="time-open">${room.thoi_gian}</div>` 
+          : '';
+        const displayTimePaid = (room.thoi_gian_thanh_toan && room.thoi_gian_thanh_toan !== '00:00' && room.thoi_gian_thanh_toan !== '00:00:00') 
+          ? `<div class="time-label">Thanh toán</div><div class="time-paid">${room.thoi_gian_thanh_toan}</div>` 
+          : '';
+        
+        let timeHTML = '';
+        if (displayTimeOpen) timeHTML += displayTimeOpen;
+        if (displayTimePaid) timeHTML += displayTimePaid;
+        if (!timeHTML) timeHTML = '<span style="color: #94a3b8;">—</span>';
 
         tr.className = isDangMo ? 'bg-unpaid' : '';
         tr.querySelector('.cell-name').innerHTML = `<span class="${isDangMo ? 'room-name-unpaid' : 'room-name'}">${displayName}</span>`;
@@ -336,20 +365,31 @@
         `;
         
         tr.querySelector('.cell-status').innerHTML = `<span class="status-badge ${statusMap[room.trang_thai].class}">${statusMap[room.trang_thai].text}</span>`;
-        tr.querySelector('.cell-time').textContent = displayTime || '—';
+        tr.querySelector('.cell-time').innerHTML = `<div class="time-cell">${timeHTML}</div>`;
       });
     }
 
+    // ⚡ Hàm mở phòng - Ghi thời gian chính xác tại thời điểm bấm nút
     async function openRoom(roomName) {
       const btn = document.getElementById(`btn-open-${roomName}`);
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang mở...'; }
 
+      // Lấy thời gian CHÍNH XÁC tại thời điểm bấm nút
+      const openTime = getCurrentTime();
+      console.log(`🔓 Mở phòng ${roomName} lúc: ${openTime}`);
+
       const { error } = await supabaseClient.from('thungan').update({
-        trang_thai: 'dang mo', so_tien: 0, thoi_gian: getCurrentTime(), thoi_gian_thanh_toan: ''
+        trang_thai: 'dang mo', 
+        so_tien: 0, 
+        thoi_gian: openTime,           // ⚡ Thời gian mở phòng
+        thoi_gian_thanh_toan: ''       // Xóa thời gian thanh toán cũ
       }).eq('ten_phong', roomName);
 
-      if (!error) { showToast(`Đã mở ${getDisplayName(roomName)}`); } 
-      else { showToast("Lỗi: " + error.message, "error"); }
+      if (!error) { 
+        showToast(`✅ Đã mở ${getDisplayName(roomName)} lúc ${openTime}`); 
+      } else { 
+        showToast("❌ Lỗi: " + error.message, "error"); 
+      }
 
       if (btn) { btn.disabled = false; btn.innerHTML = '🔓 Mở phòng'; }
       await loadRooms(false);
@@ -363,7 +403,7 @@
       if (btn) { btn.disabled = false; btn.classList.add('enabled'); }
     }
 
-    // ⚡ LOGIC MỚI: Mở phòng + Ghi giờ + Lưu tiền cho cả "Chưa mở" và "Đã thanh toán"
+    // ⚡ Hàm cập nhật tiền - Tự động mở phòng nếu đang "Chưa mở" hoặc "Đã thanh toán"
     async function updateAmount(roomName) {
       const amount = parseNumber(document.getElementById(`amount-${roomName}`).value);
       const btn = document.getElementById(`btn-update-${roomName}`);
@@ -372,14 +412,16 @@
       
       const currentRoom = previousRoomsData.find(r => r.ten_phong === roomName);
       let updatePayload = { so_tien: amount };
-      let actionMessage = `Đã cập nhật số tiền ${getDisplayName(roomName)}`;
+      let actionMessage = `✅ Đã cập nhật số tiền ${getDisplayName(roomName)}`;
       
       // Nếu phòng đang "Chưa mở" HOẶC "Đã thanh toán" -> Tự động mở lại và ghi giờ mới
       if (currentRoom && (currentRoom.trang_thai === 'chua mo' || currentRoom.trang_thai === 'da thanh toan')) {
+        const openTime = getCurrentTime(); // ⚡ Lấy thời gian tại thời điểm bấm nút
         updatePayload.trang_thai = 'dang mo';
-        updatePayload.thoi_gian = getCurrentTime();
-        updatePayload.thoi_gian_thanh_toan = ''; // Xóa giờ thanh toán cũ để tránh xung đột logic 30 phút
-        actionMessage = `Đã mở ${getDisplayName(roomName)} và cập nhật số tiền`;
+        updatePayload.thoi_gian = openTime;           // ⚡ Thời gian mở phòng mới
+        updatePayload.thoi_gian_thanh_toan = '';      // Xóa giờ thanh toán cũ
+        actionMessage = `✅ Đã mở ${getDisplayName(roomName)} lúc ${openTime} và cập nhật số tiền`;
+        console.log(`💾 Mở phòng lại ${roomName} lúc: ${openTime}`);
       }
 
       const { error } = await supabaseClient.from('thungan').update(updatePayload).eq('ten_phong', roomName);
@@ -387,23 +429,32 @@
       if (!error) { 
         showToast(actionMessage, "success"); 
       } else { 
-        showToast("Lỗi: " + error.message, "error"); 
+        showToast("❌ Lỗi: " + error.message, "error"); 
       }
 
-      if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '💾 Cập nhật'; btn.classList.remove('enabled'); }
       await loadRooms(false);
     }
 
+    // ⚡ Hàm thanh toán - Ghi thời gian chính xác tại thời điểm bấm nút
     async function markPaid(roomName) {
       const btn = document.getElementById(`btn-paid-${roomName}`);
       if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang xử lý...'; }
 
+      // Lấy thời gian CHÍNH XÁC tại thời điểm bấm nút
+      const paidTime = getCurrentTime();
+      console.log(`✅ Thanh toán phòng ${roomName} lúc: ${paidTime}`);
+
       const { error } = await supabaseClient.from('thungan').update({
-        trang_thai: 'da thanh toan', thoi_gian_thanh_toan: getCurrentTime()
+        trang_thai: 'da thanh toan', 
+        thoi_gian_thanh_toan: paidTime  // ⚡ Thời gian thanh toán
       }).eq('ten_phong', roomName);
 
-      if (!error) { showToast(`Đã thanh toán ${getDisplayName(roomName)}`); } 
-      else { showToast("Lỗi: " + error.message, "error"); }
+      if (!error) { 
+        showToast(`✅ Đã thanh toán ${getDisplayName(roomName)} lúc ${paidTime}`); 
+      } else { 
+        showToast("❌ Lỗi: " + error.message, "error"); 
+      }
 
       if (btn) { btn.disabled = false; btn.innerHTML = '✅ Thanh toán'; }
       await loadRooms(false);
