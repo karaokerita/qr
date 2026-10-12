@@ -16,8 +16,8 @@
       --warning: #ff6600;
       --bg-overlay: rgba(255, 255, 255, 0.95);
       --radius: 12px;
-      --color-time-open: #0369a1;    /* Xanh dương cho thời gian mở */
-      --color-time-paid: #065f46;    /* Xanh lá cho thời gian thanh toán */
+      --color-time-open: #0369a1;
+      --color-time-paid: #065f46;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -68,12 +68,38 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     .amount-input, .room-select { 
-      width: 100%; font-size: 18px; font-weight: 600; padding: 12px; margin-bottom: 10px; 
+      width: 100%; font-size: 18px; font-weight: 600; padding: 12px; margin-bottom: 0; 
       text-align: center; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; color: #333; 
     }
     .amount-input:disabled, .room-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+    
+    /* ⚡ Điều chỉnh khoảng cách dòng số tiền bằng chữ sát với ô nhập hơn */
+    .amount-text { 
+      font-size: 14px; 
+      color: var(--success); 
+      margin-top: 6px; 
+      margin-bottom: 4px; 
+      text-align: center; 
+      min-height: 20px; 
+      font-weight: 700; 
+      font-style: italic; 
+    }
+
+    /* ⚡ Khối thông tin ngân hàng mới */
+    .bank-info {
+      font-size: 13px;
+      color: #334155;
+      text-align: center;
+      margin-bottom: 8px;
+      font-weight: 600;
+      line-height: 1.5;
+      background: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px dashed #cbd5e1;
+    }
+
     .room-name-qr { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 5px; text-align: center; min-height: 24px; }
-    .amount-text { font-size: 13px; color: var(--success); margin-bottom: 10px; text-align: center; min-height: 18px; font-weight: 600; font-style: italic; }
     .qr-box { display: flex; justify-content: center; margin: 10px 0; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .qr-box img { width: 200px; height: 200px; object-fit: contain; }
     
@@ -115,7 +141,6 @@
     .status-paid { color: var(--success); font-weight: 700; }
     .status-closed { color: #94a3b8; font-weight: 600; }
     
-    /* ⚡ CSS cho thời gian phân biệt */
     .time-open {
       color: var(--color-time-open);
       font-weight: 700;
@@ -198,8 +223,14 @@
 
     <div id="tab-payment" class="tab-content active">
       <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền..." inputmode="numeric" />
-      <div class="room-name-qr" id="roomNameQR"></div>
+      
+      <!-- ⚡ Dòng số tiền bằng chữ được đưa lên sát ô nhập -->
       <div class="amount-text" id="amountText"></div>
+      
+      <!-- ⚡ Thông tin ngân hàng ngay dưới dòng số tiền bằng chữ -->
+      <div class="bank-info" id="bankInfoText"></div>
+      
+      <div class="room-name-qr" id="roomNameQR"></div>
       <div class="qr-box"><img id="qrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Thanh toán" /></div>
       <button id="openCamera" class="btn-camera">📷 Chụp ảnh màn hình thanh toán</button>
 
@@ -229,9 +260,14 @@
 
       <label style="font-weight:700; font-size:14px; color:#475569; display:block; margin:15px 0 5px 0;">💵 Số tiền tạm ứng</label>
       <input id="advanceAmount" class="amount-input" type="text" placeholder="Vui lòng chọn phòng trước" disabled inputmode="numeric" />
+      
+      <!-- ⚡ Dòng số tiền bằng chữ sát ô nhập -->
+      <div class="amount-text" id="advanceAmountText"></div>
+      
+      <!-- ⚡ Thông tin ngân hàng ngay dưới dòng số tiền bằng chữ -->
+      <div class="bank-info" id="advanceBankInfoText"></div>
 
       <div class="qr-box"><img id="advanceQrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Tạm ứng" /></div>
-      <div class="amount-text" id="advanceAmountText"></div>
       <button id="openCameraAdvance" class="btn-camera" disabled>📷 Chụp ảnh tạm ứng</button>
     </div>
   </div>
@@ -339,7 +375,12 @@ function numberToWords(n) {
   return parts.join(", ").replace(/ ,/g, ",").replace(/\s+/g, " ").trim() + " đồng";
 }
 
-// ⚡ Helper functions cho xử lý thời gian
+// ⚡ Helper lấy thông tin ngân hàng dạng HTML
+function getBankInfoString(type = 'thanh_toan') {
+    const acc = bankAccounts[type] || bankAccounts.thanh_toan;
+    return `🏦 <strong>${acc.ten_ngan_hang || '...'}</strong><br>Số TK: <strong>${acc.so_tai_khoan || '...'}</strong><br>👤 ${acc.chu_tai_khoan || '...'}`;
+}
+
 function formatTime(timeStr) {
   if (!timeStr) return '';
   const parts = String(timeStr).split(':');
@@ -353,30 +394,14 @@ function isEmptyTime(timeStr) {
   return formatted === '00:00' || formatted === '';
 }
 
-// ⚡ Lấy thời gian hiển thị theo ưu tiên: 1. Mở phòng, 2. Thanh toán
 function getDisplayTimeInfo(room) {
-  // Ưu tiên 1: Thời gian mở phòng
   if (!isEmptyTime(room.thoi_gian)) {
-    return {
-      time: formatTime(room.thoi_gian),
-      class: 'time-open',
-      type: 'open'
-    };
+    return { time: formatTime(room.thoi_gian), class: 'time-open', type: 'open' };
   }
-  // Ưu tiên 2: Thời gian thanh toán
   if (!isEmptyTime(room.thoi_gian_thanh_toan)) {
-    return {
-      time: formatTime(room.thoi_gian_thanh_toan),
-      class: 'time-paid',
-      type: 'paid'
-    };
+    return { time: formatTime(room.thoi_gian_thanh_toan), class: 'time-paid', type: 'paid' };
   }
-  // Không có thời gian
-  return {
-    time: '—',
-    class: 'time-empty',
-    type: 'none'
-  };
+  return { time: '—', class: 'time-empty', type: 'none' };
 }
 
 async function initData() {
@@ -422,6 +447,13 @@ async function loadBankAccounts() {
                 if (acc.loai_tai_khoan === 'thanh_toan') bankAccounts.thanh_toan = acc;
                 if (acc.loai_tai_khoan === 'tam_ung') bankAccounts.tam_ung = acc;
             });
+            // Cập nhật lại giao diện nếu đang có dữ liệu nhập sẵn
+            if (manualAmount.value.replace(/\D/g, "")) {
+                updateQR(manualAmount.value.replace(/\D/g, ""), roomNameQR.textContent ? Object.keys(ROOM_NAME_MAP).find(key => ROOM_NAME_MAP[key] === roomNameQR.textContent) : "");
+            }
+            if (advanceRoom.value && advanceAmount.value.replace(/\D/g, "")) {
+                refreshAdvanceQR();
+            }
         }
     } catch (e) { console.error("Lỗi tải bank:", e); }
 }
@@ -465,7 +497,6 @@ async function loadRooms(showLoading = true) {
   }
 }
 
-// ⚡ Cập nhật để detect thay đổi cả thoi_gian_thanh_toan
 function hasDataChanged(oldData, newData) {
   if (!oldData || oldData.length !== newData.length) return true;
   for (let i = 0; i < newData.length; i++) {
@@ -479,7 +510,6 @@ function hasDataChanged(oldData, newData) {
   return false;
 }
 
-// ⚡ Render với thời gian ưu tiên
 function renderTable(data) {
   const table = document.getElementById("roomTable");
   
@@ -508,9 +538,7 @@ function renderTable(data) {
     const isUnpaid = room.trang_thai === 'dang mo';
     const isPaid = room.trang_thai === 'da thanh toan';
     
-    // ⚡ Lấy thông tin thời gian theo ưu tiên
     const timeInfo = getDisplayTimeInfo(room);
-    
     const displayAmount = (room.so_tien && room.so_tien > 0) ? formatNumber(room.so_tien) : '0';
     
     if (isUnpaid) {
@@ -528,8 +556,6 @@ function renderTable(data) {
     }
     
     tr.querySelector('.cell-amount').innerHTML = `<span style="font-weight:700; color:${isUnpaid ? 'var(--danger)' : '#1e293b'}">${displayAmount}</span>`;
-    
-    // ⚡ Hiển thị thời gian với class tương ứng
     tr.querySelector('.cell-time').innerHTML = `<span class="${timeInfo.class}">${timeInfo.time}</span>`;
     
     tr.querySelector('.cell-actions').innerHTML = `
@@ -585,6 +611,7 @@ function updateQR(val, dbRoomName = "") {
   
   qrImage.src = generateQR(val, addInfo, 'thanh_toan');
   amountText.textContent = val > 0 ? numberToWords(Number(val)) : "";
+  document.getElementById("bankInfoText").innerHTML = val > 0 ? getBankInfoString('thanh_toan') : "";
 }
 
 manualAmount.addEventListener("input", function() {
@@ -595,6 +622,7 @@ manualAmount.addEventListener("input", function() {
   } else {
     this.value = "";
     amountText.textContent = "";
+    document.getElementById("bankInfoText").innerHTML = "";
     qrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
   }
 });
@@ -651,6 +679,7 @@ function updateAdvanceState() {
     advanceAmount.placeholder = "Vui lòng chọn phòng trước";
     advanceQrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     advanceAmountText.textContent = "";
+    document.getElementById("advanceBankInfoText").innerHTML = "";
   } else {
     advanceAmount.placeholder = "Nhập số tiền";
     refreshAdvanceQR();
@@ -667,9 +696,11 @@ function refreshAdvanceQR() {
   if (amountRaw && dbRoomName) {
     advanceQrImage.src = generateQR(amountRaw, `tam ung ${displayName}`, 'tam_ung');
     advanceAmountText.textContent = numberToWords(Number(amountRaw));
+    document.getElementById("advanceBankInfoText").innerHTML = getBankInfoString('tam_ung');
   } else {
     advanceQrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     advanceAmountText.textContent = "";
+    document.getElementById("advanceBankInfoText").innerHTML = "";
   }
 }
 
