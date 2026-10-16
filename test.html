@@ -74,7 +74,6 @@
     }
     .amount-input:disabled, .room-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #cbd5e1; }
     
-    /* ⚡ Điều chỉnh khoảng cách dòng số tiền bằng chữ sát với ô nhập hơn */
     .amount-text { 
       font-size: 14px; 
       color: var(--success); 
@@ -86,7 +85,6 @@
       font-style: italic; 
     }
 
-    /* ⚡ Khối thông tin ngân hàng mới */
     .bank-info {
       font-size: 13px;
       color: #334155;
@@ -223,13 +221,9 @@
     </div>
 
     <div id="tab-payment" class="tab-content active">
-      <!-- ⚡ Ô nhập tiền bị khóa mặc định, yêu cầu nhấn "Lấy QR" trước -->
       <input id="manualAmount" class="amount-input" type="text" placeholder="⚠️ Nhấn 'Lấy QR' của phòng để mở khóa" inputmode="numeric" disabled />
       
-      <!-- ⚡ Dòng số tiền bằng chữ được đưa lên sát ô nhập -->
       <div class="amount-text" id="amountText"></div>
-      
-      <!-- ⚡ Thông tin ngân hàng ngay dưới dòng số tiền bằng chữ -->
       <div class="bank-info" id="bankInfoText"></div>
       
       <div class="room-name-qr" id="roomNameQR"></div>
@@ -263,10 +257,7 @@
       <label style="font-weight:700; font-size:14px; color:#475569; display:block; margin:15px 0 5px 0;">💵 Số tiền tạm ứng</label>
       <input id="advanceAmount" class="amount-input" type="text" placeholder="Vui lòng chọn phòng trước" disabled inputmode="numeric" />
       
-      <!-- ⚡ Dòng số tiền bằng chữ sát ô nhập -->
       <div class="amount-text" id="advanceAmountText"></div>
-      
-      <!-- ⚡ Thông tin ngân hàng ngay dưới dòng số tiền bằng chữ -->
       <div class="bank-info" id="advanceBankInfoText"></div>
 
       <div class="qr-box"><img id="advanceQrImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Tạm ứng" /></div>
@@ -377,7 +368,6 @@ function numberToWords(n) {
   return parts.join(", ").replace(/ ,/g, ",").replace(/\s+/g, " ").trim() + " đồng";
 }
 
-// ⚡ Helper lấy thông tin ngân hàng dạng HTML
 function getBankInfoString(type = 'thanh_toan') {
     const acc = bankAccounts[type] || bankAccounts.thanh_toan;
     return `🏦 <strong>${acc.ten_ngan_hang || '...'}</strong><br>Số TK: <strong>${acc.so_tai_khoan || '...'}</strong><br>👤 ${acc.chu_tai_khoan || '...'}`;
@@ -449,7 +439,6 @@ async function loadBankAccounts() {
                 if (acc.loai_tai_khoan === 'thanh_toan') bankAccounts.thanh_toan = acc;
                 if (acc.loai_tai_khoan === 'tam_ung') bankAccounts.tam_ung = acc;
             });
-            // Cập nhật lại giao diện nếu đang có dữ liệu nhập sẵn
             if (manualAmount.value.replace(/\D/g, "")) {
                 updateQR(manualAmount.value.replace(/\D/g, ""), roomNameQR.textContent ? Object.keys(ROOM_NAME_MAP).find(key => ROOM_NAME_MAP[key] === roomNameQR.textContent) : "");
             }
@@ -629,12 +618,22 @@ manualAmount.addEventListener("input", function() {
   }
 });
 
-// ⚡ Cập nhật hàm fillQR để mở khóa ô nhập tiền khi nhấn "Lấy QR"
+// ⚡ Cập nhật: Nếu số tiền là 0 hoặc rỗng, ô nhập sẽ để trống hoàn toàn
 function fillQR(amount, dbRoomName) {
-  manualAmount.disabled = false; // Mở khóa ô nhập
-  manualAmount.placeholder = "Nhập hoặc điều chỉnh số tiền..."; // Đổi placeholder
-  manualAmount.value = formatNumber(amount);
-  updateQR(amount, dbRoomName);
+  manualAmount.disabled = false;
+  manualAmount.placeholder = "Nhập hoặc điều chỉnh số tiền...";
+  
+  const numAmount = Number(amount);
+  if (numAmount > 0) {
+    manualAmount.value = formatNumber(numAmount);
+    updateQR(numAmount, dbRoomName);
+  } else {
+    manualAmount.value = ""; // Để rỗng thay vì "0"
+    roomNameQR.textContent = dbRoomName ? getDisplayName(dbRoomName) : "";
+    amountText.textContent = "";
+    document.getElementById("bankInfoText").innerHTML = "";
+    qrImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -728,8 +727,11 @@ document.getElementById("openCamera").addEventListener("click", () => openCamera
 openCameraAdvance.addEventListener("click", () => openCameraModal("advance"));
 
 function openCameraModal(mode) {
-  if (mode === "payment" && !manualAmount.value) { alert("Vui lòng nhấn 'Lấy QR' và nhập số tiền trước!"); return; }
-  if (mode === "advance" && (!advanceRoom.value || !advanceAmount.value)) { alert("Vui lòng chọn phòng và nhập số tiền!"); return; }
+  // Bỏ chặn cứng nếu rỗng, để watermark tự xử lý việc ẩn dòng số tiền
+  if (mode === "advance" && (!advanceRoom.value || !advanceAmount.value)) { 
+    alert("Vui lòng chọn phòng và nhập số tiền!"); 
+    return; 
+  }
   
   currentMode = mode;
   cameraModal.style.display = "flex";
@@ -753,19 +755,33 @@ captureBtn.addEventListener("click", () => {
   if (currentMode === "payment") {
     const roomName = roomNameQR.textContent || "Karaoke Rita";
     const amountNumber = manualAmount.value;
-    currentShareText = `${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
-
-    ctx.font = "bold 24px Inter, Arial";
-    ctx.textBaseline = "top";
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(0, 0, canvas.width, 120);
-    ctx.fillStyle = "#4ade80"; 
-    ctx.fillText(`${roomName}`, padding, padding);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(`Số tiền: ${amountNumber}`, padding, padding + 35);
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "18px Inter, Arial";
-    ctx.fillText(`Thời gian: ${timeStr}`, padding, padding + 70);
+    
+    // ⚡ Xử lý watermark thông minh: Nếu rỗng thì không vẽ dòng số tiền
+    if (amountNumber) {
+      currentShareText = `${roomName}\nSố tiền: ${amountNumber}\nThời gian: ${timeStr}`;
+      ctx.font = "bold 24px Inter, Arial";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, 0, canvas.width, 120);
+      ctx.fillStyle = "#4ade80"; 
+      ctx.fillText(`${roomName}`, padding, padding);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`Số tiền: ${amountNumber}`, padding, padding + 35);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "18px Inter, Arial";
+      ctx.fillText(`Thời gian: ${timeStr}`, padding, padding + 70);
+    } else {
+      currentShareText = `${roomName}\nThời gian: ${timeStr}`;
+      ctx.font = "bold 24px Inter, Arial";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, 0, canvas.width, 85); // Thu ngắn nền đen lại cho cân đối
+      ctx.fillStyle = "#4ade80"; 
+      ctx.fillText(`${roomName}`, padding, padding);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "18px Inter, Arial";
+      ctx.fillText(`Thời gian: ${timeStr}`, padding, padding + 35);
+    }
   } else {
     const roomName = getDisplayName(advanceRoom.value.trim());
     const amountNumber = advanceAmount.value;
