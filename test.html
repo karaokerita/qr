@@ -296,6 +296,7 @@ let bankAccounts = {
 };
 
 let previousRoomsData = [];
+let currentPaymentRoom = null; // ⚡ Biến theo dõi phòng đang được lấy QR
 
 const loginScreen = document.getElementById("loginScreen");
 const mainContainer = document.getElementById("mainContainer");
@@ -618,8 +619,10 @@ manualAmount.addEventListener("input", function() {
   }
 });
 
-// ⚡ Cập nhật: Nếu số tiền là 0 hoặc rỗng, ô nhập sẽ để trống hoàn toàn
+// ⚡ Cập nhật: Đánh dấu phòng khi nhấn "Lấy QR"
 function fillQR(amount, dbRoomName) {
+  currentPaymentRoom = dbRoomName; // ⚡ Lưu lại phòng đang được thao tác
+  
   manualAmount.disabled = false;
   manualAmount.placeholder = "Nhập hoặc điều chỉnh số tiền...";
   
@@ -727,7 +730,14 @@ document.getElementById("openCamera").addEventListener("click", () => openCamera
 openCameraAdvance.addEventListener("click", () => openCameraModal("advance"));
 
 function openCameraModal(mode) {
-  // Bỏ chặn cứng nếu rỗng, để watermark tự xử lý việc ẩn dòng số tiền
+  // ⚡ BẮT BUỘC: Phải nhấn "Lấy QR" của phòng trước khi chụp
+  if (mode === "payment") {
+    if (!currentPaymentRoom) {
+      alert("⚠️ Vui lòng nhấn nút 'Lấy QR' của phòng cần thanh toán trên bảng bên dưới trước!");
+      return;
+    }
+  }
+  
   if (mode === "advance" && (!advanceRoom.value || !advanceAmount.value)) { 
     alert("Vui lòng chọn phòng và nhập số tiền!"); 
     return; 
