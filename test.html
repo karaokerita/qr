@@ -70,8 +70,9 @@
     .amount-input, .room-select { 
       width: 100%; font-size: 18px; font-weight: 600; padding: 12px; margin-bottom: 0; 
       text-align: center; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; color: #333; 
+      transition: all 0.3s ease;
     }
-    .amount-input:disabled, .room-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+    .amount-input:disabled, .room-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #cbd5e1; }
     
     /* ⚡ Điều chỉnh khoảng cách dòng số tiền bằng chữ sát với ô nhập hơn */
     .amount-text { 
@@ -222,7 +223,8 @@
     </div>
 
     <div id="tab-payment" class="tab-content active">
-      <input id="manualAmount" class="amount-input" type="text" placeholder="Nhập số tiền..." inputmode="numeric" />
+      <!-- ⚡ Ô nhập tiền bị khóa mặc định, yêu cầu nhấn "Lấy QR" trước -->
+      <input id="manualAmount" class="amount-input" type="text" placeholder="⚠️ Nhấn 'Lấy QR' của phòng để mở khóa" inputmode="numeric" disabled />
       
       <!-- ⚡ Dòng số tiền bằng chữ được đưa lên sát ô nhập -->
       <div class="amount-text" id="amountText"></div>
@@ -627,7 +629,10 @@ manualAmount.addEventListener("input", function() {
   }
 });
 
+// ⚡ Cập nhật hàm fillQR để mở khóa ô nhập tiền khi nhấn "Lấy QR"
 function fillQR(amount, dbRoomName) {
+  manualAmount.disabled = false; // Mở khóa ô nhập
+  manualAmount.placeholder = "Nhập hoặc điều chỉnh số tiền..."; // Đổi placeholder
   manualAmount.value = formatNumber(amount);
   updateQR(amount, dbRoomName);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -723,7 +728,7 @@ document.getElementById("openCamera").addEventListener("click", () => openCamera
 openCameraAdvance.addEventListener("click", () => openCameraModal("advance"));
 
 function openCameraModal(mode) {
-  if (mode === "payment" && !manualAmount.value) { alert("Vui lòng nhập số tiền trước!"); return; }
+  if (mode === "payment" && !manualAmount.value) { alert("Vui lòng nhấn 'Lấy QR' và nhập số tiền trước!"); return; }
   if (mode === "advance" && (!advanceRoom.value || !advanceAmount.value)) { alert("Vui lòng chọn phòng và nhập số tiền!"); return; }
   
   currentMode = mode;
